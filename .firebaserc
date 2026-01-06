@@ -1,0 +1,18 @@
+{
+  "projects": {
+    "default": "webycrm-activa"
+  },
+  "targets": {
+    "webycrm-activa": {
+      "hosting": {
+        "landing-web": [
+          "webycrm-activa"
+        ],
+        "crm-client": [
+          "app-activamusicoterapia"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

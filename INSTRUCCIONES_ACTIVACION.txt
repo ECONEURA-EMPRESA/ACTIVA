@@ -1,0 +1,83 @@
+
+================================================================================
+GUÍA DE ACTIVACIÓN - MÉTODO ACTIVA CRM (ENTERPRISE EDITION)
+================================================================================
+
+¡Felicidades! Ha adquirido la versión Enterprise del CRM Método Activa.
+Esta versión incluye una arquitectura "No-Monolith", integración real con Backend,
+y despliegue automatizado con Terraform en Google Cloud Platform.
+
+--------------------------------------------------------------------------------
+PASO 1: REQUISITOS PREVIOS
+--------------------------------------------------------------------------------
+Asegúrese de tener instaladas las siguientes herramientas:
+1. Node.js (v18+)
+2. pnpm (npm install -g pnpm)
+3. Google Cloud SDK (gcloud auth login)
+4. Terraform (Para el despliegue de infraestructura)
+
+--------------------------------------------------------------------------------
+PASO 2: DESPLIEGUE DE INFRAESTRUCTURA (TERRAFORM)
+--------------------------------------------------------------------------------
+Nuestra infraestructura es "Code-First". No cree recursos manualmente.
+
+1. Navegue al directorio de infraestructura:
+   cd infra/terraform
+
+2. Inicialice Terraform:
+   terraform init
+
+3. Revise el plan de ejecución:
+   terraform plan
+
+4. Aplique la configuración (Escriba 'yes' cuando se le pida):
+   terraform apply
+
+   Esto creará automáticamente:
+   - Cloud Run Service (crm-api-prod)
+   - Firestore Database (Native Mode)
+   - Artifact Registry (crm-repo)
+   - Permisos IAM necesarios
+
+--------------------------------------------------------------------------------
+PASO 3: CONFIGURACIÓN DEL BACKEND
+--------------------------------------------------------------------------------
+1. Navegue al directorio del backend:
+   cd apps/backend-api
+
+2. Instale dependencias:
+   pnpm install
+
+3. (OPCIONAL) Cargue los datos semilla iniciales en la base de datos real:
+   pnpm seed
+   
+   NOTA: Esto cargará los pacientes de prueba (Maria García, etc.) en Firestore.
+   Solo ejecute esto una vez.
+
+--------------------------------------------------------------------------------
+PASO 4: LANZAMIENTO LOCAL (DESARROLLO)
+--------------------------------------------------------------------------------
+Para probar todo el sistema en su máquina local:
+
+1. Inicie el Backend (Puerto 8080):
+   cd apps/backend-api
+   pnpm dev
+
+2. En otra terminal, inicie el Frontend (Puerto 5173):
+   cd apps/crm-client
+   pnpm dev
+
+3. Abra su navegador en: http://localhost:5173
+
+--------------------------------------------------------------------------------
+NOTAS IMPORTANTES DE SEGURIDAD
+--------------------------------------------------------------------------------
+- El Frontend ahora requiere autenticación real. Use "Modo Invitado" (Demo) si
+  no quiere configurar usuarios en Firebase Auth todavía.
+- El Backend está protegido por Middleware que verifica Tokens de Firebase.
+- No suba nunca el archivo .env.local al repositorio git.
+
+================================================================================
+SOPORTE TÉCNICO
+================================================================================
+Para dudas sobre la arquitectura Cloud o Terraform, contacte al equipo de soporte.

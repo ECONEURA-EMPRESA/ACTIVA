@@ -1,0 +1,22 @@
+GUÍA RÁPIDA: HABILITAR EMAIL/PASSWORD EN FIREBASE
+===================================================
+
+Para que el login funcione, Google requiere una activación manual de seguridad
+que no se puede hacer por código.
+
+Siga estos 4 pasos exactos:
+
+1. HAGA CLIC EN ESTE ENLACE DIRECTO:
+   https://console.firebase.google.com/project/crm-activa-2512311714/authentication/providers
+
+2. Verá una lista de "Sign-in providers" (Proveedores de acceso).
+   Haga clic en la primera opción que dice "Native providers" > "Email/Password".
+
+3. Active el interruptor "Enable" (El primero de arriba).
+   NOTA: El segundo interruptor ("Email link") DÉJELO APAGADO.
+   
+4. Haga clic en el botón azul "Save" (Guardar).
+
+¡LISTO!
+Ahora vuelva a su aplicación y pruebe iniciar sesión o registrarse.
+https://crm-activa-2512311714.web.app

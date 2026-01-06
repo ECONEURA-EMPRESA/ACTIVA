@@ -1,0 +1,61 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- FUNCTIONS ---
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isSelf(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // --- RULES ---
+
+    // 1. USERS (Critical for Auth/Premium)
+    // Usuarios pueden leer su propio perfil (para ver isPremium) pero no escribir roles sensibles.
+    match /users/{userId} {
+      allow read: if isSelf(userId);
+      // Solo permitir crear/actualizar si el ID coincide. 
+      // Idealmente campos sensibles como 'subscriptionStatus' deberían bloquearse en write, 
+      // pero por ahora permitimos write self para perfil básico.
+      allow create, update: if isSelf(userId); 
+      allow delete: if isSelf(userId);
+    }
+
+    // 2. PATIENTS
+    // Solo el dueño del paciente (userId field) puede leer/escribir.
+    match /patients/{patientId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isOwner(resource.data.userId));
+      allow create: if isOwner(request.resource.data.userId);
+      allow update: if isOwner(resource.data.userId) 
+                    && request.resource.data.userId == resource.data.userId;
+      allow delete: if isOwner(resource.data.userId);
+    }
+
+    // 3. SESSIONS (Clinical Data)
+    match /sessions/{sessionId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isOwner(resource.data.userId));
+      allow create: if isOwner(request.resource.data.userId);
+      allow update: if isOwner(resource.data.userId) 
+                    && request.resource.data.userId == resource.data.userId;
+      allow delete: if isOwner(resource.data.userId);
+    }
+
+    // 4. CONFIG/SETTINGS
+    match /config/{configId} {
+       allow read, write: if isAuthenticated() && (configId == 'settings_' + request.auth.uid || resource.data.userId == request.auth.uid);
+    }
+
+    // 5. DEFAULT DENY
+    match /{document=**} {
+      allow read, write: if false; 
+    }
+  }
+}

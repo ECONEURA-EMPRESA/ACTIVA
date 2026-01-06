@@ -1,0 +1,41 @@
+{
+  "name": "monorepo-crm-activa",
+  "version": "1.0.0",
+  "description": "The Sovereign Clinical Operating System for Neurorehabilitation.",
+  "author": "ECONEURA / MÉTODO ACTIVA S.L.",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "web": "pnpm --filter landing-web dev",
+    "crm": "pnpm --filter crm-client dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "backup": "tsx scripts/backup-firestore.ts",
+    "restore": "tsx scripts/restore-firestore.ts"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.0",
+    "@types/jest": "^30.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.51.0",
+    "@typescript-eslint/parser": "^8.51.0",
+    "date-fns": "^4.1.0",
+    "eslint": "^8.55.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.26",
+    "firebase-admin": "^11.11.1",
+    "jest": "^30.2.0",
+    "prettier": "latest",
+    "ts-jest": "^29.4.6",
+    "tsx": "^4.6.2",
+    "turbo": "latest",
+    "typescript": "^5.9.3"
+  },
+  "packageManager": "pnpm@8.15.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}

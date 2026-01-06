@@ -1,0 +1,25 @@
+# Ignore everything by default
+*
+
+# Allow file structure details
+!/package.json
+!/pnpm-lock.yaml
+!/pnpm-workspace.yaml
+!/turbo.json
+!/cloudbuild.yaml
+!/.gitignore
+!/tsconfig.json
+
+# Allow parent directories
+!/apps/
+!/packages/
+
+# Allow source code for backend and shared
+!/apps/backend-api/**
+!/packages/shared/**
+
+# Explicitly ignore dependencies (even if inside allowed folders)
+**/node_modules
+**/dist
+**/.turbo
+**/.git
