@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { Activity, Menu, X, User } from 'lucide-react';
 import logoPremium from '../../assets/images/logo-premium.png';
 
+const CRM_URL = import.meta.env.VITE_CRM_URL || 'https://app.activamusicoterapia.com';
+
 const LoginButton = () => (
     <a
-        href="https://app.activamusicoterapia.com"
+        href={CRM_URL}
         target="_self"
         className="hidden md:flex h-12 px-8 items-center justify-center rounded-full bg-[#0A0F1D] text-white text-sm font-['Outfit'] font-bold hover:bg-[#3B82F6] transition-all shadow-xl shadow-[#0A0F1D]/20 gap-2.5 hover:-translate-y-1 active:scale-95 duration-300 border border-transparent ring-1 ring-white/10"
     >
@@ -81,7 +83,7 @@ export const Navigation = () => {
                             </a>
                         ))}
                         <div className="pt-10 border-t border-gray-100">
-                            <a href="https://app.activamusicoterapia.com" className="w-full bg-[#0A0F1D] text-white py-6 rounded-3xl font-['Outfit'] font-bold text-xl shadow-xl shadow-[#0A0F1D]/20 flex items-center justify-center gap-3 active:scale-95 transition-transform">
+                            <a href={CRM_URL} className="w-full bg-[#0A0F1D] text-white py-6 rounded-3xl font-['Outfit'] font-bold text-xl shadow-xl shadow-[#0A0F1D]/20 flex items-center justify-center gap-3 active:scale-95 transition-transform">
                                 <User size={24} />
                                 Login CRM ACTIVA
                             </a>
