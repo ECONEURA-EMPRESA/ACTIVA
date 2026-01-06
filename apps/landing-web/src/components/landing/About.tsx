@@ -11,32 +11,23 @@ export const About = () => {
                 <div className="grid lg:grid-cols-2 gap-20 items-center">
                     <div className="relative order-2 lg:order-1 flex justify-center lg:justify-end pr-0 lg:pr-12">
                         {/* Constrained Image Container */}
-                        <div className="relative w-72 h-72 md:w-80 md:h-80 mx-auto lg:mx-0">
-                            <div className="absolute inset-0 rounded-[2rem] overflow-hidden shadow-2xl shadow-[#0A0F1D]/15 group tilt-card ring-8 ring-white">
-                                <div className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-105" style={{ backgroundImage: `url(${auroraImg})` }} role="img" aria-label="Aurora Del Río, Fundadora y Directora Clínica de Activa Musicoterapia"></div>
-                                {/* Subtle gradient overlay */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-[#0A0F1D]/40 to-transparent"></div>
-                            </div>
+                        {/* Constrained Image Container */}
+                        <div className="relative w-80 h-96 md:w-[400px] md:h-[500px] mx-auto lg:mx-0">
+                            {/* Main Frame */}
+                            <div className="absolute inset-0 rounded-[2rem] overflow-hidden shadow-2xl shadow-[#EC008C]/10 border border-gray-100 bg-white ring-1 ring-black/5 z-20">
+                                <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 hover:scale-105" style={{ backgroundImage: `url(${auroraImg})` }} role="img" aria-label="Aurora Del Río, Fundadora y Directora Clínica de Activa Musicoterapia"></div>
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#0A0F1D]/80 via-transparent to-transparent"></div>
 
-                            {/* Decorative elements */}
-                            <div className="absolute -top-8 -left-8 w-40 h-40 bg-[#3B82F6] rounded-full blur-[60px] opacity-20 -z-10"></div>
-                            <div className="absolute -bottom-8 -right-8 w-40 h-40 bg-[#EC008C] rounded-full blur-[60px] opacity-20 -z-10"></div>
-
-                            {/* Floater: Quote (Moved outside to be a card) */}
-                            <div className="absolute -bottom-10 -left-6 md:-left-12 bg-white/80 backdrop-blur-md border border-white/60 p-5 rounded-2xl shadow-xl max-w-[220px] animate-float" style={{ animationDelay: '1s' }}>
-                                <Quote className="text-[#EC008C] mb-2" size={20} />
-                                <p className="text-[#0A0F1D]/80 text-xs italic font-['Inter'] font-medium">"La arquitectura invisible que reconstruye el cerebro."</p>
-                            </div>
-
-                            {/* Floater: Experience */}
-                            <div className="absolute -top-6 -right-6 md:-right-12 bg-white p-4 rounded-2xl shadow-xl shadow-[#3B82F6]/10 animate-float border border-gray-100 z-20">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <div className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse"></div>
-                                    <span className="text-[10px] font-bold uppercase text-[#64748B] tracking-wider">Trayectoria</span>
+                                {/* Static Premium Label */}
+                                <div className="absolute bottom-0 left-0 w-full p-8 text-white">
+                                    <p className="font-['Outfit'] font-bold text-2xl tracking-tight">Aurora Del Río</p>
+                                    <p className="font-['Inter'] text-sm text-white/80 font-medium tracking-wide border-l-2 border-[#EC008C] pl-3 mt-2">Fundadora & Directora Clínica</p>
                                 </div>
-                                <p className="text-[#0A0F1D] font-['Outfit'] font-bold text-3xl">20+</p>
-                                <p className="text-[#64748B] text-[10px] font-['Inter'] font-medium">Años de experiencia</p>
                             </div>
+
+                            {/* Decorative Back Layers (Static) */}
+                            <div className="absolute top-4 -right-4 w-full h-full rounded-[2rem] border-2 border-[#EC008C]/10 bg-transparent z-10"></div>
+                            <div className="absolute -top-4 -left-4 w-full h-full rounded-[2rem] bg-gray-50 -z-10"></div>
                         </div>
                     </div>
 
