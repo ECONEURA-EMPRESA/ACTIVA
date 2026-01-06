@@ -13,7 +13,7 @@ export const About = () => {
                         {/* Constrained Image Container */}
                         <div className="relative w-72 h-72 md:w-80 md:h-80 mx-auto lg:mx-0">
                             <div className="absolute inset-0 rounded-[2rem] overflow-hidden shadow-2xl shadow-[#0A0F1D]/15 group tilt-card ring-8 ring-white">
-                                <div className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-105" style={{ backgroundImage: `url(${auroraImg})` }}></div>
+                                <div className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-105" style={{ backgroundImage: `url(${auroraImg})` }} role="img" aria-label="Aurora Del Río, Fundadora y Directora Clínica de Activa Musicoterapia"></div>
                                 {/* Subtle gradient overlay */}
                                 <div className="absolute inset-0 bg-gradient-to-t from-[#0A0F1D]/40 to-transparent"></div>
                             </div>

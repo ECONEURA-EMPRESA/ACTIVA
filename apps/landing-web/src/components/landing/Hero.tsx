@@ -58,6 +58,8 @@ export const Hero = ({ onOpenModal }: HeroProps) => {
                                 <div
                                     className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 ease-out group-hover:scale-105"
                                     style={{ backgroundImage: `url(${heroImg})` }}
+                                    role="img"
+                                    aria-label="Sesión de musicoterapia neurológica con Método Activa"
                                 ></div>
                                 <div className="absolute inset-0 bg-gradient-to-t from-[#0A0F1D] via-transparent to-transparent opacity-60"></div>
                             </div>

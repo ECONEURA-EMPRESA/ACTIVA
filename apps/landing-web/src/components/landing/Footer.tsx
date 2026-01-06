@@ -7,7 +7,7 @@ export const Footer = () => {
             <div className="max-w-[960px] mx-auto flex flex-col gap-12">
                 <div className="flex flex-col items-center gap-8">
                     <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center shadow-[0_0_40px_-5px_#EC008C] ring-2 ring-[#EC008C]/30 relative overflow-hidden group">
-                        <img src={logoPremium} alt="Activa Logo" className="w-[105%] h-auto object-contain drop-shadow-[0_2px_4px_rgba(236,0,140,0.4)] group-hover:scale-110 transition-transform duration-500" />
+                        <img src={logoPremium} alt="Logotipo Oficial Activa Musicoterapia - Ciencia y Salud" className="w-[105%] h-auto object-contain drop-shadow-[0_2px_4px_rgba(236,0,140,0.4)] group-hover:scale-110 transition-transform duration-500" />
                         <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/40 to-transparent translate-x-[-100%] group-hover:animate-shine"></div>
                     </div>
                     <p className="text-gray-400 text-lg font-['Inter'] max-w-lg mx-auto font-light leading-relaxed">Activa Musicoterapia combina la ciencia, la música y la tecnología para mejorar la calidad de vida.</p>

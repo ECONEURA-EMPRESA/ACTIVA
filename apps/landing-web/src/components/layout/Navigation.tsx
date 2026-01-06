@@ -38,7 +38,7 @@ export const Navigation = () => {
                     {/* Logo */}
                     <div className="flex items-center gap-4 group cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
                         <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-[0_0_20px_-5px_#EC008C] ring-2 ring-[#EC008C]/30 relative overflow-hidden transition-all duration-300 group-hover:shadow-[0_0_30px_-5px_#EC008C] group-hover:ring-[#EC008C]/50">
-                            <img src={logoPremium} alt="Activa Logo" className="w-[105%] h-auto object-contain drop-shadow-[0_2px_4px_rgba(236,0,140,0.4)]" />
+                            <img src={logoPremium} alt="Logotipo Oficial Activa Musicoterapia - Clínica de Neurorehabilitación" className="w-[105%] h-auto object-contain drop-shadow-[0_2px_4px_rgba(236,0,140,0.4)]" />
                         </div>
                     </div>
 

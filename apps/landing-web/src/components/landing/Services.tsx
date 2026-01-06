@@ -26,7 +26,7 @@ export const Services = ({ onOpenModal }: ServicesProps) => {
                         onClick={() => onOpenModal('clinic')}
                         className="group flex flex-col justify-end rounded-[2.5rem] bg-[#0A0F1D] shadow-2xl hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] transition-all duration-700 hover:scale-[1.01] lg:row-span-2 min-h-[520px] lg:min-h-full cursor-pointer ring-1 ring-white/10"
                     >
-                        <div className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-110 opacity-70" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=1000")' }}></div>
+                        <div className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-110 opacity-70" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=1000")' }} role="img" aria-label="Terapia de estimulación cognitiva para adultos mayores"></div>
                         <div className="absolute inset-0 bg-gradient-to-t from-[#0A0F1D] via-[#0A0F1D]/80 to-transparent opacity-90"></div>
                         <div className="relative z-10 p-10 flex flex-col h-full justify-end">
                             <div className="mb-auto pt-2">
@@ -122,7 +122,7 @@ export const Services = ({ onOpenModal }: ServicesProps) => {
                             </div>
                         </div>
                         <div className="relative w-full md:w-[45%] h-64 md:h-auto overflow-hidden">
-                            <div className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-105" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1576091160550-217358c7e618?auto=format&fit=crop&q=80&w=1000")' }}></div>
+                            <div className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-105" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1576091160550-217358c7e618?auto=format&fit=crop&q=80&w=1000")' }} role="img" aria-label="Investigación científica y neurociencia aplicada a la musicoterapia"></div>
                             <div className="hidden md:block absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-white"></div>
                             <div className="md:hidden absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-white"></div>
                         </div>

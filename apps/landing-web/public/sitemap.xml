@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Main Landing -->
+  <url>
+    <loc>https://activamusicoterapia.com/</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <!-- Legal Pages -->
+  <url>
+    <loc>https://activamusicoterapia.com/legal/privacy</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://activamusicoterapia.com/legal/terms</loc>
+    <lastmod>2026-01-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+</urlset>
