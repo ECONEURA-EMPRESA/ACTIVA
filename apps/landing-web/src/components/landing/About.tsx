@@ -1,4 +1,3 @@
-import { Quote } from 'lucide-react';
 import { RevealSection } from '../ui/RevealSection';
 import auroraImg from '../../assets/images/aurora-profile.jpg';
 
