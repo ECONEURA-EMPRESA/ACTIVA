@@ -11,13 +11,13 @@ interface EmptyStateProps {
 export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, description, action }) => {
     return (
         <div className="flex flex-col items-center justify-center p-8 text-center animate-in fade-in fill-mode-both duration-500">
-            <div className="w-32 h-32 bg-slate-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center mb-6 relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-tr from-pink-100 to-transparent dark:from-pink-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="w-32 h-32 bg-slate-50 rounded-full flex items-center justify-center mb-6 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-tr from-pink-100 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 {Icon ? (
-                    <Icon size={48} className="text-slate-300 dark:text-slate-600 group-hover:text-pink-400 group-hover:scale-110 transition-all duration-300" />
+                    <Icon size={48} className="text-slate-300 group-hover:text-pink-400 group-hover:scale-110 transition-all duration-300" />
                 ) : (
                     <svg
-                        className="w-16 h-16 text-slate-200 dark:text-slate-700"
+                        className="w-16 h-16 text-slate-200"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -27,7 +27,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, descr
                     </svg>
                 )}
             </div>
-            <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">{title}</h3>
+            <h3 className="text-xl font-bold text-slate-800 mb-2">{title}</h3>
             <p className="text-slate-500 max-w-sm mb-6 leading-relaxed">{description}</p>
             {action && (
                 <div className="mt-2">

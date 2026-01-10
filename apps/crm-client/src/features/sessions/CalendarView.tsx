@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import { Button } from '../../components/ui/Button';
-import { ChevronLeft, ChevronRight, CalendarCheck, Users, StickyNote } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarCheck, Users, StickyNote, MessageCircle, AlertTriangle, Loader2 } from 'lucide-react';
 import { Patient, GroupSession } from '../../lib/types';
 import { Toast } from '../../components/ui/Toast';
+import { useSessionController } from '../../hooks/controllers/useSessionController';
+import { WhatsApp } from '../../lib/whatsappUtils';
+import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 interface CalendarViewProps {
   patients: Patient[];
-  groupSessions: GroupSession[];
+  groupSessions: GroupSession[]; // Kept for now, should move to controller too eventually
   onNavigate: (view: string, data?: any) => void;
-  onOpenGroupModal: () => void;
-  onOpenSessionModal: () => void; // Kept for interface compatibility
+  onOpenGroupModal: (mode: 'schedule' | 'evolution', data?: any) => void;
+  onOpenSessionModal: () => void;
   onOpenQuickAppointment: (mode: 'new' | 'existing') => void;
 }
 
@@ -20,45 +24,55 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   onOpenGroupModal,
   onOpenQuickAppointment,
 }) => {
+  // const { user } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(new Date());
   const [dailyNotes, setDailyNotes] = useState('');
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
 
-  // Eventos combinados
-  // Ensure we handle potentially undefined dates gracefully
-  const individualEvents = patients.flatMap(
-    (p) =>
-      (p.sessions || [])
-        .map((s, i) => {
-          if (!s.date) return null;
-          const [d, m, y] = s.date.split('/');
-          return {
-            ...s,
-            id: `ind - ${p.id} -${i} `,
-            patientId: p.id,
-            title: p.name,
-            type: 'individual' as const,
-            dateObj: new Date(parseInt(y), parseInt(m) - 1, parseInt(d)),
-            isAbsent: s.isAbsent,
-          };
-        })
-        .filter((e): e is NonNullable<typeof e> => e !== null),
-  );
+  // Derive date range for the query (current month)
+  // We fetch a bit more (previous/next week) if needed, but per month is fine.
+  // Using ISO 'YYYY-MM-DD'
+  const start = format(startOfMonth(currentDate), 'yyyy-MM-dd');
+  const end = format(endOfMonth(currentDate), 'yyyy-MM-dd');
 
-  const groupEvents = groupSessions
-    .map((s, i) => {
-      if (!s.date) return null;
+  // TITANIUM CONTROLLER
+  const { sessions: fetchedSessions, isLoading, isError, error } = useSessionController({ start, end });
+
+  // Map fetched sessions to UI Events
+  // We need to look up Patient Name from the patients prop
+  const individualEvents = fetchedSessions.map(session => {
+    const patient = patients.find(p => String(p.id) === String(session.patientId)) || { name: 'Desconocido', contact: '' };
+    return {
+      ...session,
+      title: patient.name, // Derived name
+      patientName: patient.name,
+      contact: patient.contact,
+      dateObj: new Date(session.date), // Assumes ISO YYYY-MM-DD
+      type: 'individual' as const,
+      time: session.time, // EXPLICITLY INCLUDE TIME
+    };
+  });
+
+  // Legacy Group Sessions (passed as prop for now, assuming not refactored yet)
+  const groupEvents = groupSessions.map(s => {
+    let dateObj: Date;
+    if (s.date.includes('/')) {
+      // Legacy DD/MM/YYYY
       const [d, m, y] = s.date.split('/');
-      return {
-        ...s,
-        id: `grp - ${i} `,
-        title: s.location || 'Grupo',
-        type: 'group' as const,
-        dateObj: new Date(parseInt(y), parseInt(m) - 1, parseInt(d)),
-      };
-    })
-    .filter((e): e is NonNullable<typeof e> => e !== null);
+      dateObj = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+    } else {
+      // ISO YYYY-MM-DD
+      dateObj = new Date(s.date);
+    }
+
+    return {
+      ...s,
+      title: s.groupName || 'Grupo',
+      type: 'group' as const,
+      dateObj,
+    };
+  });
 
   const allEvents = [...individualEvents, ...groupEvents];
 
@@ -73,11 +87,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   const { days, firstDay } = getDaysInMonth(currentDate);
 
-  // Mini calendario (Mes siguiente)
-  const nextMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+  // Mini Calendar (Next Month)
+  const nextMonthDate = addMonths(currentDate, 1);
   const { days: nextDays, firstDay: nextFirstDay } = getDaysInMonth(nextMonthDate);
 
-  // Eventos del día seleccionado
+  // Selected Day Events
   const selectedEvents = allEvents.filter(
     (e) =>
       e.dateObj.getDate() === selectedDay.getDate() &&
@@ -86,31 +100,29 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   );
 
   const handleMonthChange = (offset: number) => {
-    const newDate = new Date(currentDate);
-    newDate.setMonth(currentDate.getMonth() + offset);
-    setCurrentDate(newDate);
+    setCurrentDate(prev => addMonths(prev, offset));
   };
 
   return (
-    <div className="flex gap-6 h-full p-2 animate-in fade-in max-w-[1600px] mx-auto relative">
+    <div className="flex flex-col lg:flex-row gap-6 h-full p-2 animate-in fade-in max-w-[1600px] mx-auto relative overflow-y-auto lg:overflow-hidden">
       {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
 
-      {/* IZQUIERDA: CALENDARIO PRINCIPAL GRANDE */}
-      <div className="flex-1 flex flex-col gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+      {/* Main Calendar */}
+      <div className="flex-1 flex flex-col gap-4 bg-white p-4 lg:p-6 rounded-2xl shadow-sm border border-slate-100 min-h-[500px]">
         <div className="flex justify-between items-center mb-4">
           <div className="flex gap-2 items-center">
             <Button variant="ghost" onClick={() => handleMonthChange(-1)} icon={ChevronLeft}>
               {null}
             </Button>
             <h2 className="text-2xl font-bold text-slate-800 uppercase tracking-wide min-w-[200px] text-center">
-              {currentDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+              {format(currentDate, 'MMMM yyyy', { locale: es })}
             </h2>
             <Button variant="ghost" onClick={() => handleMonthChange(1)} icon={ChevronRight}>
               {null}
             </Button>
+            {isLoading && <Loader2 className="animate-spin text-slate-400" size={20} />}
           </div>
           <div className="flex gap-2">
-            {/* Botón único Nueva Cita (default: Existing) */}
             <Button
               size="sm"
               onClick={() => onOpenQuickAppointment('existing')}
@@ -118,13 +130,25 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             >
               Nueva Cita
             </Button>
-            <Button size="sm" onClick={onOpenGroupModal} icon={Users}>
+            <Button size="sm" onClick={() => onOpenGroupModal('schedule')} icon={Users}>
               Grupal
             </Button>
           </div>
         </div>
 
-        {/* GRID CALENDARIO */}
+        {/* Missing Index Warning */}
+        {isError && (
+          <div className="bg-amber-50 p-4 rounded-lg flex gap-4 items-center mb-4 border border-amber-200">
+            <AlertTriangle className="text-amber-500" />
+            <div className="text-sm text-amber-800">
+              <strong>Requiere Configuración:</strong> Falta el índice compuesto "Collection Group" en Firebase.
+              <br />
+              <a href="#" className="underline" onClick={(e) => { e.preventDefault(); console.error(error); }}>Ver error en consola</a> para el enlace de creación.
+            </div>
+          </div>
+        )}
+
+        {/* GRID */}
         <div className="grid grid-cols-7 gap-2 h-full">
           {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((d) => (
             <div key={d} className="text-center font-bold text-slate-400 uppercase text-xs py-2">
@@ -135,7 +159,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           {Array(firstDay)
             .fill(null)
             .map((_, i) => (
-              <div key={`empty - ${i} `} className="bg-slate-50/50 rounded-lg" />
+              <div key={`empty-${i}`} className="bg-slate-50/50 rounded-lg" />
             ))}
 
           {Array(days)
@@ -160,35 +184,15 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   onClick={() =>
                     setSelectedDay(new Date(currentDate.getFullYear(), currentDate.getMonth(), day))
                   }
-                  className={`p - 2 rounded - xl border transition - all cursor - pointer flex flex - col gap - 1 min - h - [80px] ${isSelected
+                  className={`p-2 rounded-xl border transition-all cursor-pointer flex flex-col gap-1 min-h-[80px] ${isSelected
                     ? 'border-pink-500 ring-2 ring-pink-100 bg-pink-50'
                     : 'border-slate-100 hover:border-slate-300'
-                    } `}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    e.currentTarget.classList.add('bg-pink-50/50');
-                  }}
-                  onDragLeave={(e) => {
-                    e.currentTarget.classList.remove('bg-pink-50/50');
-                  }}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    e.currentTarget.classList.remove('bg-pink-50/50');
-                    try {
-                      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-                      setToast({
-                        msg: `Cita de ${data.title} reprogramada al día ${day} `,
-                        type: 'success'
-                      });
-                    } catch (err) {
-                      console.error('Drag error', err);
-                    }
-                  }}
+                    }`}
                 >
                   <div className="flex justify-between">
                     <span
-                      className={`text - sm font - bold w - 6 h - 6 flex items - center justify - center rounded - full ${isToday ? 'bg-slate-900 text-white' : 'text-slate-700'
-                        } `}
+                      className={`text-sm font-bold w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-slate-900 text-white' : 'text-slate-700'
+                        }`}
                     >
                       {day}
                     </span>
@@ -202,7 +206,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                         key={idx}
                         className={`h-1.5 rounded-full w-full ${e.type === 'group'
                           ? 'bg-indigo-400'
-                          : (e as any).isAbsent
+                          : 'isAbsent' in e && e.isAbsent
                             ? 'bg-red-400'
                             : 'bg-pink-400'
                           }`}
@@ -219,12 +223,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         </div>
       </div>
 
-      {/* DERECHA: PANEL LATERAL */}
-      <div className="w-80 flex flex-col gap-6">
-        {/* MINI CALENDARIO MES SIGUIENTE */}
+      {/* Right Panel */}
+      <div className="w-full lg:w-80 flex flex-col gap-6 shrink-0 order-first lg:order-last">
+        {/* Next Month Mini */}
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hidden lg:block">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 text-center">
-            {nextMonthDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+            {format(nextMonthDate, 'MMMM yyyy', { locale: es })}
           </h3>
           <div className="grid grid-cols-7 gap-1 text-[10px] text-center">
             {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((d) => (
@@ -247,12 +251,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           </div>
         </div>
 
-        {/* DETALLE DEL DÍA */}
+        {/* Selected Day Details */}
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex-1 flex flex-col">
           <div className="mb-4 border-b border-slate-100 pb-4">
             <h2 className="text-3xl font-black text-slate-900">{selectedDay.getDate()}</h2>
             <p className="text-slate-500 uppercase font-bold text-xs">
-              {selectedDay.toLocaleDateString('es-ES', { month: 'long', weekday: 'long' })}
+              {format(selectedDay, 'MMMM yyyy | EEEE', { locale: es })}
             </p>
           </div>
 
@@ -262,30 +266,26 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 <div
                   key={i}
                   className="p-3 bg-slate-50 rounded-lg border border-slate-200 cursor-pointer hover:bg-white transition-colors"
-                  onClick={() =>
-                    e.type === 'individual' &&
-                    onNavigate(
-                      'detail',
-                      patients.find((p) => p.id === e.patientId),
-                    )
-                  }
-                  draggable="true"
-                  onDragStart={(evt) => {
-                    evt.dataTransfer.setData('text/plain', JSON.stringify(e));
-                    evt.currentTarget.classList.add('opacity-50');
-                  }}
-                  onDragEnd={(evt) => {
-                    evt.currentTarget.classList.remove('opacity-50');
+                  onClick={() => {
+                    if (e.type === 'individual') {
+                      onNavigate(
+                        'patient-detail',
+                        patients.find(p => String(p.id) === String(e.patientId))
+                      );
+                    } else if (e.type === 'group') {
+                      // Open Group Modal with Data
+                      onOpenGroupModal('evolution', e);
+                    }
                   }}
                 >
                   <div className="flex justify-between items-center mb-1">
                     <span
-                      className={`text - [10px] font - bold px - 1.5 py - 0.5 rounded uppercase ${e.type === 'group'
+                      className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${e.type === 'group'
                         ? 'bg-indigo-100 text-indigo-700'
                         : 'bg-pink-100 text-pink-700'
-                        } `}
+                        }`}
                     >
-                      {e.type === 'group' ? 'Grupal' : 'Individual'}
+                      {e.type === 'group' ? 'Grupal' : (e.time || '10:00')}
                     </span>
                     {e.type === 'individual' && e.isAbsent && (
                       <span className="text-[10px] font-bold text-red-600 bg-red-50 px-1 rounded">
@@ -297,6 +297,20 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   <div className="text-xs text-slate-500 truncate">
                     {e.type === 'individual' ? e.notes || 'Sin notas' : e.observations || 'Sesión Grupal'}
                   </div>
+                  {e.type === 'individual' && !e.isAbsent && e.contact && (
+                    <div className="mt-2 pt-2 border-t border-slate-200 flex justify-end">
+                      <button
+                        onClick={(evt) => {
+                          evt.stopPropagation();
+                          const msg = `Hola ${e.title}, recordatorio de su sesión de Musicoterapia mañana. Por favor confirme asistencia.`;
+                          WhatsApp.openChat(e.contact, msg);
+                        }}
+                        className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 hover:bg-emerald-50 px-2 py-1 rounded transition-colors"
+                      >
+                        <MessageCircle size={12} /> Recordar
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))
             ) : (

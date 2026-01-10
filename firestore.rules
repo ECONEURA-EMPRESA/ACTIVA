@@ -12,48 +12,63 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    function isSelf(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-
     // --- RULES ---
 
-    // 1. USERS (Critical for Auth/Premium)
-    // Usuarios pueden leer su propio perfil (para ver isPremium) pero no escribir roles sensibles.
+    // 1. USERS
     match /users/{userId} {
-      allow read: if isSelf(userId);
-      // Solo permitir crear/actualizar si el ID coincide. 
-      // Idealmente campos sensibles como 'subscriptionStatus' deberían bloquearse en write, 
-      // pero por ahora permitimos write self para perfil básico.
-      allow create, update: if isSelf(userId); 
-      allow delete: if isSelf(userId);
+      allow read, write: if isOwner(userId);
+      
+      // Subcollection: Group Sessions (Titanium Fix)
+      match /group_sessions/{sessionId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
-    // 2. PATIENTS
-    // Solo el dueño del paciente (userId field) puede leer/escribir.
+    // 2. SETTINGS
+    // New path: settings/{userId}
+    match /settings/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // 3. PATIENTS & SESSIONS (Subcollection)
     match /patients/{patientId} {
-      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isOwner(resource.data.userId));
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid);
       allow create: if isOwner(request.resource.data.userId);
-      allow update: if isOwner(resource.data.userId) 
-                    && request.resource.data.userId == resource.data.userId;
-      allow delete: if isOwner(resource.data.userId);
+      allow update, delete: if isOwner(resource.data.userId);
+
+      // Subcollection: Sessions
+      match /sessions/{sessionId} {
+        allow read, write: if isOwner(get(/databases/$(database)/documents/patients/$(patientId)).data.userId);
+      }
     }
 
-    // 3. SESSIONS (Clinical Data)
-    match /sessions/{sessionId} {
-      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isOwner(resource.data.userId));
-      allow create: if isOwner(request.resource.data.userId);
-      allow update: if isOwner(resource.data.userId) 
-                    && request.resource.data.userId == resource.data.userId;
-      allow delete: if isOwner(resource.data.userId);
+    // 4. SESSIONS (Collection Group Query)
+    match /{path=**}/sessions/{sessionId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid);
     }
 
-    // 4. CONFIG/SETTINGS
-    match /config/{configId} {
-       allow read, write: if isAuthenticated() && (configId == 'settings_' + request.auth.uid || resource.data.userId == request.auth.uid);
+    // 5. ACTIVITY LOGS (Immutable Audit Trail)
+    // Only allows CREATE. Delete/Update is FORBIDDEN.
+    match /activity_logs/{logId} {
+       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+       allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+       allow update, delete: if false; // IMMUTABLE
     }
 
-    // 5. DEFAULT DENY
+
+    // 6. DAILY NOTES (Added for Dashboard)
+    match /daily_notes/{noteId} {
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // 7. INVOICES (Titanium Billing)
+    match /invoices/{invoiceId} {
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // Default Deny
     match /{document=**} {
       allow read, write: if false; 
     }

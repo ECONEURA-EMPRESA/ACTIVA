@@ -10,6 +10,18 @@
 
 <body>
     <div id="root"></div>
+    <!-- ZOMBIE SERVICE WORKER KILLER: Purges any old CRM SW that might be stuck on this domain -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                for (let registration of registrations) {
+                    console.log('💀 Killing Zombie SW:', registration);
+                    registration.unregister();
+                }
+            });
+            // Force reload if we suspect cache issues (optional, but safer to let user do it once)
+        }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
 </body>
 

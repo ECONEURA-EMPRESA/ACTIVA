@@ -1,115 +1,89 @@
 import React from 'react';
-import { Crown, Check as CheckIcon, Zap as ZapIcon } from 'lucide-react';
-import { Button } from './Button';
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
+import { Check, Sparkles, Lock, X } from 'lucide-react';
 
 interface PaywallModalProps {
     isOpen: boolean;
     onClose: () => void;
-    limitType: 'patient' | 'session';
+    limitType?: 'patient' | 'session';
 }
 
-export const PaywallModal: React.FC<PaywallModalProps> = ({
-    isOpen,
-    onClose,
-    limitType,
-}) => {
+export const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose, limitType = 'patient' }) => {
     if (!isOpen) return null;
 
+    const isPatientLimit = limitType === 'patient';
+    const limitText = isPatientLimit
+        ? "Has alcanzado el límite de 2 pacientes del Plan Gratuito."
+        : "Has alcanzado el límite de sesiones mensuales.";
+
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-500"
                 onClick={onClose}
             />
 
-            {/* Modal */}
-            <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <Card className="w-full max-w-md relative z-10 animate-in zoom-in-95 duration-300 overflow-hidden border-0 shadow-2xl shadow-pink-500/20">
+                {/* Header Decor */}
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500" />
 
-                {/* Header with Gradient */}
-                <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-8 text-center relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-50 transition-colors"
+                >
+                    <X size={20} />
+                </button>
 
-                    <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-yellow-500/30">
-                        <Crown size={32} className="text-white" />
+                <div className="p-8 text-center">
+                    <div className="w-16 h-16 bg-pink-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                        <Lock size={32} className="text-pink-600" />
                     </div>
 
-                    <h2 className="text-2xl font-black text-white tracking-tight mb-2">
-                        Desbloquea el Potencial Ilimitado
+                    <h2 className="text-2xl font-black text-slate-900 mb-2">
+                        Plan Gratuito Completado
                     </h2>
-                    <p className="text-slate-300 font-medium">
-                        Has alcanzado el límite de tu Demo Gratuita.
+                    <p className="text-slate-500 mb-8 max-w-[280px] mx-auto">
+                        {limitText} Pásate a PRO para desbloquear todo el potencial.
                     </p>
-                </div>
 
-                {/* Content */}
-                <div className="p-8">
-                    <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-4 mb-6">
-                        <h3 className="font-bold text-yellow-800 mb-2 flex items-center gap-2">
-                            <ZapIcon size={16} />
-                            Límites de la Demo:
-                        </h3>
-                        <ul className="space-y-2 text-sm text-yellow-700">
-                            <li className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-yellow-400"></span>
-                                Máximo 1 Paciente ({limitType === 'patient' ? 'Alcanzado' : '1/1'})
-                            </li>
-                            <li className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-yellow-400"></span>
-                                Máximo 1 Sesión ({limitType === 'session' ? 'Alcanzado' : '1/1'})
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div className="space-y-4">
-                        <h3 className="font-black text-slate-800 text-lg">
-                            La Licencia Vitalicia Incluye:
-                        </h3>
-                        <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {[
-                                'Pacientes Ilimitados',
-                                'Sesiones Ilimitadas',
-                                'Modo Hospital (Offline)',
-                                'Analítica Avanzada',
-                                'Generador de Informes',
-                                'Soporte Prioritario'
-                            ].map((feature, i) => (
-                                <li key={i} className="flex items-center gap-2 text-sm text-slate-600">
-                                    <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                                        <CheckIcon size={12} className="text-emerald-600" />
-                                    </div>
-                                    {feature}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-
-                    <div className="mt-8 space-y-3">
-                        <div className="flex items-end justify-center gap-2 mb-4">
-                            <span className="text-xs text-slate-400 line-through font-medium mb-1">499€</span>
-                            <span className="text-3xl font-black text-slate-900">299€</span>
-                            <span className="text-xs font-bold bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full mb-1">
-                                OFERTA FOUNDERS
-                            </span>
+                    <div className="space-y-3 mb-8 text-left bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                        <div className="flex items-center gap-3">
+                            <div className="bg-emerald-100 p-1 rounded-full"><Check size={12} className="text-emerald-700" /></div>
+                            <span className="text-sm font-medium text-slate-700">Pacientes Ilimitados</span>
                         </div>
+                        <div className="flex items-center gap-3">
+                            <div className="bg-emerald-100 p-1 rounded-full"><Check size={12} className="text-emerald-700" /></div>
+                            <span className="text-sm font-medium text-slate-700">Generación de Informes PDF</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <div className="bg-emerald-100 p-1 rounded-full"><Check size={12} className="text-emerald-700" /></div>
+                            <span className="text-sm font-medium text-slate-700">Agenda & Recordatorios WhatsApp</span>
+                        </div>
+                    </div>
 
+                    <div className="space-y-3">
                         <Button
                             variant="primary"
-                            className="w-full py-4 text-lg shadow-xl shadow-pink-500/20 hover:shadow-pink-500/30"
-                            onClick={() => window.open('https://activamusicoterapia.lemonsqueezy.com/checkout/buy/311e8710-d3d8-454c-81f7-200df2a59455', '_blank')}
+                            className="w-full py-4 text-lg shadow-lg shadow-pink-500/30 hover:shadow-pink-500/40 relative overflow-hidden group"
+                            onClick={() => {
+                                window.open('https://activamusicoterapia.lemonsqueezy.com/checkout/buy/311e8710-d3d8-454c-81f7-200df2a59455', '_blank');
+                            }}
                         >
-                            Obtener Licencia de Por Vida
+                            <span className="relative z-10 flex items-center justify-center gap-2">
+                                <Sparkles size={18} className="fill-white" />
+                                Desbloquear PRO
+                            </span>
+                            <div className="absolute inset-0 bg-gradient-to-r from-pink-600 to-rose-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </Button>
 
-                        <button
-                            onClick={onClose}
-                            className="w-full py-2 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors"
-                        >
-                            Quizás más tarde
-                        </button>
+                        <p className="text-[10px] text-center text-slate-400 font-medium">
+                            Pago único seguro vía LemonSqueezy • Factura deducible
+                        </p>
                     </div>
                 </div>
-            </div>
+            </Card>
         </div>
     );
 };

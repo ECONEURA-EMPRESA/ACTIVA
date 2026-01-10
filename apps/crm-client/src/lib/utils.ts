@@ -1,4 +1,5 @@
-import { ClinicSettings, Patient, Session, InvoiceData } from './types';
+import { ClinicSettings, Patient, Session } from './types';
+import { generateInvoiceHTML } from './templates/invoiceTemplate';
 
 export const formatDateForInput = (dateStr?: string): string => {
   if (!dateStr) return new Date().toISOString().split('T')[0];
@@ -29,70 +30,8 @@ export const printConsent = (clinicData: ClinicSettings, patientData: Partial<Pa
   );
 };
 
-export const calculateDebt = (sessions: any[] = []): number => {
+export const calculateDebt = (sessions: Partial<Session>[] = []): number => {
   return sessions.reduce((acc, s) => acc + (s.paid ? 0 : s.price || 0), 0);
-};
-
-export const generateInvoiceHTML = (data: InvoiceData): string => {
-  const total = data.sessions.reduce((sum, s) => sum + (s.price || 0), 0);
-  const date = new Date().toLocaleDateString('es-ES');
-
-  return `
-        <html>
-        <head>
-            <style>
-                body { font-family: 'Helvetica', sans-serif; padding: 40px; color: #333; }
-                .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
-                .meta { display: flex; justify-content: space-between; margin-bottom: 30px; }
-                table { wudth: 100%; border-collapse: collapse; margin-bottom: 30px; }
-                th { text-align: left; border-bottom: 1px solid #ccc; padding: 10px; }
-                td { border-bottom: 1px solid #eee; padding: 10px; }
-                .total { text-align: right; font-size: 1.5em; font-weight: bold; }
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h1>FACTURA DE SERVICIOS</h1>
-                <p>Nº ${data.invoiceNumber || 'BORRADOR'}</p>
-            </div>
-            <div class="meta">
-                <div>
-                    <strong>Cliente:</strong><br>
-                    ${data.clientName}<br>
-                    ${data.clientMeta || ''}
-                </div>
-                <div style="text-align: right;">
-                    <strong>Fecha:</strong> ${date}
-                </div>
-            </div>
-            <table width="100%">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Concepto</th>
-                        <th style="text-align: right;">Importe</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${data.sessions
-      .map(
-        (s) => `
-                        <tr>
-                            <td>${s.date}</td>
-                            <td>Sesión de Musicoterapia (${s.type === 'individual' ? 'Individual' : 'Grupal'})</td>
-                            <td style="text-align: right;">${s.price || 0}€</td>
-                        </tr>
-                    `,
-      )
-      .join('')}
-                </tbody>
-            </table>
-            <div class="total">
-                TOTAL: ${total}€
-            </div>
-        </body>
-        </html>
-    `;
 };
 
 export const printInvoice = (
@@ -117,18 +56,31 @@ export const printInvoice = (
 
 export const compressImage = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
+    // 1. Validate File Type
+    if (!file.type.match(/image.*/)) {
+      return reject(new Error("File is not an image"));
+    }
+
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = (event) => {
       const img = new Image();
       img.src = event.target?.result as string;
+
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 300;
-        const MAX_HEIGHT = 300;
+
+        // TITANIUM CONFIG:
+        // Max Dimension: 1024px (High Quality Profile/Doc) - Up from 300px
+        // Format: WebP (Modern, efficient)
+        // Quality: 0.8 (Excellent balance)
+        const MAX_WIDTH = 1024;
+        const MAX_HEIGHT = 1024;
+
         let width = img.width;
         let height = img.height;
 
+        // Calculate Access Ratio
         if (width > height) {
           if (width > MAX_WIDTH) {
             height *= MAX_WIDTH / width;
@@ -143,12 +95,31 @@ export const compressImage = (file: File): Promise<string> => {
 
         canvas.width = width;
         canvas.height = height;
+
         const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.7)); // Compress to 70% quality JPEG
+        if (!ctx) return reject(new Error("Canvas Context missing"));
+
+        // Smooth scaling
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Try WebP first, fallback to JPEG
+        const webpData = canvas.toDataURL('image/webp', 0.8);
+
+        // Simple check: If browser returned PNG (no WebP support) or string is huge, fallback to JPEG
+        if (webpData.startsWith('data:image/webp')) {
+          resolve(webpData);
+        } else {
+          // Fallback for Safari < 14 or ancient browsers
+          resolve(canvas.toDataURL('image/jpeg', 0.8));
+        }
       };
-      img.onerror = (err) => reject(err);
+
+      img.onerror = (_err) => reject(new Error("Image Load Failed"));
     };
-    reader.onerror = (err) => reject(err);
+
+    reader.onerror = (_err) => reject(new Error("File Read Failed"));
   });
 };

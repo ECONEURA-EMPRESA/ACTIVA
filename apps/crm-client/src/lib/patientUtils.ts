@@ -6,8 +6,8 @@ export const COMMON_PATHOLOGIES = [
   { label: 'Depresión y Trastornos del Ánimo', value: 'mood' },
   { label: 'Ansiedad y Estrés', value: 'mood' },
   { label: '--- Infanto-Juvenil ---', value: '', disabled: true },
-  { label: 'TEA', value: 'neuro' },
-  { label: 'TDAH', value: 'neuro' },
+  { label: 'TEA', value: 'autism' },
+  { label: 'TDAH', value: 'adhd' },
   { label: '--- Otros ---', value: '', disabled: true },
   { label: 'Sin Patología (Bienestar)', value: 'other' },
   { label: 'Otras...', value: 'other' },
@@ -15,6 +15,7 @@ export const COMMON_PATHOLOGIES = [
 
 export const FORMULATION_OPTIONS = {
   synthesis: [
+    'Sin Deterioro Cognitivo',
     'Deterioro Cognitivo Leve',
     'EA (Alzheimer)',
     'Demencia Vascular',
@@ -25,7 +26,6 @@ export const FORMULATION_OPTIONS = {
     'GDS 5 (Moderado-Grave)',
     'GDS 6 (Grave)',
     'GDS 7 (Muy Grave)',
-    'Sin Deterioro Cognitivo',
   ],
   preserved: [
     'Memoria Musical Emocional',
@@ -59,11 +59,21 @@ export const FORMULATION_OPTIONS = {
     'Identidad Sonora',
     'Socialización / Pertenencia',
   ],
+  objectives: [
+    'Disminuir ansiedad y agitación psicomotriz',
+    'Mejorar estado de ánimo (valencia positiva)',
+    'Mantener capacidades cognitivas preservadas',
+    'Fomentar la conexión con el entorno (Reality Orientation)',
+    'Facilitarla expresión emocional no verbal',
+    'Promover la relajación muscular y respiratoria',
+    'Estimular la memoria autobiográfica (Reminiscencia)',
+    'Mejorar la fluidez verbal y comunicación',
+  ],
 };
 
 /**
  * Generates an automatic reference string like "JP-230915"
- * Logic extracted from AdmissionModal.tsx
+ * Logic extracted from EditProfileModal.tsx
  */
 export const generatePatientReference = (name: string, dateStr: string): string => {
   if (!name || !dateStr) return '';
@@ -92,4 +102,23 @@ export const formatDateForDisplay = (isoDate?: string) => {
   if (!isoDate) return new Date().toLocaleDateString('es-ES');
   const [year, month, day] = isoDate.split('-');
   return `${day}/${month}/${year}`;
+};
+
+export const PATHOLOGY_MAP: Record<string, string> = {
+  dementia: 'Demencia / Alzheimer',
+  neuro: 'Neurodegenerativo',
+  mood: 'Salud Mental / Ánimo',
+  other: 'Otro / Sin Patología',
+  autism: 'TEA (Autismo)',
+  adhd: 'TDAH',
+  development: 'Retraso del Desarrollo',
+  palsy: 'Parálisis Cerebral',
+};
+
+export const MOBILITY_MAP: Record<string, string> = {
+  none: 'Autónoma',
+  cane: 'Bastón',
+  walker: 'Andador',
+  wheelchair: 'Silla de Ruedas',
+  bed: 'Encamado',
 };

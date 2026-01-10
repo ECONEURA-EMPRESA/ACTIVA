@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ClipboardCheck, Lightbulb, CheckSquare, Save, ClipboardList } from 'lucide-react';
+import { X, ClipboardCheck, Lightbulb, CheckSquare, Save, ClipboardList, Trash2 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 import { Card } from '../../../components/ui/Card';
@@ -14,6 +14,7 @@ import { formatDateForInput, formatDateForDisplay } from '../../../lib/patientUt
 interface SessionModalProps {
   onClose: () => void;
   onSave: (data: any) => void;
+  onDelete?: (id: string | number) => void; // New prop
   initialData?: any;
   patientType: string;
 }
@@ -21,11 +22,13 @@ interface SessionModalProps {
 export const SessionModal: React.FC<SessionModalProps> = ({
   onClose,
   onSave,
+  onDelete,
   initialData,
   patientType,
 }) => {
   const [scores, setScores] = useState<number[]>(initialData?.scores || Array(9).fill(0));
   const [date, setDate] = useState(formatDateForInput(initialData?.date));
+  const [time, setTime] = useState(initialData?.time || '10:00');
   const [sessionType] = useState(initialData?.type || 'individual');
   const [activityDetails, setActivityDetails] = useState<Record<string, string>>(
     initialData?.activityDetails || {},
@@ -99,6 +102,7 @@ export const SessionModal: React.FC<SessionModalProps> = ({
             onSave({
               id: initialData?.id || Date.now(),
               date: formatDateForDisplay(date),
+              time,
               phase: 2,
               activityDetails,
               notes,
@@ -113,20 +117,30 @@ export const SessionModal: React.FC<SessionModalProps> = ({
               },
               price,
               paid: isPaid,
+              activities: [],
               isAbsent,
             });
           }}
         >
           <div className="flex justify-center mb-6 gap-6 items-end">
             <div className="flex flex-col w-1/3">
-              <label className="label-pro">Fecha Sesión</label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="input-pro"
-                required
-              />
+              <label className="label-pro">Fecha y Hora</label>
+              <div className="flex gap-2">
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="input-pro w-2/3"
+                  required
+                />
+                <input
+                  type="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  className="input-pro w-1/3"
+                  required
+                />
+              </div>
             </div>
             <div className="flex flex-col w-1/3">
               <label className="label-pro">Estado Asistencia</label>
@@ -146,6 +160,22 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                   Ausencia
                 </button>
               </div>
+              {isAbsent && (
+                <div className="mt-2 flex items-center gap-2 animate-in slide-in-from-top-2 fade-in">
+                  <span className="text-xs font-bold text-slate-500">¿Cobrar sesión?</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Logic: Toggle price between 0 and standard
+                      const willCharge = price === 0;
+                      setPrice(willCharge ? (initialData?.price || 50) : 0);
+                    }}
+                    className={`text-xs px-2 py-1 rounded font-bold transition-all ${price > 0 ? 'bg-red-100 text-red-700 ring-1 ring-red-200' : 'bg-slate-100 text-slate-400'}`}
+                  >
+                    {price > 0 ? 'SÍ, COBRAR' : 'NO COBRAR'}
+                  </button>
+                </div>
+              )}
             </div>
             <div className="flex flex-col w-1/3">
               <label className="label-pro">Pago</label>
@@ -319,6 +349,20 @@ export const SessionModal: React.FC<SessionModalProps> = ({
             <Button type="button" variant="ghost" onClick={onClose}>
               Cancelar
             </Button>
+            {initialData?.id && onDelete && (
+              <Button
+                type="button"
+                variant="danger"
+                icon={Trash2}
+                onClick={() => {
+                  if (window.confirm('¿Eliminar esta cita permanentemente?')) {
+                    onDelete(initialData.id);
+                  }
+                }}
+              >
+                Eliminar
+              </Button>
+            )}
             <Button type="submit" icon={Save} className="shadow-lg hover:shadow-xl px-8">
               Guardar Sesión
             </Button>

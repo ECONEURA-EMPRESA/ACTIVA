@@ -4,6 +4,8 @@ import { X, FileText, Printer, Wand2 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Patient } from '../../../lib/types';
 import logoCircular from '../../../assets/logo-circular.png';
+import { useActivityLog } from '../../../hooks/useActivityLog';
+import { PATHOLOGY_MAP } from '../../../lib/patientUtils';
 
 interface ReportModalProps {
   isOpen: boolean;
@@ -20,28 +22,27 @@ export const ReportModal: React.FC<ReportModalProps> = ({
 }) => {
   const [reportText, setReportText] = useState('');
   const [isGenerating, setIsGenerating] = useState(true);
+  const { logActivity } = useActivityLog();
 
-  // Smart Template Logic
+  // Smart Template Logic (Refactored: Robust & Instant)
   useEffect(() => {
     if (isOpen) {
-      const generateDraft = () => {
-        const today = new Date().toLocaleDateString('es-ES', {
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric',
-        });
-        const sessionsCount = patient.sessions?.filter((s) => !s.isAbsent).length || 0;
+      // Logic is synchronous and instant (Titanium Standard)
+      const today = new Date().toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+      const sessionsCount = patient.sessions?.filter((s) => !s.isAbsent).length || 0;
+      const lastEval = patient.cognitiveScores || {};
+      const mocaScore = lastEval.moca || 'Pendiente';
+      const gdsScore = lastEval.gds || 'No registrado';
 
-        const lastEval = patient.cognitiveScores || {};
-        const mocaScore = lastEval.moca || 'Pendiente';
-        const gdsScore = lastEval.gds || 'No registrado';
+      const synthesisText = typeof patient.clinicalFormulation?.synthesis === 'string'
+        ? patient.clinicalFormulation.synthesis
+        : patient.clinicalFormulation?.synthesis?.text;
 
-        const synthesisText =
-          typeof patient.clinicalFormulation?.synthesis === 'string'
-            ? patient.clinicalFormulation.synthesis
-            : patient.clinicalFormulation?.synthesis?.text;
-
-        const draft = `INFORME CLÍNICO DE MUSICOTERAPIA
+      const draft = `INFORME CLÍNICO DE MUSICOTERAPIA
 Fecha de emisión: ${today}
 
 1. DATOS DE FILIACIÓN
@@ -56,21 +57,24 @@ Actualmente se encuentra en una fase de mantenimiento y estimulación cognitiva 
 
 3. EVALUACIÓN Y EVOLUCIÓN
 En la última valoración psicométrica realizada, se obtuvieron los siguientes resultados:
-- MOCA(Montreal Cognitive Assessment): ${mocaScore}
-- Escala GDS(Reisberg): Estadio ${gdsScore}
+- MOCA (Montreal Cognitive Assessment): ${mocaScore}
+- Escala GDS (Reisberg): Estadio ${gdsScore}
 
-EVOLUCIÓN RECIENTE(Últimas 5 Sesiones):
+EVOLUCIÓN RECIENTE (Últimas 5 Sesiones):
 ${patient.sessions
-            ?.slice(0, 5)
-            .map(s => `- ${s.date}: ${s.computedPhase ? 'Fase ' + s.computedPhase : 'Sesión Estándar'} (${s.isAbsent ? 'Ausencia' : 'Asistencia'})`)
-            .join('\n') || 'Sin sesiones recientes.'
-          }
+          ?.slice(0, 5)
+          .map(s => {
+            const status = s.isAbsent ? '[AUSENCIA]' : '';
+            return `- ${s.date} ${status}: ${s.notes || (s.computedPhase ? 'Fase ' + s.computedPhase : 'Sesión Estándar')}`;
+          })
+          .join('\n') || 'Sin sesiones recientes.'
+        }
 
 Observaciones cualitativas:
 ${synthesisText || 'No se han registrado observaciones específicas en la síntesis diagnóstica.'}
 
 4. OBJETIVOS TRABAJADOS
-  - Estimulación de la memoria autobiográfica a través de la reminiscencia musical.
+- Estimulación de la memoria autobiográfica a través de la reminiscencia musical.
 - Fomento de la iniciativa y la comunicación verbal.
 - Mantenimiento de las capacidades atencionales y funciones ejecutivas.
 
@@ -79,12 +83,8 @@ Se observa una respuesta favorable a la intervención musical...[Espacio para qu
 
 Se recomienda la continuidad del tratamiento con una frecuencia de...`;
 
-        setReportText(draft);
-        setIsGenerating(false);
-      };
-
-      // Simulate "Thinking" time for the "AI" feel mentioned in manual
-      setTimeout(generateDraft, 800);
+      setReportText(draft);
+      setIsGenerating(false);
     }
   }, [isOpen, patient]);
 
@@ -95,7 +95,7 @@ Se recomienda la continuidad del tratamiento con una frecuencia de...`;
     if (!printWindow) return;
 
     printWindow.document.write(`
-  < html >
+      <html>
         <head>
           <title>Informe ${patient.name}</title>
           <style>
@@ -105,6 +105,9 @@ Se recomienda la continuidad del tratamiento con una frecuencia de...`;
             .clinic-info { text-align: right; font-size: 12px; color: #666; }
             h1 { font-size: 24px; text-align: center; margin-bottom: 30px; color: #000; text-transform: uppercase; letter-spacing: 2px; }
             pre { font-family: 'Times New Roman', serif; white-space: pre-wrap; font-size: 14px; }
+            .signature-block { margin-top: 60px; display: flex; justify-content: space-between; }
+            .signature-box { text-align: center; }
+            .signature-line { width: 200px; border-top: 1px solid #000; margin-bottom: 5px; }
             .footer { margin-top: 50px; border-top: 1px solid #ccc; padding-top: 20px; text-align: center; font-size: 10px; color: #999; }
           </style>
         </head>
@@ -120,13 +123,13 @@ Se recomienda la continuidad del tratamiento con una frecuencia de...`;
           
           <pre>${reportText}</pre>
 
-          <div style="margin-top: 60px; display: flex; justify-content: space-between;">
-            <div style="text-align: center;">
-              <hr style="width: 200px; border-top: 1px solid #000;" />
+          <div class="signature-block">
+            <div class="signature-box">
+              <hr class="signature-line" />
               Fdo. El Terapeuta
             </div>
-            <div style="text-align: center;">
-              <hr style="width: 200px; border-top: 1px solid #000;" />
+            <div class="signature-box">
+              <hr class="signature-line" />
               VºBº Dirección
             </div>
           </div>
@@ -136,12 +139,18 @@ Se recomienda la continuidad del tratamiento con una frecuencia de...`;
             <br/>
             ${clinicSettings.legalText || ''}
           </div>
+          <script>
+            window.onload = function() { window.print(); }
+          </script>
         </body>
-      </html >
-  `);
+      </html>
+    `);
     printWindow.document.close();
     printWindow.focus();
-    setTimeout(() => printWindow.print(), 500);
+
+    // Explicit Log - No Console
+    // Titanium Standard: Only business logic logs, no debug noise
+    logActivity('report', `Informe clínico generado para: ${patient.name}`);
   };
 
   return (
@@ -171,7 +180,7 @@ Se recomienda la continuidad del tratamiento con una frecuencia de...`;
               </h4>
               <p className="text-xs text-pink-600 leading-relaxed">
                 El sistema ha detectado {patient.sessions?.length || 0} sesiones y una evaluación
-                reciente. Se ha generado un borrador basado en la fase "{patient.pathologyType}" del
+                reciente. Se ha generado un borrador basado en la fase "{PATHOLOGY_MAP[patient.pathologyType] || patient.pathologyType}" del
                 paciente.
               </p>
             </div>

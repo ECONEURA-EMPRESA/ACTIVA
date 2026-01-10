@@ -1,3 +1,19 @@
+// --- TITANIUM CORE TYPES (IMPORTED FROM SHARED TRUTH) ---
+import {
+  Patient,
+  Session,
+  ClinicalFormulation,
+  CognitiveScores,
+  ClinicalSafetyProfile,
+  MusicalIdentity,
+  PsychosocialContext,
+} from '@monorepo/shared';
+// Note: We might need to export GroupSession from shared or define it if missing. 
+// Re-exporting for local usage
+export type { Patient, Session, ClinicalFormulation, CognitiveScores, ClinicalSafetyProfile, MusicalIdentity, PsychosocialContext };
+
+// --- FRONTEND SPECIFIC TYPES ---
+
 export interface ClinicSettings {
   name?: string;
   cif?: string;
@@ -6,6 +22,15 @@ export interface ClinicSettings {
   email?: string;
   website?: string;
   legalText?: string;
+  notificationsEnabled?: boolean;
+  billing?: {
+    legalName: string;
+    nif: string;
+    address: string;
+    logoUrl: string; // URL or Base64
+    email?: string;
+    phone?: string;
+  };
 }
 
 export interface FormulationData {
@@ -13,27 +38,9 @@ export interface FormulationData {
   text: string;
 }
 
-export interface ClinicalFormulation {
-  synthesis?: FormulationData | string;
-  preserved?: FormulationData | string;
-  difficulties?: FormulationData | string;
-  regulators?: FormulationData | string;
-  hypothesis?: FormulationData | string;
-  [key: string]: any; // Flexibilidad para legacy
-}
-
-export interface CognitiveScores {
-  moca?: string | number;
-  mmse?: string | number;
-  gds?: string | number;
-  date?: string;
-  mocaDetails?: Record<string, number>;
-  mmseDetails?: Record<string, number>;
-  admissionChecks?: {
-    safety: string[];
-    prep: string[];
-  };
-}
+// LEGACY ADAPTERS (To be phased out)
+// Some components might still expect specific structures not fully covered by Zod yet, 
+// or Zod is stricter. We keep these compatible.
 
 export interface SessionSelfReflection {
   positive: string;
@@ -47,68 +54,7 @@ export interface QualitativeEval {
   physical?: string;
 }
 
-export interface Session {
-  id: string | number;
-  date: string;
-  type: 'individual' | 'group';
-  price?: number;
-  paid?: boolean;
-  isAbsent?: boolean;
-  notes?: string;
-  phase?: number; // Calculado o asignado
-  activityDetails?: Record<string, string>; // { activityId: note }
-  activities?: string[]; // Legacy array
-  selfReflection?: SessionSelfReflection;
-  qualitative?: QualitativeEval;
-  scores?: number[]; // [0-3] para evaluation areas
-  location?: string; // Para sesiones grupales
-  participantNames?: string[]; // Para sesiones grupales
-  groupAnalysis?: string; // Para sesiones grupales
-  computedPhase?: number | null; // Calculated for UI
-  recurrence?: RecurrenceRule;
-}
-
-// --- CLINICAL DOMAIN: ADMISSION & SAFETY ---
-export interface ClinicalSafetyProfile {
-  // PHYSICAL RISKS (RED LIGHTS)
-  epilepsy: boolean;
-  dysphagia: boolean;
-  flightRisk: boolean;
-  psychomotorAgitation: boolean;
-  hyperacusis: boolean; // Child focus
-  chokingHazard: boolean; // Child focus
-  disruptiveBehavior: boolean;
-
-  // CONTEXT
-  alerts: string[]; // Specific notes, e.g. "Trigger word: 'Hospital'"
-  mobilityAid: 'none' | 'cane' | 'walker' | 'wheelchair';
-  allergies: string;
-}
-
-export interface MusicalIdentity {
-  // ISO (Identidad Sonora)
-  likes: string[]; // Genres/Artists
-  dislikes: string[]; // "ISO Nocivo" - CRITICAL
-  biographicalSongs: string[]; // "Anclajes de Memoria"
-  instrumentsOfInterest: string[];
-  musicalTraining: boolean;
-  sensitivityLevel: 'low' | 'medium' | 'high'; // Sensory profile
-}
-
-export interface PsychosocialContext {
-  livingSituation: string; // 'alone', 'family', 'institution'
-  caregiverNetwork: string; // "Supportive husband", "Absent children"
-  recentLifeEvents: string[]; // Duelos, Mudanzas
-  occupation?: string; // Past job (identity)
-}
-
-export interface InvoiceData {
-  clientName: string;
-  clientMeta?: string;
-  sessions: Session[];
-  invoiceNumber?: string;
-}
-
+// EXTENDED GROUP SESSION FOR FRONTEND (Until Shared Schema supports GroupSession fully)
 export interface GroupSession {
   id: string;
   date: string;
@@ -122,65 +68,23 @@ export interface GroupSession {
   paid: boolean;
   methodology?: string;
   observations?: string;
+  groupName?: string;
+  groupId?: string;
+  // Evolution Metrics
+  engagementScore?: number; // 0-10
+  cohesionScore?: number;   // 0-10
+  energyLevel?: 'High' | 'Medium' | 'Low';
+  moodTags?: string[];
+  domainsWorked?: string[];
 }
 
-export interface Patient {
-  id: string | number;
-  name: string;
-  age: number;
-  diagnosis: string;
-  pathologyType: 'dementia' | 'neuro' | 'mood' | 'other';
-  photo?: string;
-  contact?: string;
-  joinedDate?: string;
-  sessionsCompleted?: number;
-  initialEval?: number[];
-  currentEval?: number[];
-  reference?: string;
+// --- COMMERCE & BILLING ---
 
-  // Cognitive Modules
-  cognitiveScores?: CognitiveScores;
-  clinicalFormulation?: ClinicalFormulation;
-  sessions?: Session[];
-
-  // NEW PRECISE CLINICAL DOMAINS (v1.0.0 GOLD)
-  safetyProfile?: ClinicalSafetyProfile;
-  musicalIdentity?: MusicalIdentity;
-  socialContext?: PsychosocialContext;
-
-  // Legacy fields (kept for compatibility during migration, but deprecated)
-  caregiverName?: string;
-  caregiverPhone?: string;
-  livingSituation?: string;
-  supportLevel?: string;
-  lifeEvents?: string;
-  musicStyles?: string;
-  dislikedSounds?: string;
-  isoSongs?: string;
-  initialGoals?: string;
-  hasConsent?: boolean;
-  birthDate?: string;
-  childProfile?: Record<string, Record<string, number>>;
-  childObs?: string;
-}
-
-// --- NEW FEATURES V2 TYPES ---
-
-export interface RecurrenceRule {
-  frequency: 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY';
-  daysOfWeek: number[]; // 1=Monday, 7=Sunday
-  endDate?: string;
-  occurrences?: number;
-}
-
-export interface WaitlistEntry {
-  id: string;
-  patientId: string;
-  patientName: string;
-  preferredDays: string[];
-  notes: string;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  createdAt: string;
+export interface InvoiceData {
+  clientName: string;
+  clientMeta?: string;
+  sessions: Session[];
+  invoiceNumber?: string;
 }
 
 export interface InvoiceItem {
@@ -203,9 +107,39 @@ export interface Quote {
   createdAt: string;
 }
 
+// --- NEW FEATURES ---
+
+export interface RecurrenceRule {
+  frequency: 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY';
+  daysOfWeek: number[]; // 1=Monday, 7=Sunday
+  endDate?: string;
+  occurrences?: number;
+}
+
+export interface WaitlistEntry {
+  id: string;
+  patientId: string;
+  patientName: string;
+  preferredDays: string[];
+  notes: string;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  createdAt: string;
+}
+
 export interface ClinicalReportConfig {
   includeDiagnosis: boolean;
   includeEvolutionCharts: boolean;
   includeSessions: boolean;
   dateRange: { start: string; end: string };
+}
+
+export interface ClinicalReport {
+  id: string;
+  patientId: string;
+  patientName: string;
+  type: 'initial' | 'evolution' | 'discharge';
+  date: string;
+  content: string;
+  status: 'draft' | 'final';
+  generatedBy: string;
 }

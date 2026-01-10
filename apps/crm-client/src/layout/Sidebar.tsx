@@ -12,11 +12,14 @@ import {
   ChevronRight,
   Fingerprint,
   Download,
+  Receipt,
 } from 'lucide-react';
 import { useFirebaseAuthState as useAuth } from '../auth/useAuth';
+import { useTranslation } from 'react-i18next';
+
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import logoCircular from '../assets/logo-circular.png';
-import { SidebarCalendar } from './SidebarCalendar';
+import { SidebarAgenda } from './SidebarAgenda';
 
 interface SidebarProps {
   currentView: string;
@@ -24,7 +27,12 @@ interface SidebarProps {
   userEmail?: string;
   isOpen?: boolean; // Mobile State
   onClose?: () => void; // Mobile Close
-  events?: any[];
+  events?: Array<{
+    date: string;
+    time: string;
+    type: 'individual' | 'group';
+    patientName?: string;
+  }>;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -36,6 +44,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   events,
 }) => {
   const { signOut } = useAuth();
+  const { t } = useTranslation();
   const [collapsed, setCollapsed] = useState(false);
   const { isInstallable, promptInstall } = useInstallPrompt();
 
@@ -87,7 +96,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   ACTIVA
                 </span>
                 <span className="text-[0.55rem] font-bold text-[#EC008C] uppercase tracking-[0.2em]">
-                  Enterprise
+                  {t('sidebar.brand.enterprise')}
                 </span>
               </div>
             )}
@@ -98,7 +107,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={() => setCollapsed(!collapsed)}
             className="hidden md:flex w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 items-center justify-center text-slate-400 hover:text-slate-600 transition-colors border border-slate-200 shadow-sm"
           >
-            {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+            {collapsed ? <ChevronRight size={14} strokeWidth={1.5} /> : <ChevronLeft size={14} strokeWidth={1.5} />}
           </button>
 
           {isInstallable && (
@@ -109,13 +118,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-lg shadow-pink-200 border border-transparent hover:shadow-xl hover:scale-[1.02]
                 ${collapsed ? 'hidden' : 'block'}
               `}
-              title="Instalar App"
+              title={t('sidebar.pwa.install_long')}
             >
               <Download
                 size={16}
+                strokeWidth={1.5}
                 className="transition-transform duration-300 group-hover:bounce"
               />
-              <span className="font-bold text-xs tracking-wide ml-2">App</span>
+              <span className="font-bold text-xs tracking-wide ml-2">{t('sidebar.pwa.install_short')}</span>
             </button>
           )}
 
@@ -125,8 +135,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onClick={promptInstall}
               className="md:hidden w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-lg mb-4"
             >
-              <Download size={20} />
-              <span className="font-bold text-sm">Instalar App</span>
+              <Download size={20} strokeWidth={1.5} />
+              <span className="font-bold text-sm">{t('sidebar.pwa.install_long')}</span>
             </button>
           )}
 
@@ -137,15 +147,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 group relative mt-2
                 bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-lg shadow-pink-200 border border-transparent hover:shadow-xl hover:scale-[1.02]
                 ${collapsed ? 'md:justify-center md:px-0' : ''}
+                min-h-[44px] touch-manipulation
               `}
             >
               <Download
                 size={20}
+                strokeWidth={1.5}
                 className={`transition-transform duration-300 ${collapsed ? '' : 'group-hover:bounce'}`}
               />
               {(!collapsed || isOpen) && (
                 <span className={`font-bold text-sm tracking-wide md:${collapsed ? 'hidden' : 'block'}`}>
-                  Descargar App
+                  {t('sidebar.pwa.download')}
                 </span>
               )}
             </button>
@@ -156,7 +168,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={onClose}
             className="md:hidden w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 active:bg-slate-200"
           >
-            <X size={18} />
+            <X size={18} strokeWidth={1.5} />
           </button>
         </div>
 
@@ -179,13 +191,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
             <Activity
               size={20}
+              strokeWidth={1.5}
               className={`transition-transform duration-300 ${currentView === 'dashboard' ? 'scale-110 drop-shadow-sm text-pink-600' : 'group-hover:scale-110 text-slate-400'}`}
             />
             {(!collapsed || isOpen) && (
               <span
                 className={`font-medium text-sm tracking-wide ${currentView === 'dashboard' ? 'font-bold text-slate-900' : 'text-slate-600'} md:${collapsed ? 'hidden' : 'block'}`}
               >
-                Panel Principal
+                {t('sidebar.nav.dashboard')}
               </span>
             )}
           </button>
@@ -194,13 +207,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="pt-4 pb-2">
             {(!collapsed || isOpen) && (
               <p className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 md:block hidden">
-                Pacientes
+                {t('sidebar.nav.patients.section')}
               </p>
             )}
             {[
-              { id: 'patients', icon: Users, label: 'Todos' },
-              { id: 'patients-adults', icon: Users, label: 'Adultos' },
-              { id: 'patients-kids', icon: Users, label: 'Niños' },
+              { id: 'patients', icon: Users, label: t('sidebar.nav.patients.all') },
+              { id: 'patients-adults', icon: Users, label: t('sidebar.nav.patients.adults') },
+              { id: 'patients-kids', icon: Users, label: t('sidebar.nav.patients.kids') },
+              { id: 'groups', icon: Users, label: 'Grupos' },
             ].map((item) => (
               <button
                 key={item.id}
@@ -209,6 +223,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               >
                 <item.icon
                   size={18}
+                  strokeWidth={1.5}
                   className={currentView === item.id ? 'text-pink-500' : 'text-slate-400'}
                 />
                 {(!collapsed || isOpen) && <span className="text-sm">{item.label}</span>}
@@ -220,46 +235,54 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="pt-2 pb-2">
             {(!collapsed || isOpen) && (
               <p className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 md:block hidden">
-                Gestión
+                {t('sidebar.nav.management.section')}
               </p>
             )}
-            <button
-              onClick={() => handleNavigate('sessions')}
-              className={`w-full flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200 group relative ${currentView === 'sessions' ? 'bg-slate-100 text-pink-600 font-bold' : 'text-slate-500 hover:bg-slate-50'}`}
-            >
-              <Sparkles
-                size={18}
-                className={currentView === 'sessions' ? 'text-pink-500' : 'text-slate-400'}
-              />
-              {(!collapsed || isOpen) && <span className="text-sm">Individual</span>}
-            </button>
-            <button
-              onClick={() => handleNavigate('group-sessions')}
-              className={`w-full flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200 group relative ${currentView === 'group-sessions' ? 'bg-slate-100 text-pink-600 font-bold' : 'text-slate-500 hover:bg-slate-50'}`}
-            >
-              <Users
-                size={18}
-                className={currentView === 'group-sessions' ? 'text-pink-500' : 'text-slate-400'}
-              />
-              {(!collapsed || isOpen) && <span className="text-sm">Grupal</span>}
-            </button>
             <button
               onClick={() => handleNavigate('calendar')}
               className={`w-full flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200 group relative ${currentView === 'calendar' ? 'bg-slate-100 text-pink-600 font-bold' : 'text-slate-500 hover:bg-slate-50'}`}
             >
               <Calendar
                 size={18}
+                strokeWidth={1.5}
                 className={currentView === 'calendar' ? 'text-pink-500' : 'text-slate-400'}
               />
               {(!collapsed || isOpen) && <span className="text-sm">Agenda</span>}
             </button>
+
+            <button
+              onClick={() => handleNavigate('sessions')}
+              className={`w-full flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200 group relative ${currentView === 'sessions' ? 'bg-slate-100 text-pink-600 font-bold' : 'text-slate-500 hover:bg-slate-50'}`}
+            >
+              <Sparkles
+                size={18}
+                strokeWidth={1.5}
+                className={currentView === 'sessions' ? 'text-pink-500' : 'text-slate-400'}
+              />
+              {(!collapsed || isOpen) && <span className="text-sm">Individual</span>}
+            </button>
+
+            <button
+              onClick={() => handleNavigate('group-sessions')}
+              className={`w-full flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200 group relative ${currentView === 'group-sessions' ? 'bg-slate-100 text-pink-600 font-bold' : 'text-slate-500 hover:bg-slate-50'}`}
+            >
+              <Users
+                size={18}
+                strokeWidth={1.5}
+                className={currentView === 'group-sessions' ? 'text-pink-500' : 'text-slate-400'}
+              />
+              {(!collapsed || isOpen) && <span className="text-sm">Grupal</span>}
+            </button>
+
+
+
           </div>
 
           {/* SECTION: TOOLS */}
           <div className="pt-2 pb-2">
             {(!collapsed || isOpen) && (
               <p className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 md:block hidden">
-                Herramientas
+                {t('sidebar.nav.tools.section')}
               </p>
             )}
             <button
@@ -268,9 +291,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <FileText
                 size={18}
+                strokeWidth={1.5}
                 className={currentView === 'resources' ? 'text-pink-500' : 'text-slate-400'}
               />
-              {(!collapsed || isOpen) && <span className="text-sm">Recursos</span>}
+              {(!collapsed || isOpen) && <span className="text-sm">{t('sidebar.nav.tools.resources')}</span>}
             </button>
             <button
               onClick={() => handleNavigate('settings')}
@@ -278,16 +302,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <Settings
                 size={18}
+                strokeWidth={1.5}
                 className={currentView === 'settings' ? 'text-pink-500' : 'text-slate-400'}
               />
-              {(!collapsed || isOpen) && <span className="text-sm">Configuración</span>}
+              {(!collapsed || isOpen) && <span className="text-sm">{t('sidebar.nav.tools.settings')}</span>}
+            </button>
+            <button
+              onClick={() => handleNavigate('billing')}
+              className={`w-full flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-200 group relative ${currentView === 'billing' ? 'bg-slate-100 text-pink-600 font-bold' : 'text-slate-500 hover:bg-slate-50'}`}
+            >
+              {/* Note: I reused Receipt import logic, assuming it is imported. Earlier delete removed usage but not import. */}
+              <Receipt
+                size={18}
+                strokeWidth={1.5}
+                className={currentView === 'billing' ? 'text-pink-500' : 'text-slate-400'}
+              />
+              {(!collapsed || isOpen) && <span className="text-sm">Facturación</span>}
             </button>
           </div>
         </nav>
 
-        {/* Calendar Widget */}
+        {/* Agenda Widget */}
         <div className={`md:${collapsed ? 'hidden' : 'block'}`}>
-          <SidebarCalendar events={events} />
+          <SidebarAgenda events={events || []} />
         </div>
 
         {/* User Footer */}
@@ -311,10 +348,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   {userEmail?.split('@')[0]}
                 </p>
                 <div className="flex items-center gap-1 mt-0.5">
-                  <Fingerprint size={10} className="text-emerald-500" />
+                  <Fingerprint size={10} strokeWidth={1.5} className="text-emerald-500" />
                   <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
-                    Verificado
+                    {t('sidebar.user.verified')}
                   </span>
+                </div>
+                <div className="mt-0.5 ml-0.5">
+                  <span className="text-[8px] text-slate-400 font-mono opacity-60">v5.1.0 (Live)</span>
                 </div>
               </div>
             )}
@@ -324,12 +364,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 onClick={signOut}
                 className={`p-1.5 rounded-lg hover:bg-white text-slate-400 hover:text-red-500 transition-all md:${collapsed ? 'hidden' : 'block'}`}
               >
-                <LogOut size={16} />
+                <LogOut size={16} strokeWidth={1.5} />
               </button>
             )}
           </div>
         </div>
-      </aside>
+      </aside >
     </>
   );
 };

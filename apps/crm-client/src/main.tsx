@@ -5,30 +5,15 @@ import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import './i18n';
 import './index.css';
-// @ts-ignore
 import { registerSW } from 'virtual:pwa-register';
 import { ReloadPrompt } from './ReloadPrompt';
 
 // Auto-update PWA
 registerSW({ immediate: true });
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 30, // 30 minutes
-      retry: 1,
-      refetchOnWindowFocus: false,
-      networkMode: 'offlineFirst',
-    },
-    mutations: {
-      networkMode: 'offlineFirst',
-    }
-  },
-});
+import { queryClient } from '@/lib/react-query';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

@@ -4,12 +4,39 @@
 
 @layer base {
   :root {
-    --font-heading: 'Outfit', sans-serif;
-    --font-body: 'Inter', sans-serif;
+    --font-heading: 'Plus Jakarta Sans', sans-serif;
+    --font-body: 'Plus Jakarta Sans', sans-serif;
+    /* Safe Area Variables for Notch Support */
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
+    --safe-left: env(safe-area-inset-left);
+    --safe-right: env(safe-area-inset-right);
+  }
+
+  html,
+  body {
+    height: 100dvh;
+    /* Dynamic Viewport Height */
+    width: 100%;
+    overflow: hidden;
+    /* Lock the shell */
+    touch-action: manipulation;
+    /* Remove 300ms tap delay */
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
     @apply font-body bg-slate-50 text-slate-900 antialiased;
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
+  }
+
+  /* Prevent text selection to feel like Native App */
+  .no-select {
+    user-select: none;
+    -webkit-user-select: none;
   }
 
   h1,
@@ -19,6 +46,36 @@
   h5,
   h6 {
     @apply font-heading;
+  }
+}
+
+@layer components {
+
+  /* UI KIT: CARDS */
+  .card-clinical {
+    @apply bg-white border border-white/50 shadow-sm rounded-2xl transition-all;
+  }
+
+  .card-hoverable:hover {
+    @apply shadow-md -translate-y-1 border-pink-500/20;
+  }
+
+  /* UI KIT: INPUTS (Titanium Standard) */
+  .input-pro {
+    @apply w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 shadow-sm transition-all;
+    @apply focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 focus:outline-none;
+    @apply placeholder:text-slate-400;
+  }
+
+  .label-pro {
+    @apply block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2;
+  }
+
+  /* UI KIT: BUTTONS */
+  .btn-primary {
+    @apply bg-gradient-to-br from-pink-600 to-rose-600 text-white shadow-lg shadow-pink-500/30 border-0;
+    @apply hover:shadow-xl hover:shadow-pink-500/40 hover:-translate-y-0.5 transition-all;
+    @apply active:translate-y-0 active:shadow-md;
   }
 }
 
@@ -34,41 +91,9 @@
   .text-gradient-brand {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-pink-600 to-rose-500;
   }
-
-  .animate-fade-in-up {
-    animation: fadeInUp 0.6s ease-out forwards;
-  }
-
-  .animate-scale-in {
-    animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* Custom Scrollbar */
+/* CUSTOM SCROLLBAR */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -80,4 +105,30 @@
 
 ::-webkit-scrollbar-thumb {
   @apply bg-slate-300 rounded-full hover:bg-slate-400;
+}
+
+/* PRINT STYLES (Critical for Invoices) */
+@media print {
+  @page {
+    margin: 0;
+    size: auto;
+  }
+
+  body {
+    background: white;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* TITANIUM SPECIFICITY: High Impact, No Hacks */
+  html body .no-print,
+  html body .sidebar,
+  html body .mobile-header,
+  html body header,
+  html body aside {
+    display: none;
+  }
+
+  html body .print-only {
+    display: block;
+  }
 }

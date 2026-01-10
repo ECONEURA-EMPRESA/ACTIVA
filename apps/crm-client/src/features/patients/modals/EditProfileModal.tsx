@@ -5,16 +5,16 @@ import { generatePatientReference, COMMON_PATHOLOGIES } from '../../../lib/patie
 import { compressImage } from '../../../lib/utils';
 import { Patient } from '../../../lib/types';
 
-interface AdmissionModalProps {
+interface EditProfileModalProps {
   onClose: () => void;
   onSave: (data: any) => void;
   initialData?: Partial<Patient>;
 }
 
-export const AdmissionModal: React.FC<AdmissionModalProps> = ({ onClose, onSave, initialData }) => {
+export const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose, onSave, initialData }) => {
   const [photoPreview, setPhotoPreview] = useState<string | null>(initialData?.photo || null);
   const [diagnosisType, setDiagnosisType] = useState<string>(
-    initialData?.pathologyType ? 'dementia' : '',
+    initialData?.pathologyType || '',
   );
   const [pathologyType, setPathologyType] = useState<string>(initialData?.pathologyType || 'other');
   const [hasConsent, setHasConsent] = useState<boolean>(initialData?.hasConsent || false);
@@ -72,19 +72,8 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({ onClose, onSave,
   const handleDiagnosisChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value;
     setDiagnosisType(val);
-    const pathMap: Record<string, string> = {
-      'Alzheimer y otras Demencias': 'dementia',
-      'Deterioro Cognitivo Leve': 'dementia',
-      Parkinson: 'neuro',
-      'Daño Cerebral Adquirido': 'neuro',
-      'Esclerosis Múltiple / ELA': 'neuro',
-      'Depresión y Trastornos del Ánimo': 'mood',
-      'Ansiedad y Estrés': 'mood',
-      TEA: 'neuro',
-      TDAH: 'neuro',
-      'Parálisis Cerebral': 'neuro',
-    };
-    setPathologyType(pathMap[val] || 'other');
+    // Directly use the value as pathology type since COMMON_PATHOLOGIES now uses correct codes
+    setPathologyType(val);
   };
 
   const handlePrintConsent = () => {
@@ -121,22 +110,21 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({ onClose, onSave,
               if (photoPreview) d.photo = photoPreview;
 
               // Logic for custom diagnosis
+              const selectedOption = COMMON_PATHOLOGIES.find(p => p.value === d.diagnosisSelect);
+
               if (d.diagnosisSelect === 'other' || !d.diagnosisSelect) {
-                if (diagnosisType === 'Otras...' || diagnosisType === 'other') {
-                  d.diagnosis = d.customDiagnosis;
-                } else {
-                  d.diagnosis = d.diagnosisSelect;
-                }
-              } else {
-                d.diagnosis = d.diagnosisSelect;
-              }
-
-              const isOther = d.diagnosisSelect === 'other';
-              if (isOther) {
                 d.diagnosis = d.customDiagnosis;
+                d.pathologyType = 'other';
+              } else if (selectedOption) {
+                // SAVE LABEL, NOT VALUE (e.g. "Alzheimer" instead of "dementia")
+                d.diagnosis = selectedOption.label;
+                d.pathologyType = selectedOption.value;
+              } else {
+                // Fallback
+                d.diagnosis = d.diagnosisSelect;
+                d.pathologyType = pathologyType;
               }
 
-              d.pathologyType = pathologyType;
               delete d.diagnosisSelect;
               delete d.customDiagnosis;
               onSave(d);

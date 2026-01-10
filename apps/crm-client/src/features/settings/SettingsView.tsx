@@ -1,31 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { Save, Building, CreditCard, Mail, Globe, Moon, Sun, Shield, Bell } from 'lucide-react';
+import { Save, Building, CreditCard, Shield, Bell, Loader2 } from 'lucide-react';
 import { ClinicSettings } from '../../lib/types';
-import { Toast } from '../../components/ui/Toast';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
+import { useSettingsController } from '../../hooks/controllers/useSettingsController';
 
-interface SettingsViewProps {
-  settings: ClinicSettings;
-  onSave: (newSettings: ClinicSettings) => void;
-}
-
-export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave }) => {
+export const SettingsView: React.FC = () => {
   const { role, login } = useAuth();
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
-  const [formData, setFormData] = useState<ClinicSettings>(settings);
-  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // TITANIUM CONTROLLER
+  const { settings, isLoading, isUpdating, updateSettings } = useSettingsController();
+
+  // Local form state initialized from fetched settings
+  const [formData, setFormData] = useState<Partial<ClinicSettings>>({});
+
+  // Sync form when settings load
+  useEffect(() => {
+    if (settings) {
+      setFormData(settings);
+    }
+  }, [settings]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
-    setToast({ msg: 'Configuración guardada correctamente', type: 'success' });
-    setTimeout(() => setToast(null), 3000);
+    try {
+      await updateSettings(formData);
+      // Toast handled globally or locally if we added it back.
+      // For now, simple alert or relying on optimistic/log
+      // alert('Guardado Titanium!'); 
+    } catch (err) {
+      console.error("Failed to save", err);
+      alert("Error al guardar configuración.");
+    }
   };
+
+  if (isLoading) return (
+    <div className="flex h-96 items-center justify-center">
+      <Loader2 className="animate-spin text-slate-400" size={32} />
+    </div>
+  );
 
   return (
     <div className="max-w-4xl mx-auto animate-in fade-in space-y-6">
@@ -34,7 +50,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave }) 
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">
             Configuración Clínica
           </h1>
-          <p className="text-slate-500 mt-1">Datos de facturación y perfil profesional</p>
+          <p className="text-slate-500 mt-1">Datos de facturación y perfil profesional (Titanium Powered)</p>
         </div>
       </header>
 
@@ -90,7 +106,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave }) 
                 className="w-full"
                 onClick={() => {
                   alert('Iniciando exportación masiva...');
-                  // Simulation of CSV generation with BOM for Excel
                   const dummyData = 'Nombre,Edad,Diagnóstico\nJuan,30,Stress\nAna,25,Ansiedad';
                   const bom = '\uFEFF';
                   const blob = new Blob([bom + dummyData], { type: 'text/csv;charset=utf-8;' });
@@ -112,69 +127,186 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave }) 
             </div>
           </Card>
 
-          {/* Appearance Config */}
-          <Card className="p-8 space-y-6">
-            <h3 className="font-bold text-slate-800 dark:text-gray-100 flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-4">
-              <Moon size={20} className="text-indigo-600" /> Apariencia
-            </h3>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-slate-900 dark:text-white">Modo Oscuro</p>
-                <p className="text-sm text-slate-500">Reduce la fatiga visual en entornos oscuros</p>
-              </div>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={toggleTheme}
-                className="flex items-center gap-2"
-              >
-                {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-                {theme === 'dark' ? 'Activar Modo Claro' : 'Activar Modo Oscuro'}
-              </Button>
-            </div>
-          </Card>
 
-          {/* Legal & Invoice Data */}
+
+          {/* Legal & Invoice Data (Billing Object) */}
           <div className="space-y-6">
             <Card className="p-8 space-y-6">
               <h3 className="font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-4">
-                <CreditCard size={20} className="text-indigo-600" /> Datos de Facturación
+                <CreditCard size={20} className="text-indigo-600" /> Datos de Facturación (PDF)
               </h3>
+
+              {/* Logo Uploader */}
+              <div className="flex flex-col items-center p-6 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                {formData.billing?.logoUrl ? (
+                  <div className="relative group">
+                    <img
+                      src={formData.billing.logoUrl}
+                      alt="Logo Factura"
+                      className="w-24 h-24 rounded-full object-cover shadow-lg border-4 border-white"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setFormData({
+                        ...formData,
+                        billing: { ...formData.billing!, logoUrl: '' }
+                      })}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                    >
+                      <Shield size={12} className="rotate-45" /> {/* X icon replacement */}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="text-center space-y-2">
+                    <div className="w-16 h-16 bg-indigo-100 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <Building size={24} />
+                    </div>
+                    <p className="text-sm font-medium text-slate-600">Logo de la Empresa</p>
+                    <p className="text-xs text-slate-400">Circular en el PDF</p>
+                    <label className="cursor-pointer">
+                      <span className="text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-full transition-colors">
+                        Subir Logo
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            if (file.size > 2 * 1024 * 1024) { // 2MB Limit
+                              alert("El logo es demasiado grande (Máx 2MB). Intenta con una imagen más pequeña.");
+                              return;
+                            }
+
+                            // Compression Logic
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                              const img = new Image();
+                              img.onload = () => {
+                                const canvas = document.createElement('canvas');
+                                const MAX_WIDTH = 500;
+                                const MAX_HEIGHT = 500;
+                                let width = img.width;
+                                let height = img.height;
+
+                                if (width > height) {
+                                  if (width > MAX_WIDTH) {
+                                    height *= MAX_WIDTH / width;
+                                    width = MAX_WIDTH;
+                                  }
+                                } else {
+                                  if (height > MAX_HEIGHT) {
+                                    width *= MAX_HEIGHT / height;
+                                    height = MAX_HEIGHT;
+                                  }
+                                }
+
+                                canvas.width = width;
+                                canvas.height = height;
+                                const ctx = canvas.getContext('2d');
+                                ctx?.drawImage(img, 0, 0, width, height);
+
+                                // Compress to JPEG 0.7 to save space
+                                const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+
+                                setFormData({
+                                  ...formData,
+                                  billing: {
+                                    ...formData.billing,
+                                    logoUrl: dataUrl,
+                                    legalName: formData.billing?.legalName || '',
+                                    nif: formData.billing?.nif || '',
+                                    address: formData.billing?.address || ''
+                                  }
+                                });
+                              };
+                              img.src = event.target?.result as string;
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                )}
+              </div>
+
               <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="label-pro">Razón Social (Nombre Legal)</label>
+                  <input
+                    className="input-pro"
+                    value={formData.billing?.legalName || ''}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      billing: {
+                        ...formData.billing,
+                        legalName: e.target.value,
+                        nif: formData.billing?.nif || '',
+                        address: formData.billing?.address || '',
+                        logoUrl: formData.billing?.logoUrl || ''
+                      }
+                    })}
+                    placeholder="Ej: Juan Pérez S.L."
+                  />
+                </div>
                 <div className="space-y-2">
                   <label className="label-pro">CIF / NIF</label>
                   <input
                     className="input-pro font-mono"
-                    value={formData.cif || ''}
-                    onChange={(e) => setFormData({ ...formData, cif: e.target.value })}
+                    value={formData.billing?.nif || ''}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      billing: {
+                        ...formData.billing,
+                        nif: e.target.value,
+                        legalName: formData.billing?.legalName || '',
+                        address: formData.billing?.address || '',
+                        logoUrl: formData.billing?.logoUrl || ''
+                      }
+                    })}
                     placeholder="B-12345678"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="label-pro">Email para Facturas</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 text-slate-400" size={16} />
-                    <input
-                      type="email"
-                      className="input-pro pl-10"
-                      value={formData.email || ''}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="facturacion@empresa.com"
-                    />
-                  </div>
+                  <label className="label-pro">Dirección de Facturación</label>
+                  <textarea
+                    className="input-pro min-h-[60px]"
+                    value={formData.billing?.address || ''}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      billing: {
+                        ...formData.billing,
+                        address: e.target.value,
+                        legalName: formData.billing?.legalName || '',
+                        nif: formData.billing?.nif || '',
+                        logoUrl: formData.billing?.logoUrl || ''
+                      }
+                    })}
+                    placeholder="Dirección completa para la factura..."
+                  />
                 </div>
-                <div className="space-y-2">
-                  <label className="label-pro">Sitio Web</label>
-                  <div className="relative">
-                    <Globe className="absolute left-3 top-3 text-slate-400" size={16} />
-                    <input
-                      className="input-pro pl-10"
-                      value={formData.website || ''}
-                      onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                      placeholder="www.metodoactiva.com"
-                    />
-                  </div>
-                </div>
+              </div>
+
+              <div className="flex justify-end pt-4 border-t border-slate-100 mt-4">
+                <Button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await updateSettings(formData);
+                      alert("Datos de Facturación y Logo guardados correctamente.");
+                    } catch (e) {
+                      alert("Error al guardar.");
+                    }
+                  }}
+                  isLoading={isUpdating}
+                  icon={Save}
+                  variant="secondary"
+                  className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                >
+                  Guardar Configuración Fiscal
+                </Button>
               </div>
             </Card>
 
@@ -261,7 +393,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave }) 
         </div>
 
         <div className="mt-8 flex justify-end">
-          <Button type="submit" className="w-full md:w-auto px-8" icon={Save}>
+          <Button type="submit" className="w-full md:w-auto px-8" icon={Save} isLoading={isUpdating}>
             Guardar Cambios
           </Button>
         </div>
@@ -301,8 +433,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, onSave }) 
         <a href="https://activamusicoterapia.com/legal/privacy" target="_blank" rel="noreferrer" className="hover:text-slate-600 transition-colors">Política de Privacidad</a>
         <span>© 2026 Método Activa</span>
       </div>
-
-      {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 };

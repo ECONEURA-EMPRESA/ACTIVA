@@ -6,6 +6,7 @@ import {
     MOCA_SECTIONS,
     MMSE_SECTIONS,
     CHILD_DEV_DOMAINS,
+    ADULT_DEV_DOMAINS,
     CHILD_MUSICAL_PROFILE,
     GDS_STAGES,
     CHILD_LEVELS,
@@ -44,7 +45,8 @@ interface CognitiveModalProps {
     initialData?: any;
     initialScores?: number[];
     isChild?: boolean;
-    initialTab?: 'general' | 'moca' | 'mmse' | 'admission';
+    isGeriatric?: boolean; // NEW
+    initialTab?: 'general' | 'moca' | 'mmse';
 }
 
 export const CognitiveModal: React.FC<CognitiveModalProps> = ({
@@ -53,10 +55,11 @@ export const CognitiveModal: React.FC<CognitiveModalProps> = ({
     initialData,
     initialScores,
     isChild = false,
+    isGeriatric = false,
     initialTab = 'general',
 }) => {
     // STARTING TAB LOGIC
-    const [activeTab, setActiveTab] = useState<'general' | 'moca' | 'mmse' | 'admission'>(initialTab);
+    const [activeTab, setActiveTab] = useState<'general' | 'moca' | 'mmse'>(initialTab);
     const [date, setDate] = useState(
         initialData?.date
             ? formatDateForInput(initialData.date)
@@ -133,7 +136,7 @@ export const CognitiveModal: React.FC<CognitiveModalProps> = ({
                         </div>
                         <div>
                             <h2 className="text-2xl font-black text-slate-800">
-                                {isChild ? 'Perfil de Desarrollo' : 'Valoración Geriátrica'}
+                                {isChild ? 'Perfil de Desarrollo' : isGeriatric ? 'Valoración Geriátrica' : 'Evaluación Psicosocial'}
                             </h2>
                             <p className="text-slate-500 text-sm font-medium">Evaluación Clínica Integral</p>
                         </div>
@@ -164,13 +167,12 @@ export const CognitiveModal: React.FC<CognitiveModalProps> = ({
                     <div className="flex border-b border-slate-200 mb-6 bg-white rounded-xl shadow-sm overflow-hidden">
                         {[
                             { id: 'general', label: isChild ? 'Perfil de Desarrollo' : 'Resumen & Funcional' },
-                            ...(isChild
+                            ...(isChild || !isGeriatric
                                 ? []
                                 : [
                                     { id: 'moca', label: 'MOCA (Detallado)' },
                                     { id: 'mmse', label: 'MMSE (Detallado)' },
                                 ]),
-                            { id: 'admission', label: 'Admisión / Seguridad' },
                         ].map((tab) => (
                             <button
                                 key={tab.id}
@@ -193,99 +195,155 @@ export const CognitiveModal: React.FC<CognitiveModalProps> = ({
                         {/* --- VISTA ADULTO: Dashboard Métricas + Funcional --- */}
                         {!isChild && activeTab === 'general' && (
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                {/* Columna Izquierda: Métricas Hard (MOCA/MMSE) */}
-                                <div className="space-y-6">
-                                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                                        <h3 className="font-black text-slate-800 mb-4 flex items-center gap-2">
-                                            <Activity size={18} className="text-pink-500" /> Screening Cognitivo
-                                        </h3>
+                                {/* Columna Izquierda: Métricas Hard (MOCA/MMSE) - ONLY GERIATRIC */}
+                                {isGeriatric ? (
+                                    <div className="space-y-6">
+                                        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                                            <h3 className="font-black text-slate-800 mb-4 flex items-center gap-2">
+                                                <Activity size={18} className="text-pink-500" /> Screening Cognitivo
+                                            </h3>
 
-                                        <div className="space-y-6">
-                                            {/* MOCA Summary */}
-                                            <div
-                                                className="bg-slate-50 rounded-xl p-4 border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors"
-                                                onClick={() => setActiveTab('moca')}
-                                            >
-                                                <div className="flex justify-between items-center">
-                                                    <span className="font-bold text-slate-700">MOCA</span>
-                                                    <span className="text-2xl font-black text-pink-600">
-                                                        {mocaTotal}
-                                                        <span className="text-sm text-slate-400 font-medium">/30</span>
-                                                    </span>
-                                                </div>
-                                                <div className="text-xs text-slate-400 mt-1 font-medium text-right">
-                                                    Ver detalle &rarr;
-                                                </div>
-                                            </div>
-
-                                            {/* MMSE Summary */}
-                                            <div
-                                                className="bg-slate-50 rounded-xl p-4 border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors"
-                                                onClick={() => setActiveTab('mmse')}
-                                            >
-                                                <div className="flex justify-between items-center">
-                                                    <span className="font-bold text-slate-700">MMSE</span>
-                                                    <span className="text-2xl font-black text-blue-600">
-                                                        {mmseTotal}
-                                                        <span className="text-sm text-slate-400 font-medium">/30</span>
-                                                    </span>
-                                                </div>
-                                                <div className="text-xs text-slate-400 mt-1 font-medium text-right">
-                                                    Ver detalle &rarr;
-                                                </div>
-                                            </div>
-
-                                            {/* GDS Card */}
-                                            <GDSSelector value={gdsValue} onChange={setGdsValue} />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Columna Derecha: Mapa Funcional (Sliders) */}
-                                <div className="lg:col-span-2 space-y-6">
-                                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm h-full">
-                                        <h3 className="font-black text-slate-800 mb-6 flex items-center gap-2">
-                                            <Activity size={18} className="text-indigo-500" /> Perfil Funcional & Musical
-                                        </h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                                            {EVALUATION_AREAS_ADULT.map((area, i) => (
-                                                <div key={i} className="space-y-2">
-                                                    <div className="flex justify-between">
-                                                        <label className="text-sm font-bold text-slate-700">{area}</label>
-                                                        <span
-                                                            className={`text-xs font-bold px-2 py-0.5 rounded ${functionalScores[i] === 3 ? 'bg-emerald-100 text-emerald-700' : functionalScores[i] === 2 ? 'bg-blue-100 text-blue-700' : functionalScores[i] === 1 ? 'bg-yellow-100 text-yellow-700' : 'bg-slate-100 text-slate-500'}`}
-                                                        >
-                                                            {functionalScores[i] === 0
-                                                                ? 'Nulo'
-                                                                : functionalScores[i] === 1
-                                                                    ? 'Bajo'
-                                                                    : functionalScores[i] === 2
-                                                                        ? 'Medio'
-                                                                        : 'Alto'}
+                                            <div className="space-y-6">
+                                                {/* MOCA Summary */}
+                                                <div
+                                                    className="bg-slate-50 rounded-xl p-4 border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors"
+                                                    onClick={() => setActiveTab('moca')}
+                                                >
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="font-bold text-slate-700">MOCA</span>
+                                                        <span className="text-2xl font-black text-pink-600">
+                                                            {mocaTotal}
+                                                            <span className="text-sm text-slate-400 font-medium">/30</span>
                                                         </span>
                                                     </div>
-                                                    <input
-                                                        type="range"
-                                                        min="0"
-                                                        max="3"
-                                                        step="1"
-                                                        value={functionalScores[i]}
-                                                        onChange={(e) => {
-                                                            const n = [...functionalScores];
-                                                            n[i] = parseInt(e.target.value);
-                                                            setFunctionalScores(n);
-                                                        }}
-                                                        className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-pink-600"
-                                                    />
-                                                    <div className="flex justify-between text-[10px] text-slate-400 font-medium uppercase tracking-wider">
-                                                        <span>0</span>
-                                                        <span>1</span>
-                                                        <span>2</span>
-                                                        <span>3</span>
+                                                    <div className="text-xs text-slate-400 mt-1 font-medium text-right">
+                                                        Ver detalle &rarr;
                                                     </div>
                                                 </div>
-                                            ))}
+
+                                                {/* MMSE Summary */}
+                                                <div
+                                                    className="bg-slate-50 rounded-xl p-4 border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors"
+                                                    onClick={() => setActiveTab('mmse')}
+                                                >
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="font-bold text-slate-700">MMSE</span>
+                                                        <span className="text-2xl font-black text-blue-600">
+                                                            {mmseTotal}
+                                                            <span className="text-sm text-slate-400 font-medium">/30</span>
+                                                        </span>
+                                                    </div>
+                                                    <div className="text-xs text-slate-400 mt-1 font-medium text-right">
+                                                        Ver detalle &rarr;
+                                                    </div>
+                                                </div>
+
+                                                {/* GDS Card */}
+                                                <GDSSelector value={gdsValue} onChange={setGdsValue} />
+                                            </div>
                                         </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-100 shadow-sm">
+                                            <h3 className="font-black text-emerald-800 mb-4 flex items-center gap-2">
+                                                <Brain size={18} /> Evaluación Psicosocial
+                                            </h3>
+                                            <p className="text-sm text-emerald-700 mb-4">
+                                                Enfoque en bienestar emocional, adaptación y funcionalidad social.
+                                            </p>
+                                            {/* Could add specific adult scales here later */}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Columna Derecha: Mapa Funcional (Visual Cards - The "Child" Style adapted for Adults) */}
+                                <div className="lg:col-span-2 space-y-6">
+                                    <h3 className="font-black text-slate-800 flex items-center gap-2">
+                                        <Activity size={18} className="text-indigo-500" /> Perfil Funcional & Musical
+                                    </h3>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* Import ADULT_DEV_DOMAINS inside the file imports first, but for now assuming it's available or I'll add import */}
+                                        {ADULT_DEV_DOMAINS.map((domain) => {
+                                            const DomainIcon = domain.icon;
+                                            const colorClasses: any = {
+                                                blue: 'bg-blue-50 border-blue-100 text-blue-700',
+                                                emerald: 'bg-emerald-50 border-emerald-100 text-emerald-700',
+                                                purple: 'bg-purple-50 border-purple-100 text-purple-700',
+                                                rose: 'bg-rose-50 border-rose-100 text-rose-700',
+                                            };
+
+                                            return (
+                                                <div
+                                                    key={domain.id}
+                                                    className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden group hover:shadow-md transition-all"
+                                                >
+                                                    <div
+                                                        className={`p-4 border-b border-slate-100 flex items-center gap-3 ${colorClasses[domain.color]}`}
+                                                    >
+                                                        <DomainIcon size={20} />
+                                                        <h3 className="font-bold text-lg">{domain.title}</h3>
+                                                    </div>
+                                                    <div className="p-5 space-y-5">
+                                                        {domain.items.map((item) => {
+                                                            // Find index in EVALUATION_AREAS_ADULT
+                                                            const idx = EVALUATION_AREAS_ADULT.indexOf(item);
+                                                            // If not found, skip or handle error (should be found if constants are synced)
+                                                            if (idx === -1) return null;
+
+                                                            const currentVal = functionalScores[idx] || 0;
+
+                                                            return (
+                                                                <div key={item}>
+                                                                    <div className="flex justify-between items-center mb-2">
+                                                                        <span className="text-sm font-medium text-slate-700">{item}</span>
+                                                                        <span
+                                                                            className={`text-[10px] font-black uppercase tracking-wide ${currentVal === 3 ? 'text-emerald-600' : currentVal === 2 ? 'text-blue-600' : currentVal === 1 ? 'text-yellow-600' : 'text-slate-300'}`}
+                                                                        >
+                                                                            {currentVal === 0 ? 'Nulo' : currentVal === 1 ? 'Bajo' : currentVal === 2 ? 'Medio' : 'Alto'}
+                                                                        </span>
+                                                                    </div>
+                                                                    {/* Interactive Progress Bar */}
+                                                                    <div className="flex gap-1 h-3 cursor-pointer group/bar">
+                                                                        {[0, 1, 2, 3].map((level) => {
+                                                                            let barColor = 'bg-slate-100';
+                                                                            if (level > 0 && currentVal >= level) {
+                                                                                if (level === 1) barColor = 'bg-yellow-400';
+                                                                                if (level === 2) barColor = 'bg-blue-400';
+                                                                                if (level === 3) barColor = 'bg-emerald-400';
+                                                                            }
+                                                                            return (
+                                                                                <div
+                                                                                    key={level}
+                                                                                    onClick={() => {
+                                                                                        const n = [...functionalScores];
+                                                                                        n[idx] = level;
+                                                                                        setFunctionalScores(n);
+                                                                                    }}
+                                                                                    className={`flex-1 rounded-sm transition-all hover:opacity-80 ${barColor} ${level === 0 ? 'hidden' : ''}`}
+                                                                                />
+                                                                            );
+                                                                        })}
+                                                                        <div
+                                                                            onClick={() => {
+                                                                                const n = [...functionalScores];
+                                                                                n[idx] = 0;
+                                                                                setFunctionalScores(n);
+                                                                            }}
+                                                                            className="w-4 h-full bg-slate-50 hover:bg-red-100 rounded-sm ml-2 flex items-center justify-center text-[8px] text-slate-300 cursor-pointer"
+                                                                            title="Reset"
+                                                                        >
+                                                                            x
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             </div>

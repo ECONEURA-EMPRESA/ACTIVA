@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Activity,
-    Brain,
     BarChart3,
     ClipboardCheck,
     DollarSign,
@@ -15,10 +14,12 @@ import {
     CheckSquare,
     ShieldCheck,
     Music,
-    HeartPulse,
-    AlertTriangle,
     Folder,
+    Save,
+    MessageCircle,
+    CalendarPlus,
 } from 'lucide-react';
+import { useCreateSession, useUpdateSession, useDeleteSession } from '../../api/mutations/useSessionMutations';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
@@ -26,70 +27,115 @@ import { PatientAvatar } from '../../components/ui/PatientAvatar';
 import { Toast } from '../../components/ui/Toast';
 import { InvoiceGenerator } from '../../components/ui/InvoiceGenerator';
 import { DocumentsTab } from './tabs/DocumentsTab';
+import { PhaseProgress } from './components/PhaseProgress';
 
 // Modals
-import { AdmissionModal } from './modals/AdmissionModal';
+import { EditProfileModal } from './modals/EditProfileModal';
 import { AdmissionChecklistModal } from './modals/AdmissionChecklistModal';
-import { AdmissionSafetyModal } from './modals/AdmissionSafetyModal'; // NEW
+import { SafetyModal } from './modals/SafetyModal'; // NEW
+import { MusicalIdentityModal } from './modals/MusicalIdentityModal'; // NEW
 import { CognitiveModal } from './modals/CognitiveModal';
 import { SessionModal } from './modals/SessionModal';
 import { ClinicalGuideModal } from './modals/ClinicalGuideModal';
 import { ReportModal } from './modals/ReportModal';
 
-import { TREATMENT_PHASES, EVALUATION_AREAS } from '../../lib/clinicalUtils';
-import { FORMULATION_OPTIONS } from '../../lib/patientUtils';
+import { TREATMENT_PHASES, getPhaseForSessionIndex } from '../../lib/clinicalUtils';
+import { FORMULATION_OPTIONS, PATHOLOGY_MAP, MOBILITY_MAP } from '../../lib/patientUtils';
+import { WhatsApp } from '../../lib/whatsappUtils';
 import { Patient, Session, FormulationData, ClinicalFormulation } from '../../lib/types';
-import { CognitiveRadar } from './components/CustomerRadar';
+
+const RISK_LABELS: Record<string, string> = {
+    epilepsy: 'Epilepsia',
+    dysphagia: 'Disfagia',
+    flightRisk: 'Riesgo Fuga',
+    psychomotorAgitation: 'Agitación',
+    hyperacusis: 'Hiperacusia',
+    chokingHazard: 'Riesgo Atragantamiento',
+    disruptiveBehavior: 'Conducta Disruptiva',
+};
+
 import { useAuth } from '../../context/AuthContext';
 import { EvidenceChart } from '../analytics/EvidenceChart';
 import { PaywallModal } from '../../components/ui/PaywallModal';
+import { useActivityLog } from '../../hooks/useActivityLog';
+import { useDeletePatient } from '../../api/queries';
+import { ConfirmationModal } from '../../components/ui/ConfirmationModal';
+import { useSettingsController } from '../../hooks/controllers/useSettingsController';
 
 interface PatientDetailProps {
     patient: Patient;
     onBack: () => void;
     onUpdate: (updated: Patient) => void;
-    clinicSettings?: any;
 }
 
 export const PatientDetail: React.FC<PatientDetailProps> = ({
     patient,
     onBack,
     onUpdate,
-    clinicSettings,
 }) => {
-    const { canDelete, canViewFinancials, isPremium } = useAuth();
+    const { settings: clinicSettings } = useSettingsController();
+    const { logActivity } = useActivityLog();
+    const { canDelete, canViewFinancials, isPremium, demoMode } = useAuth();
     const [showPaywall, setShowPaywall] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+    // Deletion Hook
+    const { mutate: deletePatient, isPending: isDeleting } = useDeletePatient(demoMode);
+
+    const confirmDelete = () => {
+        if (!patient.id) return;
+        deletePatient(String(patient.id), {
+            onSuccess: () => {
+                logActivity('delete', `Paciente eliminado permanentemente: ${patient.name}`);
+                setShowDeleteModal(false);
+                showToast('Paciente eliminado correctamente', 'success');
+                onBack(); // Return to directory
+            },
+            onError: (err: any) => {
+                console.error(err);
+                setShowDeleteModal(false);
+                showToast('Error al eliminar paciente', 'error');
+            }
+        });
+    };
     const [notification, setNotification] = useState<{
         msg: string;
         type: 'success' | 'error';
     } | null>(null);
     const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
         setNotification({ msg, type });
-        setTimeout(() => setNotification(null), 3000);
     };
+
+    // ROBUST: cleanup timeout on unmount or change
+    useEffect(() => {
+        if (notification) {
+            const timer = setTimeout(() => setNotification(null), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [notification]);
 
     // Modal State
     const [showSessionModal, setShowSessionModal] = useState(false);
     const [selectedSession, setSelectedSession] = useState<Session | undefined>(undefined);
     const [showCognitiveModal, setShowCognitiveModal] = useState(false);
-    const [cognitiveInitialTab, setCognitiveInitialTab] = useState<'general' | 'admission'>(
-        'general',
-    ); // Control initial tab
+    const [cognitiveInitialTab, setCognitiveInitialTab] = useState<'general' | 'moca' | 'mmse'>('general');
     const [showGuideModal, setShowGuideModal] = useState(false);
     const [showEditProfile, setShowEditProfile] = useState(false);
     const [showInvoice, setShowInvoice] = useState(false);
     const [showReportModal, setShowReportModal] = useState(false);
     const [showAdmissionChecklist, setShowAdmissionChecklist] = useState(false);
-    const [showSafetyModal, setShowSafetyModal] = useState(false); // NEW STATE
+
+    // NEW MODAL STATES
+    const [showSafetyModal, setShowSafetyModal] = useState(false);
+    const [showIsoModal, setShowIsoModal] = useState(false);
+
     const [invoiceData, setInvoiceData] = useState<any>(null);
 
     const tabs = [
-        { id: 'status', label: 'Plan Terapéutico', icon: Activity },
-        { id: 'safety', label: 'Seguridad & ISO', icon: ShieldCheck }, // NEW TAB
-        { id: 'formulation', label: 'Formulación Clínica', icon: Brain },
+        { id: 'treatment', label: 'Plan de Tratamiento', icon: Activity }, // UNIFIED TAB
         { id: 'evaluation', label: 'Evaluación (0-3)', icon: BarChart3 },
-        { id: 'documents', label: 'Gestor Documental', icon: Folder },
         { id: 'sessions', label: 'Bitácora', icon: ClipboardCheck },
+        { id: 'documents', label: 'Gestor Documental', icon: Folder },
         ...(canViewFinancials ? [{ id: 'billing', label: 'Facturación', icon: DollarSign }] : []),
         { id: 'discharge', label: 'Alta y Continuidad', icon: CheckSquare },
     ];
@@ -105,80 +151,165 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
             return validSessions.length >= min && validSessions.length <= max;
         }) || TREATMENT_PHASES[0];
 
-    const [activeTab, setActiveTab] = useState('status');
+    const [activeTab, setActiveTab] = useState('treatment');
 
-    const handleDeleteSession = (sessionId: string | number) => {
-        if (
-            window.confirm('¿Seguro que quieres eliminar esta sesión? Esta acción no se puede deshacer.')
-        ) {
-            const updatedSessions = (patient.sessions || []).filter((s) => s.id !== sessionId);
-            onUpdate({ ...patient, sessions: updatedSessions });
-            showToast('Sesión eliminada del historial', 'success');
+    // TITANIUM MUTATIONS
+    const { mutateAsync: createSession } = useCreateSession();
+    const { mutateAsync: updateSession } = useUpdateSession();
+    const { mutateAsync: deleteSession } = useDeleteSession();
+
+    const handleDeleteSession = async (sessionId: string | number) => {
+        // Confirmation is handled in the Modal
+        try {
+            if (patient.id) {
+                await deleteSession({ patientId: String(patient.id), sessionId: String(sessionId) });
+                logActivity('session', `Sesión eliminada de historial: ${patient.name}`);
+                showToast('Sesión eliminada del historial', 'success');
+                setShowSessionModal(false);
+            } else {
+                console.error('Titanium Error: Patient ID missing');
+            }
+        } catch (e) {
+            console.error('Delete Error:', e);
+            showToast('Error al eliminar', 'error');
         }
     };
 
-    const handleSaveSession = (sessionData: Session) => {
+    const handleSaveSession = async (sessionData: Session) => {
         const isNew = !selectedSession;
-        let newSessions = [...(patient.sessions || [])];
 
-        if (isNew) {
-            newSessions = [sessionData, ...newSessions];
-        } else {
-            newSessions = newSessions.map((s) => (s.id === sessionData.id ? sessionData : s));
+        try {
+            if (isNew) {
+                if (patient.id) {
+                    await createSession({ patientId: String(patient.id), session: sessionData });
+
+                    if (sessionData.isAbsent) {
+                        logActivity('session', `Ausencia registrada por ${patient.name}`);
+                    } else {
+                        logActivity('session', `Sesión completada con ${patient.name}`);
+                    }
+                }
+            } else {
+                if (patient.id && sessionData.id) {
+                    await updateSession({ patientId: String(patient.id), sessionId: String(sessionData.id), data: sessionData });
+
+                    if (sessionData.paid) {
+                        logActivity('finance', `Pago registrado: Sesión de ${patient.name}`);
+                    } else if (sessionData.isAbsent) {
+                        logActivity('session', `Sesión marcada como AUSENCIA: ${patient.name}`);
+                    } else {
+                        logActivity('session', `Sesión actualizada: ${patient.name}`);
+                    }
+                }
+            }
+            setShowSessionModal(false);
+            showToast('Sesión guardada correctamente', 'success');
+        } catch (e) {
+            console.error('Save Error:', e);
+            showToast('Error al guardar sesión', 'error');
         }
-
-        onUpdate({ ...patient, sessions: newSessions });
-        setShowSessionModal(false);
-        showToast('Sesión guardada correctamente', 'success');
     };
 
-    const activeSessions = patient.sessions || [];
+    // Sort sessions descending (Newest first)
+    // HELPER: Robust Date Parsing
+    const parseSessionDate = (dStr: string) => {
+        if (!dStr) return 0;
+        if (dStr.includes('/')) {
+            const [d, m, y] = dStr.split('/');
+            return new Date(`${y}-${m}-${d}`).getTime();
+        }
+        return new Date(dStr).getTime();
+    };
 
-    const FormulationSection = ({
-        title,
-        optionsKey,
-        fieldKey,
-    }: {
+    const activeSessions = React.useMemo(() => {
+        return [...(patient.sessions || [])].sort((a, b) => {
+            return parseSessionDate(b.date) - parseSessionDate(a.date);
+        });
+    }, [patient.sessions]);
+
+    // Calculate phases considering only valid (non-absent) sessions
+    const sessionPhaseMap = React.useMemo(() => {
+        const map: Record<string, number> = {};
+        let validCount = 0;
+        // Process chronologically (Oldest -> Newest)
+        [...activeSessions].reverse().forEach((s) => {
+            if (!s.isAbsent) {
+                validCount++;
+                map[s.id] = getPhaseForSessionIndex(validCount - 1);
+            }
+        });
+        return map;
+    }, [activeSessions]);
+
+    interface FormulationSectionProps {
         title: string;
         optionsKey: keyof typeof FORMULATION_OPTIONS;
         fieldKey: keyof ClinicalFormulation;
-    }) => {
-        const rawValue = patient.clinicalFormulation?.[fieldKey];
+        initialData: FormulationData | string | undefined;
+        onSave: (fieldKey: keyof ClinicalFormulation, data: FormulationData) => void;
+    }
 
+    const FormulationSection: React.FC<FormulationSectionProps> = ({ title, optionsKey, fieldKey, initialData, onSave }) => {
         const isFormulationData = (val: any): val is FormulationData => {
             return typeof val === 'object' && val !== null && 'selected' in val;
         };
 
-        const data: FormulationData = isFormulationData(rawValue)
-            ? rawValue
-            : { selected: [], text: typeof rawValue === 'string' ? rawValue : '' };
+        const normalizeData = (val: any): FormulationData => {
+            return isFormulationData(val)
+                ? val
+                : { selected: [], text: typeof val === 'string' ? val : '' };
+        };
+
+        const [localData, setLocalData] = useState<FormulationData>(normalizeData(initialData));
+        const [isDirty, setIsDirty] = useState(false);
+
+        useEffect(() => {
+            const data = normalizeData(initialData);
+            if (!data.text && patient.diagnosis) {
+                let template = '';
+                if (fieldKey === 'synthesis') {
+                    template = `Paciente de ${patient.age} años con diagnóstico principal de ${patient.diagnosis}.` +
+                        (patient.pathologyType ? ` Se clasifica dentro del espectro: ${PATHOLOGY_MAP[patient.pathologyType] || patient.pathologyType}.` : '');
+                } else if (fieldKey === 'hypothesis') {
+                    template = `Se propone intervención musicoterapéutica centrada en ${patient.diagnosis.toLowerCase().includes('demencia') ? 'estimulación cognitiva y reminiscencia' : 'regulación emocional y expresión'}.`;
+                } else if (fieldKey === 'objectives') {
+                    // AUTO-OBJECTIVES LOGIC
+                    if (patient.diagnosis.toLowerCase().includes('alzheimer') || patient.diagnosis.toLowerCase().includes('demencia')) {
+                        template = "1. Mantenimiento de funciones cognitivas (atención, memoria).\n2. Reducción de sintomatología conductual y ansiógena.\n3. Fomento de la conexión con el entorno y la identidad sonora.\n4. Estimulación de la memoria autobiográfica a través de la reminiscencia musical.";
+                    } else if (patient.age < 18) {
+                        template = "1. Fomentar la expresión emocional y la comunicación no verbal.\n2. Mejorar la atención conjunta y la interacción social.\n3. Desarrollo de habilidades motrices y rítmicas.\n4. Regulación sensorial y conductual.";
+                    } else {
+                        template = "1. Mejorar el bienestar emocional y la autopercepción.\n2. Facilitar la expresión de sentimientos bloqueados.\n3. Promover la relajación y reducción de estrés.\n4. Potenciar recursos creativos y de afrontamiento.";
+                    }
+                }
+                if (template) {
+                    data.text = template;
+                    setIsDirty(true);
+                }
+            }
+            setLocalData(data);
+        }, [initialData, fieldKey, patient.diagnosis]);
 
         const handleCheck = (option: string) => {
-            const newSelected = data.selected.includes(option)
-                ? data.selected.filter((s) => s !== option)
-                : [...data.selected, option];
-
-            onUpdate({
-                ...patient,
-                clinicalFormulation: {
-                    ...patient.clinicalFormulation,
-                    [fieldKey]: { ...data, selected: newSelected },
-                },
-            });
+            const newSelected = localData.selected.includes(option)
+                ? localData.selected.filter((s) => s !== option)
+                : [...localData.selected, option];
+            setLocalData({ ...localData, selected: newSelected });
+            setIsDirty(true);
         };
 
         const handleText = (text: string) => {
-            onUpdate({
-                ...patient,
-                clinicalFormulation: {
-                    ...patient.clinicalFormulation,
-                    [fieldKey]: { ...data, text },
-                },
-            });
+            setLocalData({ ...localData, text });
+            setIsDirty(true);
+        };
+
+        const handleSaveClick = () => {
+            onSave(fieldKey, localData);
+            setIsDirty(false);
         };
 
         return (
-            <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+            <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col h-full">
                 <h4 className="font-bold text-slate-700 text-sm uppercase tracking-wide mb-3 flex items-center gap-2">
                     <CheckSquare size={16} className="text-pink-600" /> {title}
                 </h4>
@@ -191,7 +322,7 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                             <input
                                 type="checkbox"
                                 className="mt-0.5 accent-pink-600 w-4 h-4"
-                                checked={data.selected.includes(opt)}
+                                checked={localData.selected.includes(opt)}
                                 onChange={() => handleCheck(opt)}
                             />
                             <span className="leading-snug select-none">{opt}</span>
@@ -199,31 +330,54 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                     ))}
                 </div>
                 <textarea
-                    className="input-pro text-sm h-24 resize-none bg-slate-50 border-slate-200 focus:bg-white"
-                    placeholder="Otros detalles / Observaciones específicas..."
-                    value={data.text}
+                    className="input-pro text-sm h-32 resize-none bg-slate-50 border-slate-200 focus:bg-white mb-4"
+                    placeholder="Detalles clínicos y observaciones..."
+                    value={localData.text}
                     onChange={(e) => handleText(e.target.value)}
                 />
+                <div className="mt-auto flex justify-end">
+                    <Button
+                        size="sm"
+                        variant={isDirty ? 'primary' : 'secondary'}
+                        onClick={handleSaveClick}
+                        icon={Save}
+                        disabled={!isDirty}
+                    >
+                        {isDirty ? 'Guardar Cambios' : 'Actualizado'}
+                    </Button>
+                </div>
             </div>
         );
     };
 
     const handlePrintGlobalInvoice = () => {
-        const pendingSessions = activeSessions.filter((s) => !s.paid);
-        if (pendingSessions.length === 0)
-            return alert('No hay sesiones pendientes de pago para facturar.');
+        // INCLUIR TODAS LAS SESIONES REALIZADAS (PAGADAS O NO)
+        // Se excluyen ausencias SOLO si no tienen precio (no cobradas)
+        const allBillableSessions = activeSessions
+            .filter((s) => !s.isAbsent || (s.price && s.price > 0))
+            .sort((a, b) => {
+                // Sort Chronologically for Invoice (Oldest -> Newest)
+                const timeA = parseSessionDate(a.date);
+                const timeB = parseSessionDate(b.date);
+                return timeA - timeB;
+            });
 
+        console.log(`[Invoice] Total sessions found: ${allBillableSessions.length}`);
+
+        if (allBillableSessions.length === 0)
+            return alert('No se encontraron sesiones para facturar.');
+
+        // Generate sequential invoice number roughly or use default
         const defaultNum = `FACT-${Date.now().toString().slice(-6)}`;
         setInvoiceData({
             clientName: patient.name,
             clientMeta: `Paciente Ref: ${patient.reference || '-'}`,
-            sessions: pendingSessions,
+            sessions: allBillableSessions,
             invoiceNumber: defaultNum,
         });
         setShowInvoice(true);
     };
 
-    // SAFETY COMPUTED STATE
     const highRisks = patient.safetyProfile
         ? Object.entries(patient.safetyProfile)
             .filter(
@@ -255,34 +409,39 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
             {/* --- MODALS --- */}
 
             {showSafetyModal && (
-                <AdmissionSafetyModal
+                <SafetyModal
                     onClose={() => setShowSafetyModal(false)}
                     isChild={isChild}
-                    initialData={{
-                        safetyProfile: patient.safetyProfile,
-                        musicalIdentity: patient.musicalIdentity,
-                        socialContext: patient.socialContext,
-                    }}
+                    initialData={patient.safetyProfile || undefined}
                     onSave={(data) => {
-                        onUpdate({
-                            ...patient,
-                            safetyProfile: data.safety,
-                            musicalIdentity: data.iso,
-                            socialContext: data.ctx,
-                        });
+                        onUpdate({ ...patient, safetyProfile: data });
+                        logActivity('security', `Seguridad Clínica actualizada: ${patient.name}`);
                         setShowSafetyModal(false);
                         showToast('Protocolo de Seguridad Actualizado', 'success');
                     }}
                 />
             )}
 
-            {/* ... (Existing Modals) ... */}
+            {showIsoModal && (
+                <MusicalIdentityModal
+                    onClose={() => setShowIsoModal(false)}
+                    initialData={patient.musicalIdentity || undefined}
+                    onSave={(data) => {
+                        onUpdate({ ...patient, musicalIdentity: data });
+                        logActivity('security', `Identidad Sonora (ISO) actualizada: ${patient.name}`);
+                        setShowIsoModal(false);
+                        showToast('ISO Actualizado', 'success');
+                    }}
+                />
+            )}
+
             {showSessionModal && (
                 <SessionModal
+                    initialData={selectedSession}
+                    patientType={patient.pathologyType || 'other'}
                     onClose={() => setShowSessionModal(false)}
                     onSave={handleSaveSession}
-                    initialData={selectedSession}
-                    patientType={patient.pathologyType}
+                    onDelete={handleDeleteSession}
                 />
             )}
             {showCognitiveModal && (
@@ -305,11 +464,12 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                     initialScores={patient.currentEval}
                     initialTab={cognitiveInitialTab}
                     isChild={isChild}
+                    isGeriatric={patient.age >= 60}
                 />
             )}
             {showGuideModal && <ClinicalGuideModal onClose={() => setShowGuideModal(false)} />}
             {showEditProfile && (
-                <AdmissionModal
+                <EditProfileModal
                     onClose={() => setShowEditProfile(false)}
                     onSave={(data) => {
                         onUpdate({ ...patient, ...data });
@@ -396,14 +556,6 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                             </div>
                         </div>
                     </div>
-                    <Button
-                        size="sm"
-                        variant="danger"
-                        className="w-full md:w-auto ml-auto"
-                        onClick={() => setShowSafetyModal(true)}
-                    >
-                        Revisar Protocolo
-                    </Button>
                 </div>
             )}
 
@@ -418,22 +570,16 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                     <Button
                         variant="primary"
                         size="sm"
-                        icon={ShieldCheck}
-                        onClick={() => setShowSafetyModal(true)}
-                    >
-                        Seguridad & ISO
-                    </Button>
-                    <Button
-                        variant="secondary"
-                        size="sm"
-                        icon={ClipboardCheck}
+                        icon={CalendarPlus}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200"
                         onClick={() => {
-                            setCognitiveInitialTab('admission');
-                            setShowCognitiveModal(true);
+                            setSelectedSession(undefined);
+                            setShowSessionModal(true);
                         }}
                     >
-                        Checklist Básico
+                        AGENDAR CITA
                     </Button>
+
                     <Button
                         variant="secondary"
                         size="sm"
@@ -450,25 +596,44 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                     >
                         Guía
                     </Button>
+                    <Button
+                        variant="primary"
+                        size="sm"
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-600"
+                        icon={MessageCircle}
+                        onClick={() => {
+                            WhatsApp.openChat(
+                                patient.contact,
+                                `Hola ${patient.name}, le escribo desde Activa Musicoterapia...`
+                            );
+                            logActivity('system', `WhatsApp iniciado con ${patient.name}`);
+                        }}
+                    >
+                        WhatsApp
+                    </Button>
                     {canDelete && (
                         <Button
                             variant="danger"
                             size="sm"
                             icon={Trash2}
-                            onClick={() => {
-                                if (
-                                    confirm(
-                                        '¿ELIMINAR PACIENTE? Esta acción es destructiva y solo para administradores.',
-                                    )
-                                )
-                                    alert('Simulado: Paciente eliminado');
-                            }}
+                            onClick={() => setShowDeleteModal(true)}
+                            disabled={isDeleting}
                         >
-                            {null}
+                            Eliminar Paciente
                         </Button>
                     )}
                 </div>
             </div>
+
+            <ConfirmationModal
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={confirmDelete}
+                title="¿Eliminar Paciente?"
+                message={`Esta acción eliminará permanentemente a ${patient.name} y todo su historial clínico, sesiones y documentos. Esta acción NO se puede deshacer.`}
+                confirmLabel={isDeleting ? 'Eliminando...' : 'Sí, Eliminar Definitivamente'}
+                isLoading={isDeleting}
+            />
             <Card noPadding className="overflow-hidden">
                 <div className="h-24 bg-gradient-to-r from-slate-800 to-slate-900"></div>
                 <div className="px-4 md:px-8 pb-8">
@@ -488,7 +653,7 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                                     <Edit size={20} />
                                 </button>
                             </h1>
-                            <p className="text-slate-500 font-medium">{patient.diagnosis}</p>
+                            <p className="text-slate-500 font-medium">{PATHOLOGY_MAP[patient.diagnosis] || patient.diagnosis}</p>
                         </div>
                         <div className="flex gap-4 pb-4">
                             <div className="text-right">
@@ -521,136 +686,147 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
             </div>
 
             <div className="min-h-[400px]">
-                {activeTab === 'safety' && (
+
+                {/* UNIFIED TREATMENT TAB */}
+                {activeTab === 'treatment' && (
                     <div className="animate-in fade-in space-y-8">
-                        {/* 1. SAFETY SUMMARY */}
-                        <div className="bg-white rounded-xl p-8 border border-slate-200 shadow-sm">
-                            <h3 className="font-bold text-slate-800 text-xl mb-6 flex items-center gap-2">
-                                <ShieldCheck className="text-red-600" /> Perfil de Seguridad
-                            </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {patient.safetyProfile ? (
-                                    <>
-                                        <div className="p-4 bg-red-50 rounded-lg border border-red-100">
-                                            <span className="text-xs font-bold text-red-500 uppercase tracking-widest block mb-1">
-                                                Riesgos Activos
-                                            </span>
+
+                        {/* 1. CLINICAL FORMULATION */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormulationSection
+                                title="Síntesis Diagnóstica"
+                                optionsKey="synthesis"
+                                fieldKey="synthesis"
+                                initialData={patient.clinicalFormulation?.synthesis as any}
+                                onSave={(key, data) => {
+                                    onUpdate({
+                                        ...patient,
+                                        clinicalFormulation: {
+                                            ...patient.clinicalFormulation,
+                                            [key]: data
+                                        }
+                                    });
+                                    logActivity('report', 'Síntesis Diagnóstica actualizada');
+                                    showToast('Síntesis guardada correctamente', 'success');
+                                }}
+                            />
+                            <FormulationSection
+                                title="Objetivos Terapéuticos"
+                                optionsKey="objectives"
+                                fieldKey="objectives"
+                                initialData={patient.clinicalFormulation?.objectives as any}
+                                onSave={(key, data) => {
+                                    onUpdate({
+                                        ...patient,
+                                        clinicalFormulation: {
+                                            ...patient.clinicalFormulation,
+                                            [key]: data
+                                        }
+                                    });
+                                    logActivity('report', 'Objetivos actualizados');
+                                    showToast('Objetivos guardados correctamente', 'success');
+                                }}
+                            />
+                        </div>
+
+                        {/* 2. SAFETY & ISO PROTOCOLS */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                            {/* SAFETY */}
+                            <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-red-50 rounded-bl-full -mr-4 -mt-4 z-0 transition-transform group-hover:scale-110"></div>
+                                <div className="relative z-10">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                                            <ShieldCheck className="text-red-600" size={20} /> Seguridad Clínica
+                                        </h3>
+                                        <Button size="sm" variant="secondary" onClick={() => setShowSafetyModal(true)}>
+                                            Editar Seguridad
+                                        </Button>
+                                    </div>
+
+                                    {patient.safetyProfile ? (
+                                        <div className="space-y-4">
                                             {highRisks.length > 0 ? (
                                                 <div className="flex flex-wrap gap-2">
                                                     {highRisks.map((r) => (
                                                         <Badge key={r} variant="error">
-                                                            {r
-                                                                .replace(/([A-Z])/g, ' $1')
-                                                                .trim()
-                                                                .toUpperCase()}
+                                                            {RISK_LABELS[r] || r}
                                                         </Badge>
                                                     ))}
                                                 </div>
                                             ) : (
-                                                <span className="text-emerald-600 font-bold flex items-center gap-2">
+                                                <span className="text-emerald-600 text-sm font-bold flex items-center gap-2">
                                                     <CheckSquare size={16} /> Sin riesgos físicos críticos
                                                 </span>
                                             )}
+                                            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase">Movilidad</p>
+                                                    <p className="font-bold text-slate-700 capitalize text-sm">
+                                                        {MOBILITY_MAP[patient.safetyProfile.mobilityAid || 'none'] || patient.safetyProfile.mobilityAid}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase">Alergias</p>
+                                                    <p className="text-sm text-slate-600 truncate">{patient.safetyProfile.allergies || 'Ninguna'}</p>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                                            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1">
-                                                Ayudas Movilidad
-                                            </span>
-                                            <p className="font-bold text-slate-700 capitalize">
-                                                {patient.safetyProfile.mobilityAid === 'none'
-                                                    ? 'Ninguna'
-                                                    : patient.safetyProfile.mobilityAid}
-                                            </p>
+                                    ) : (
+                                        <div className="text-center py-6 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                                            <Button size="sm" onClick={() => setShowSafetyModal(true)}>Configurar Seguridad</Button>
                                         </div>
-                                        <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                                            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1">
-                                                Alergias / Alertas
-                                            </span>
-                                            <p className="text-sm text-slate-600">
-                                                {patient.safetyProfile.allergies || 'Sin alergias registradas.'}
-                                            </p>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="col-span-3 text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-300">
-                                        <p className="text-slate-500 mb-4">
-                                            No se ha realizado el triaje de seguridad.
-                                        </p>
-                                        <Button onClick={() => setShowSafetyModal(true)}>
-                                            Iniciar Protocolo Ahora
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* ISO */}
+                            <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-full -mr-4 -mt-4 z-0 transition-transform group-hover:scale-110"></div>
+                                <div className="relative z-10">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                                            <Music className="text-indigo-600" size={20} /> Identidad Sonora (ISO)
+                                        </h3>
+                                        <Button size="sm" variant="secondary" onClick={() => setShowIsoModal(true)}>
+                                            Editar ISO
                                         </Button>
                                     </div>
-                                )}
+                                    {patient.musicalIdentity ? (
+                                        <div className="space-y-3">
+                                            <div>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">ISO Nocivo</p>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {patient.musicalIdentity.dislikes.length > 0 ?
+                                                        patient.musicalIdentity.dislikes.map((s, i) => <span key={i} className="text-xs bg-red-50 text-red-700 px-2 py-0.5 rounded border border-red-100">{s}</span>)
+                                                        : <span className="text-xs text-slate-400">-</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Favoritos</p>
+                                                <p className="text-sm text-slate-600 truncate">
+                                                    {patient.musicalIdentity.likes.join(', ') || 'Sin favoritos registrados'}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Instrumentos</p>
+                                                <p className="text-sm text-slate-600 truncate">
+                                                    {patient.musicalIdentity.instrumentsOfInterest?.join(', ') || 'Ninguno registrado'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-6 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                                            <Button size="sm" onClick={() => setShowIsoModal(true)}>Crear Perfil Musical</Button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
-                        {/* 2. ISO MUSICAL IDENTITY */}
-                        <div className="bg-white rounded-xl p-8 border border-slate-200 shadow-sm">
-                            <h3 className="font-bold text-slate-800 text-xl mb-6 flex items-center gap-2">
-                                <Music className="text-indigo-600" /> Identidad Sonora (ISO)
-                            </h3>
-                            {patient.musicalIdentity ? (
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                    {/* ISO NOCIVO */}
-                                    <div className="bg-red-50/50 p-6 rounded-xl border border-red-100">
-                                        <h4 className="font-bold text-red-800 mb-3 flex items-center gap-2 text-sm uppercase tracking-wide">
-                                            <AlertTriangle size={16} /> ISO Nocivo (Evitar)
-                                        </h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {patient.musicalIdentity.dislikes.length > 0 ? (
-                                                patient.musicalIdentity.dislikes.map((s, i) => (
-                                                    <span
-                                                        key={i}
-                                                        className="px-2 py-1 bg-white border border-red-200 text-red-700 rounded text-xs font-bold shadow-sm"
-                                                    >
-                                                        {s}
-                                                    </span>
-                                                ))
-                                            ) : (
-                                                <span className="text-slate-400 text-sm italic">
-                                                    Sin registros nocivos.
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* BIOGRAPHICAL SONGS */}
-                                    <div className="bg-indigo-50/50 p-6 rounded-xl border border-indigo-100">
-                                        <h4 className="font-bold text-indigo-800 mb-3 flex items-center gap-2 text-sm uppercase tracking-wide">
-                                            <HeartPulse size={16} /> Playlist Biográfica
-                                        </h4>
-                                        <ul className="space-y-2">
-                                            {patient.musicalIdentity.biographicalSongs.length > 0 ? (
-                                                patient.musicalIdentity.biographicalSongs.map((s, i) => (
-                                                    <li
-                                                        key={i}
-                                                        className="flex items-center gap-2 text-sm text-indigo-900 bg-white px-3 py-2 rounded-lg border border-indigo-100 shadow-sm"
-                                                    >
-                                                        <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">
-                                                            {i + 1}
-                                                        </div>
-                                                        {s}
-                                                    </li>
-                                                ))
-                                            ) : (
-                                                <span className="text-slate-400 text-sm italic">
-                                                    Sin canciones clave registradas.
-                                                </span>
-                                            )}
-                                        </ul>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="text-center py-8">
-                                    <p className="text-slate-500">Perfil musical no configurado.</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {activeTab === 'status' && (
-                    <div className="animate-in fade-in space-y-6">
+                        {/* 3. PHASE CARD */}
                         <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm flex items-center gap-8 relative overflow-hidden">
                             <div
                                 className={`absolute top-0 right-0 w-64 h-64 bg-gradient-to-br ${TREATMENT_PHASES[1].color} opacity-10 rounded-full blur-3xl -mr-16 -mt-16`}
@@ -673,42 +849,6 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                     </div>
                 )}
 
-                {activeTab === 'formulation' && (
-                    <div className="animate-in fade-in space-y-6">
-                        <div className="bg-amber-50 p-6 rounded-xl border border-amber-100 mb-6">
-                            <h3 className="font-bold text-amber-800 flex items-center gap-2 mb-4">
-                                <Brain size={20} /> 4. Formulación del Caso
-                            </h3>
-                            <div className="grid grid-cols-1 gap-6">
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    <FormulationSection
-                                        title="4.1 Síntesis Diagnóstica"
-                                        optionsKey="synthesis"
-                                        fieldKey="synthesis"
-                                    />
-                                    <FormulationSection
-                                        title="4.6 Hipótesis Terapéutica"
-                                        optionsKey="hypothesis"
-                                        fieldKey="hypothesis"
-                                    />
-                                </div>
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    <FormulationSection
-                                        title="4.2 Capacidades Preservadas"
-                                        optionsKey="preserved"
-                                        fieldKey="preserved"
-                                    />
-                                    <FormulationSection
-                                        title="4.3 Dificultades Principales"
-                                        optionsKey="difficulties"
-                                        fieldKey="difficulties"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
                 {activeTab === 'evaluation' && (
                     <Card className="animate-in fade-in p-8">
                         <div className="flex justify-between items-center mb-8">
@@ -723,7 +863,6 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                             </div>
                         </div>
 
-                        {/* NEW: Evidence Chart (Living Evidence) */}
                         <div className="mb-8 p-6 bg-white rounded-2xl border border-slate-100 shadow-sm">
                             <h4 className="font-bold text-slate-700 text-sm mb-4 flex items-center gap-2">
                                 <BarChart3 size={16} className="text-pink-600" /> Curva de Progreso (Índice Global)
@@ -774,14 +913,6 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                                 Actualizar Evaluación
                             </Button>
                         </div>
-
-                        <div className="flex flex-col items-center justify-center p-6 bg-slate-50 border border-slate-100 rounded-3xl mt-6">
-                            <CognitiveRadar
-                                labels={EVALUATION_AREAS}
-                                dataInitial={patient.initialEval || Array(9).fill(0)}
-                                dataCurrent={patient.currentEval || Array(9).fill(0)}
-                            />
-                        </div>
                     </Card>
                 )}
 
@@ -796,6 +927,14 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
 
                 {activeTab === 'sessions' && (
                     <div className="space-y-6 animate-in fade-in">
+                        <PhaseProgress
+                            sessionCount={validSessions.length}
+                            adherence={
+                                activeSessions.length > 0
+                                    ? Math.round((validSessions.length / activeSessions.length) * 100)
+                                    : 100
+                            }
+                        />
                         <div className="flex justify-between items-center">
                             <h3 className="font-bold text-slate-800">Historial de Sesiones</h3>
                             <Button
@@ -834,7 +973,7 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                                             {s.isAbsent ? (
                                                 <Badge variant="error">Ausencia</Badge>
                                             ) : (
-                                                <Badge variant="neutral">Fase {s.phase}</Badge>
+                                                <Badge variant="neutral">Fase {sessionPhaseMap[s.id] || 1}</Badge>
                                             )}
                                         </div>
                                         <div className="flex gap-1">
@@ -924,10 +1063,14 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                                                 <td className="px-6 py-4 text-right">
                                                     <button
                                                         onClick={() => {
+                                                            const isPaying = !s.paid;
                                                             const updated = patient.sessions?.map((sess) =>
-                                                                sess.id === s.id ? { ...sess, paid: !sess.paid } : sess,
+                                                                sess.id === s.id ? { ...sess, paid: isPaying } : sess,
                                                             );
-                                                            if (updated) onUpdate({ ...patient, sessions: updated });
+                                                            if (updated) {
+                                                                onUpdate({ ...patient, sessions: updated });
+                                                                if (isPaying) logActivity('finance', `Pago registrado: Sesión de ${patient.name}`);
+                                                            }
                                                         }}
                                                         className={`px-3 py-1 rounded-full text-xs font-bold ${s.paid ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}
                                                     >
@@ -1000,6 +1143,7 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                                                     "¿Archivar paciente como 'Alta Clínica'? Esta acción moverá el expediente al histórico.",
                                                 )
                                             ) {
+                                                logActivity('system', `Alta Clínica: Paciente ${patient.name} archivado`);
                                                 showToast('Paciente archivado correctamente', 'success');
                                                 onBack();
                                             }
@@ -1012,6 +1156,7 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                         </div>
                     </div>
                 )}
+
             </div>
         </div>
     );

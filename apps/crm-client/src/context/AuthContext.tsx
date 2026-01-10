@@ -12,8 +12,12 @@ interface AuthContextType {
   canEditConfig: boolean;
   subscriptionStatus: 'free' | 'premium';
   isPremium: boolean;
+  demoMode: boolean;
   upgradeToPremium: () => void; // For demo purposes
+  user: User | null; // Typed strongly via Firebase Auth
 }
+
+import { User } from 'firebase/auth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -23,16 +27,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const auth = useFirebaseAuthState();
 
   // Map Firebase Auth state to Context shape
-  const role: UserRole = 'admin'; // Always admin for now
+  // Role State (Simulated for Dev Mode)
+  const [role, setRole] = React.useState<UserRole>('admin');
+
   const isAuthenticated = !!auth.user;
   const isPremium = auth.isPremium;
   const subscriptionStatus = isPremium ? 'premium' : 'free';
 
-  // Legacy signatures compatibility
-  const login = (_newRole: UserRole) => {
-    // This is now handled by LoginView calling signIn() directly. 
-    // We just log to console or ignore since AuthState updates automatically via Firebase Observer.
-    // This is now handled by LoginView calling signIn() directly.
+  // Role Switching Logic
+  const login = (newRole: UserRole) => {
+    setRole(newRole);
+
   };
 
   const logout = () => {
@@ -61,7 +66,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         canEditConfig,
         subscriptionStatus,
         isPremium,
-        upgradeToPremium
+        demoMode: auth.demoMode,
+        upgradeToPremium,
+        user: auth.user // Expose real user for Repositories
       }}
     >
       {children}

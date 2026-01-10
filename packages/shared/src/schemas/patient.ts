@@ -1,104 +1,172 @@
 import { z } from 'zod';
 
-// --- SUB-SCHEMAS ---
+// --- ENUMS & CONSTANTS ---
+export const SessionTypeEnum = z.enum(['individual', 'group']);
+export const PathologyTypeEnum = z.enum(['dementia', 'neuro', 'mood', 'other']);
+export const EvaluationStatusEnum = z.enum(['draft', 'final']);
+export const MobilityAidEnum = z.enum(['none', 'cane', 'walker', 'wheelchair']);
+export const SensitivityLevelEnum = z.enum(['low', 'medium', 'high']);
+export const RecurrenceFrequencyEnum = z.enum(['WEEKLY', 'BIWEEKLY', 'MONTHLY']);
+export const WaitlistPriorityEnum = z.enum(['LOW', 'MEDIUM', 'HIGH']);
+
+// --- RECURRENCE ENGINE ---
+export const RecurrenceRuleSchema = z.object({
+  frequency: RecurrenceFrequencyEnum,
+  daysOfWeek: z.array(z.number().min(1).max(7)), // 1=Mon, 7=Sun
+  endDate: z.string().optional(),
+  occurrences: z.number().int().positive().optional(),
+});
+
+// --- SESSION ENGINE ---
+export const SessionSelfReflectionSchema = z.object({
+  positive: z.string(),
+  improve: z.string(),
+});
+
+export const QualitativeEvalSchema = z.object({
+  musical: z.string().optional(),
+  emotional: z.string().optional(),
+  cognitive: z.string().optional(),
+  physical: z.string().optional(),
+});
 
 export const SessionSchema = z.object({
   id: z.union([z.string(), z.number()]),
-  date: z.string(),
-  type: z.enum(['individual', 'group']),
-  price: z.number().optional(),
-  paid: z.boolean().optional(),
-  isAbsent: z.boolean().optional(),
+  date: z.string(), // Relaxed to allow ISO YYYY-MM-DD or DD/MM/YYYY
+  time: z.string().optional(), // New: HH:MM
+  type: SessionTypeEnum,
+  price: z.number().min(0).optional(),
+  billable: z.boolean().default(true), // New: Allows "Excused Absence" vs "Paid Absence"
+  paid: z.boolean().default(false),
+  isAbsent: z.boolean().default(false),
   notes: z.string().optional(),
-  phase: z.number().optional(),
-  activityDetails: z.record(z.string()).optional(),
-  activities: z.array(z.string()).optional(),
+  phase: z.number().int().min(1).optional(),
+
+  // Activity Data
+  activityDetails: z.record(z.string(), z.string()).optional(), // Map<ActivityID, Note>
+  activities: z.array(z.string()).default([]), // Array of Activity IDs
+
+  // Group Specifics
   location: z.string().optional(),
   participantNames: z.array(z.string()).optional(),
-  groupAnalysis: z.string().optional(),
+  groupAnalysis: z.string().nullable().optional(),
+  groupId: z.string().optional(), // Link to Master Group Session
+  groupName: z.string().optional(), // Denormalized name for display
+
+  // Computed / UI State
   computedPhase: z.number().nullable().optional(),
-  // Recurrence rule logic is complex, keeping loose for now
-  recurrence: z.any().optional(),
+  recurrence: RecurrenceRuleSchema.optional(),
+
+  // Clinical Data
+  selfReflection: SessionSelfReflectionSchema.optional(),
+  qualitative: QualitativeEvalSchema.optional(),
+  scores: z.array(z.number().min(0).max(3)).optional(), // 0-3 Scale
+});
+
+// --- CLINICAL MODULES ---
+
+export const FormulationDataSchema = z.object({
+  selected: z.array(z.string()),
+  text: z.string(),
 });
 
 export const ClinicalFormulationSchema = z.object({
-  synthesis: z.union([z.any(), z.string()]).optional(), // Legacy compat
-  preserved: z.union([z.any(), z.string()]).optional(),
-  difficulties: z.union([z.any(), z.string()]).optional(),
-  regulators: z.union([z.any(), z.string()]).optional(),
-  hypothesis: z.union([z.any(), z.string()]).optional(),
-}).catchall(z.any());
+  synthesis: z.union([FormulationDataSchema, z.string()]).optional(),
+  preserved: z.union([FormulationDataSchema, z.string()]).optional(),
+  difficulties: z.union([FormulationDataSchema, z.string()]).optional(),
+  regulators: z.union([FormulationDataSchema, z.string()]).optional(),
+  hypothesis: z.union([FormulationDataSchema, z.string()]).optional(),
+}).catchall(z.unknown()); // Allow unknown legacy fields but type them as unknown
 
 export const ClinicalSafetyProfileSchema = z.object({
-  epilepsy: z.boolean(),
-  dysphagia: z.boolean(),
-  flightRisk: z.boolean(),
-  psychomotorAgitation: z.boolean(),
-  hyperacusis: z.boolean(),
-  chokingHazard: z.boolean(),
-  disruptiveBehavior: z.boolean(),
-  alerts: z.array(z.string()),
-  mobilityAid: z.enum(['none', 'cane', 'walker', 'wheelchair']),
-  allergies: z.string(),
+  // Red Lights (Risks)
+  epilepsy: z.boolean().default(false),
+  dysphagia: z.boolean().default(false),
+  flightRisk: z.boolean().default(false),
+  psychomotorAgitation: z.boolean().default(false),
+  hyperacusis: z.boolean().default(false),
+  chokingHazard: z.boolean().default(false),
+  disruptiveBehavior: z.boolean().default(false),
+
+  // Context
+  alerts: z.array(z.string()).default([]),
+  mobilityAid: MobilityAidEnum.default('none'),
+  allergies: z.string().default(''),
 });
 
 export const MusicalIdentitySchema = z.object({
-  likes: z.array(z.string()),
-  dislikes: z.array(z.string()),
-  biographicalSongs: z.array(z.string()),
-  instrumentsOfInterest: z.array(z.string()),
-  musicalTraining: z.boolean(),
-  sensitivityLevel: z.enum(['low', 'medium', 'high']),
+  likes: z.array(z.string()).default([]),
+  dislikes: z.array(z.string()).default([]), // ISO Nocivo
+  biographicalSongs: z.array(z.string()).default([]),
+  instrumentsOfInterest: z.array(z.string()).default([]),
+  musicalTraining: z.boolean().default(false),
+  sensitivityLevel: SensitivityLevelEnum.default('medium'),
 });
 
 export const PsychosocialContextSchema = z.object({
-  livingSituation: z.string(),
-  caregiverNetwork: z.string(),
-  recentLifeEvents: z.array(z.string()),
+  livingSituation: z.string().default(''),
+  caregiverNetwork: z.string().default(''),
+  recentLifeEvents: z.array(z.string()).default([]),
   occupation: z.string().optional(),
 });
 
 export const CognitiveScoresSchema = z.object({
-  moca: z.union([z.string(), z.number()]).optional(),
+  moca: z.union([z.string(), z.number()]).optional(), // Allow flexible input, sanitize later
   mmse: z.union([z.string(), z.number()]).optional(),
   gds: z.union([z.string(), z.number()]).optional(),
   date: z.string().optional(),
-  mocaDetails: z.record(z.number()).optional(),
-  mmseDetails: z.record(z.number()).optional(),
+  mocaDetails: z.record(z.string(), z.number()).optional(), // Details are code:score
+  mmseDetails: z.record(z.string(), z.number()).optional(),
   admissionChecks: z.object({
     safety: z.array(z.string()),
     prep: z.array(z.string()),
   }).optional(),
 });
 
-// --- MAIN SCHEMA ---
+export const DocumentSchema = z.object({
+  id: z.string().uuid().or(z.string().min(1)),
+  name: z.string().min(1),
+  url: z.string().url(),
+  type: z.string(),
+  size: z.number().int().min(0),
+  uploadedBy: z.string().optional(),
+  createdAt: z.string().datetime().or(z.string()), // Flexible ISO check
+  path: z.string(), // Storage path
+});
+
+// --- MASTER PATIENT ENTITY ---
 
 export const PatientSchema = z.object({
+  // Identity
   id: z.union([z.string(), z.number()]),
-  userId: z.string().optional(), // Added for DB context
-  name: z.string().min(1, "Name is required"),
-  age: z.number(),
-  diagnosis: z.string(),
-  pathologyType: z.enum(['dementia', 'neuro', 'mood', 'other']),
-  photo: z.string().optional(),
+  userId: z.string().optional(),
+  name: z.string().min(1, "El nombre es obligatorio"),
+  age: z.number().int().min(0).max(120),
+  diagnosis: z.string().default('Sin diagnosticar'),
+  pathologyType: z.union([PathologyTypeEnum, z.string()]).default('other'),
+  photo: z.string().url().optional().or(z.literal('')),
+
+  // Contact
   contact: z.string().optional(),
-  joinedDate: z.string().optional(),
-  sessionsCompleted: z.number().optional(),
-  initialEval: z.array(z.number()).optional(),
-  currentEval: z.array(z.number()).optional(),
   reference: z.string().optional(),
 
-  // Modules
+  // Metrics
+  joinedDate: z.string().optional(), // Should be ISO, but keeping flexible for legacy
+  sessionsCompleted: z.number().int().default(0),
+  initialEval: z.array(z.number()).optional(),
+  currentEval: z.array(z.number()).optional(),
+
+  // Clinical Modules (Lazy Loaded usually, but schema defines structure)
   cognitiveScores: CognitiveScoresSchema.optional(),
   clinicalFormulation: ClinicalFormulationSchema.optional(),
-  sessions: z.array(SessionSchema).optional(),
+  sessions: z.array(SessionSchema).default([]),
 
-  // V2 Profiles
-  safetyProfile: ClinicalSafetyProfileSchema.optional(),
-  musicalIdentity: MusicalIdentitySchema.optional(),
-  socialContext: PsychosocialContextSchema.optional(),
+  // V2 Profiles (Strict but Null-Safe)
+  safetyProfile: ClinicalSafetyProfileSchema.nullable().optional(),
+  musicalIdentity: MusicalIdentitySchema.nullable().optional(),
+  socialContext: PsychosocialContextSchema.nullable().optional(),
 
-  // Legacy / Deprecated (Optional to prevent crashes on old data)
+  // Legacy Fields (Deprecated but Preserved for Migration)
   caregiverName: z.string().optional(),
   caregiverPhone: z.string().optional(),
   livingSituation: z.string().optional(),
@@ -110,9 +178,18 @@ export const PatientSchema = z.object({
   initialGoals: z.string().optional(),
   hasConsent: z.boolean().optional(),
   birthDate: z.string().optional(),
-  childProfile: z.record(z.record(z.number())).optional(),
+  childProfile: z.record(z.unknown()).optional(),
   childObs: z.string().optional(),
 });
 
+// --- INFERRED TYPES ---
 export type Patient = z.infer<typeof PatientSchema>;
 export type Session = z.infer<typeof SessionSchema>;
+export type ClinicalDocument = z.infer<typeof DocumentSchema>;
+export type ClinicalSafetyProfile = z.infer<typeof ClinicalSafetyProfileSchema>;
+export type MusicalIdentity = z.infer<typeof MusicalIdentitySchema>;
+export type PsychosocialContext = z.infer<typeof PsychosocialContextSchema>;
+export type SessionType = z.infer<typeof SessionTypeEnum>;
+export type PathologyType = z.infer<typeof PathologyTypeEnum>;
+export type ClinicalFormulation = z.infer<typeof ClinicalFormulationSchema>;
+export type CognitiveScores = z.infer<typeof CognitiveScoresSchema>;

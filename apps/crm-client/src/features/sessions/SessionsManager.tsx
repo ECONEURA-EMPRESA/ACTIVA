@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Search, CalendarCheck } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
-import { Patient, Session } from '../../lib/types';
-import { SessionModal } from './modals/SessionModal';
+import { Patient, Session, GroupSession } from '../../lib/types';
+import { SessionModal } from '../../features/patients/modals/SessionModal';
 import { GroupSessionModal } from './modals/GroupSessionModal';
 
 interface SessionsManagerProps {
@@ -55,13 +55,26 @@ export const SessionsManager: React.FC<SessionsManagerProps> = ({
     }
   };
 
-  const handleSaveGroupSession = (newSession: Session) => {
+  const handleSaveGroupSession = (newSession: GroupSession) => {
     // Para sesiones grupales, añadimos la sesión a TODOS los pacientes participantes (por nombre o ID)
     if (newSession.participantNames) {
       patients.forEach((p) => {
         if (newSession.participantNames?.includes(p.name)) {
           const currentSessions = p.sessions || [];
-          onUpdatePatient({ ...p, sessions: [...currentSessions, newSession] });
+          // Adapt GroupSession to Session interface for local state
+          const adapterSession: Session = {
+            id: newSession.id,
+            date: newSession.date,
+            time: newSession.time,
+            type: 'group',
+            notes: `Sesión Grupal: ${newSession.groupName}`,
+            price: newSession.price,
+            paid: newSession.paid,
+            billable: true,
+            isAbsent: false,
+            activities: newSession.activities
+          };
+          onUpdatePatient({ ...p, sessions: [...currentSessions, adapterSession] });
         }
       });
     }
@@ -77,11 +90,7 @@ export const SessionsManager: React.FC<SessionsManagerProps> = ({
             {filterMode === 'group' ? 'talleres grupales' : 'sesiones individuales'}
           </p>
         </div>
-        {filterMode === 'group' && (
-          <Button onClick={() => setIsGroupModalOpen(true)} icon={CalendarCheck}>
-            Nueva Sesión Grupal
-          </Button>
-        )}
+        {/* NEW SESSION BUTTON REMOVED PER USER REQUEST - CREATION MOVED TO DIRECTORY */}
       </header>
 
       <div className="relative">
@@ -161,13 +170,14 @@ export const SessionsManager: React.FC<SessionsManagerProps> = ({
         )}
       </div>
 
-      <SessionModal
-        isOpen={isSessionModalOpen}
-        onClose={() => setIsSessionModalOpen(false)}
-        onSave={handleSaveSession}
-        patient={selectedSession?.patient}
-        session={selectedSession?.session}
-      />
+      {isSessionModalOpen && selectedSession && (
+        <SessionModal
+          onClose={() => setIsSessionModalOpen(false)}
+          onSave={handleSaveSession}
+          initialData={selectedSession.session}
+          patientType={selectedSession.patient.pathologyType || 'other'}
+        />
+      )}
 
       {isGroupModalOpen && (
         <GroupSessionModal

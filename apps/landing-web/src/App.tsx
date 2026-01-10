@@ -34,7 +34,7 @@ function App() {
 }
 
 const AuthRedirect = () => {
-    window.location.href = 'https://app.activamusicoterapia.com';
+    window.location.href = 'https://app-activamusicoterapia.web.app/auth/login';
     return null;
 };
 

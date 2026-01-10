@@ -11,6 +11,7 @@ export const INITIAL_PATIENTS: Patient[] = [
       'https://images.unsplash.com/photo-1551185887-3ca9214b98c3?auto=format&fit=crop&w=200&h=200',
     contact: '+34 600 123 456',
     joinedDate: '2024-01-15',
+    sessionsCompleted: 2,
     sessions: [
       {
         id: 101,
@@ -18,7 +19,10 @@ export const INITIAL_PATIENTS: Patient[] = [
         type: 'individual',
         price: 50,
         paid: true,
+        billable: true,
+        isAbsent: false,
         notes: 'Respuesta positiva a música biográfica.',
+        activities: ['hello', 'main', 'goodbye'],
         activityDetails: {
           hello: 'Canción Bienvenida',
           main: 'Improvisación rítmica',
@@ -37,7 +41,10 @@ export const INITIAL_PATIENTS: Patient[] = [
         type: 'individual',
         price: 50,
         paid: false,
+        billable: true,
+        isAbsent: false,
         notes: 'Algo agitada al inicio.',
+        activities: [],
         scores: [2, 2, 1, 3, 2],
       },
     ],
@@ -59,9 +66,35 @@ export const INITIAL_PATIENTS: Patient[] = [
     initialEval: [1, 1, 1, 1, 0],
     cognitiveScores: { moca: 22, mmse: 24, gds: 3, date: '10/01/2024' },
     initialGoals: 'Mantener capacidades lingüísticas y fomentar socialización.',
-    musicStyles: 'Boleros, Copla, Música Clásica (Mozart).',
-    dislikedSounds: 'Sonidos metálicos fuertes, Jazz libre.',
+    // V2 FIELDS
+    safetyProfile: {
+      epilepsy: false,
+      dysphagia: false,
+      flightRisk: false,
+      psychomotorAgitation: false,
+      hyperacusis: false,
+      chokingHazard: false,
+      disruptiveBehavior: false,
+      alerts: [],
+      mobilityAid: 'none',
+      allergies: '',
+    },
+    musicalIdentity: {
+      likes: ['Boleros', 'Copla', 'Música Clásica (Mozart)'],
+      dislikes: ['Sonidos metálicos fuertes', 'Jazz libre'],
+      biographicalSongs: [],
+      instrumentsOfInterest: [],
+      musicalTraining: false,
+      sensitivityLevel: 'medium',
+    },
+    socialContext: {
+      livingSituation: '',
+      caregiverNetwork: '',
+      recentLifeEvents: [],
+    },
     reference: 'REF-001',
+    musicStyles: 'Boleros, Copla, Música Clásica (Mozart).', // Legacy
+    dislikedSounds: 'Sonidos metálicos fuertes, Jazz libre.', // Legacy
   },
   {
     id: '2',
@@ -71,6 +104,7 @@ export const INITIAL_PATIENTS: Patient[] = [
     pathologyType: 'neuro',
     contact: '+34 600 999 888',
     joinedDate: '2024-03-01',
+    sessionsCompleted: 1,
     sessions: [
       {
         id: 201,
@@ -78,9 +112,12 @@ export const INITIAL_PATIENTS: Patient[] = [
         type: 'group',
         price: 25,
         paid: true,
+        billable: true,
+        isAbsent: false,
         notes: 'Taller de voz.',
         location: 'Sala 2',
         participantNames: ['Maria García', 'Antonio López'],
+        activities: [],
       },
     ],
     clinicalFormulation: {
@@ -91,8 +128,34 @@ export const INITIAL_PATIENTS: Patient[] = [
       regulators: { selected: [], text: '' },
     },
     initialGoals: 'Mejorar volumen de voz y coordinación respiratoria.',
-    musicStyles: 'Marchas militares, Zarzuela.',
+    // V2 FIELDS
+    safetyProfile: {
+      epilepsy: false,
+      dysphagia: false,
+      flightRisk: false,
+      psychomotorAgitation: false,
+      hyperacusis: false,
+      chokingHazard: false,
+      disruptiveBehavior: false,
+      alerts: [],
+      mobilityAid: 'none',
+      allergies: '',
+    },
+    musicalIdentity: {
+      likes: ['Marchas militares', 'Zarzuela'],
+      dislikes: [],
+      biographicalSongs: [],
+      instrumentsOfInterest: [],
+      musicalTraining: false,
+      sensitivityLevel: 'medium',
+    },
+    socialContext: {
+      livingSituation: '',
+      caregiverNetwork: '',
+      recentLifeEvents: [],
+    },
     reference: 'REF-002',
+    musicStyles: 'Marchas militares, Zarzuela.', // Legacy
   },
   {
     id: '3',
@@ -104,6 +167,7 @@ export const INITIAL_PATIENTS: Patient[] = [
       'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&h=200',
     contact: '+34 600 555 111',
     joinedDate: '2024-04-10',
+    sessionsCompleted: 0,
     sessions: [],
     clinicalFormulation: {
       synthesis: '',
@@ -113,7 +177,33 @@ export const INITIAL_PATIENTS: Patient[] = [
       regulators: { selected: [], text: '' },
     },
     initialGoals: 'Expresión emocional y aumento de motivación.',
-    musicStyles: 'Pop Español 80s, Cantautores.',
+    // V2 FIELDS
+    safetyProfile: {
+      epilepsy: false,
+      dysphagia: false,
+      flightRisk: false,
+      psychomotorAgitation: false,
+      hyperacusis: false,
+      chokingHazard: false,
+      disruptiveBehavior: false,
+      alerts: [],
+      mobilityAid: 'none',
+      allergies: '',
+    },
+    musicalIdentity: {
+      likes: ['Pop Español 80s', 'Cantautores'],
+      dislikes: [],
+      biographicalSongs: [],
+      instrumentsOfInterest: [],
+      musicalTraining: false,
+      sensitivityLevel: 'medium',
+    },
+    socialContext: {
+      livingSituation: '',
+      caregiverNetwork: '',
+      recentLifeEvents: [],
+    },
     reference: 'REF-003',
+    musicStyles: 'Pop Español 80s, Cantautores.', // Legacy
   },
 ];

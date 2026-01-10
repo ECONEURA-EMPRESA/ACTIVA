@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
+
 import { ArrowLeft, Edit, Printer } from 'lucide-react';
 import { Button } from './Button';
+import { InvoiceData, ClinicSettings, Session } from '../../lib/types';
 
 // Intentionally keeping layout simple as per snippets.
 // Assuming "clinicSettings" and data type based on context.
 
 interface InvoiceGeneratorProps {
-  data: any;
+  data: InvoiceData; // Titanium Strict Type
+  clinicSettings: ClinicSettings; // Titanium Strict Type
   onClose: () => void;
-  clinicSettings: any;
 }
 
 export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
@@ -17,10 +19,11 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
   clinicSettings,
 }) => {
   const [invoiceNumber, setInvoiceNumber] = useState(
-    data.invoiceNumber || `FACT-${Date.now().toString().slice(-6)}`,
+    data.invoiceNumber || `FACT - ${Date.now().toString().slice(-6)} `,
   );
   const date = new Date().toLocaleDateString('es-ES');
-  const total = data.sessions.reduce((sum: number, s: any) => sum + (s.price || 0), 0);
+  // Calculate Total
+  const total = data.sessions.reduce((sum: number, s: Session) => sum + (s.price || 0), 0);
 
   const handlePrint = () => {
     window.print();
@@ -106,12 +109,12 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {data.sessions.map((s: any, i: number) => (
+            <tbody>
+              {data.sessions.map((s: Session, i: number) => (
                 <tr key={i}>
                   <td className="py-4 font-medium text-slate-700">
                     {s.type === 'group'
-                      ? `Sesión Grupal: ${s.location || 'Sala Polivalente'}`
+                      ? `Sesión Grupal: ${s.location || 'Sala Polivalente'} `
                       : 'Sesión de Musicoterapia'}
                     {s.notes && (
                       <div className="text-xs text-slate-400 mt-0.5 font-normal truncate max-w-md">

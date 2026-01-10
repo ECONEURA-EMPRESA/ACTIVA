@@ -1,0 +1,43 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // --- FUNCTIONS ---
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // --- RULES ---
+
+    // 1. PATIENT DOCUMENTS
+    // Path structure: patients/{patientId}/{fileName}
+    // Only the owner of the patient should be able to read/write documents.
+    // metadata.customMetadata.ownerId MUST match the uploader's ID.
+    match /patients/{patientId}/{fileName} {
+      // Allow Read: If existing file's metadata.ownerId matches requesting user
+      allow read: if isAuthenticated() && resource.metadata.ownerId == request.auth.uid;
+      
+      // Allow Write: If new file's metadata.ownerId matches requesting user
+      allow write: if isAuthenticated() 
+                   && request.resource.metadata.ownerId == request.auth.uid
+                   && request.resource.size < 10 * 1024 * 1024 // Max 10MB
+                   && request.resource.contentType.matches('application/pdf|image/.*');
+    }
+
+    // 2. USER AVATARS
+    match /users/{userId}/avatar {
+      allow read: if true; // Public avatars
+      allow write: if isOwner(userId);
+    }
+
+    // 3. DEFAULT DENY
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

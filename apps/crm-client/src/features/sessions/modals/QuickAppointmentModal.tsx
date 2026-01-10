@@ -33,13 +33,29 @@ export const QuickAppointmentModal: React.FC<QuickAppointmentModalProps> = ({
           className="space-y-6"
           onSubmit={(e) => {
             e.preventDefault();
-            onSave({
-              mode: currentMode,
-              patientId: selectedPatientId,
-              name: newPatientName,
-              date,
-              time,
-            });
+
+            try {
+              if (currentMode === 'existing' && !selectedPatientId) {
+                alert("Selecciona un paciente");
+                return;
+              }
+              if (currentMode === 'new' && !newPatientName) {
+                alert("Escribe el nombre del paciente");
+                return;
+              }
+
+              onSave({
+                mode: currentMode,
+                patientId: selectedPatientId,
+                name: newPatientName,
+                date,
+                time,
+              });
+              console.log("CITA ENVIADA CORRECTAMENTE");
+            } catch (err) {
+              console.error("ERROR CITA:", err);
+              alert("Error al procesar la cita");
+            }
           }}
         >
           <div className="flex bg-slate-50 p-1.5 rounded-xl">

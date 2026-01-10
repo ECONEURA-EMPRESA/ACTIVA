@@ -5,6 +5,11 @@ import { VitePWA } from 'vite-plugin-pwa';
 // https://vitejs.dev/config/
 export default defineConfig({
   base: '/',
+  resolve: {
+    alias: {
+      '@': '/src',
+    },
+  },
   plugins: [
     react(),
     VitePWA({
@@ -18,6 +23,8 @@ export default defineConfig({
         background_color: '#FAFAFA',
         display: 'standalone',
         orientation: 'portrait',
+        categories: ['medical', 'productivity', 'health'],
+        lang: 'es',
         start_url: '/',
         id: '/',
         icons: [
@@ -36,8 +43,36 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable',
-          },
+          }
         ],
+        screenshots: [
+          {
+            src: "screenshot-mobile-1.png",
+            sizes: "1290x2796",
+            type: "image/png",
+            form_factor: "narrow",
+            label: "Gestión de Pacientes"
+          },
+          {
+            src: "screenshot-desktop-1.png",
+            sizes: "1920x1080",
+            type: "image/png",
+            form_factor: "wide",
+            label: "Dashboard Clínico"
+          }
+        ],
+        shortcuts: [
+          {
+            name: "Nuevo Paciente",
+            url: "/patients?action=new",
+            icons: [{ src: "pwa-192x192.png", sizes: "192x192" }]
+          },
+          {
+            name: "Agenda",
+            url: "/calendar",
+            icons: [{ src: "pwa-192x192.png", sizes: "192x192" }]
+          }
+        ]
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,

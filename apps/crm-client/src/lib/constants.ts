@@ -214,7 +214,7 @@ export const CLINICAL_GUIDES: Record<string, any> = {
 };
 
 // --- CHILD DEVELOPMENT DOMAINS ---
-import { Activity, MessageSquare, Brain, Heart } from 'lucide-react';
+import { Activity, MessageSquare, Brain, Heart, Music } from 'lucide-react';
 
 export const CHILD_DEV_DOMAINS = [
   {
@@ -265,6 +265,37 @@ export const CHILD_DEV_DOMAINS = [
       'Vínculo Terapéutico',
       'Tolerancia a la Frustración',
     ],
+  },
+];
+
+export const ADULT_DEV_DOMAINS = [
+  {
+    id: 'cognitive',
+    title: 'Área Cognitiva',
+    icon: Brain,
+    color: 'blue',
+    items: ['Atención', 'Orientación'],
+  },
+  {
+    id: 'emotional',
+    title: 'Área Emocional',
+    icon: Heart,
+    color: 'rose',
+    items: ['Reg. Emocional', 'Exp. Emocional', 'Iniciativa'],
+  },
+  {
+    id: 'social',
+    title: 'Social y Comunicación',
+    icon: MessageSquare,
+    color: 'emerald',
+    items: ['Com. Verbal', 'Com. No Verbal', 'Social'],
+  },
+  {
+    id: 'musical',
+    title: 'Respuesta Musical',
+    icon: Music,
+    color: 'purple',
+    items: ['Musical'],
   },
 ];
 
