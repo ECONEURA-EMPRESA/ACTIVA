@@ -162,7 +162,7 @@ export const SettingsView: React.FC = () => {
                       <Building size={24} />
                     </div>
                     <p className="text-sm font-medium text-slate-600">Logo de la Empresa</p>
-                    <p className="text-xs text-slate-400">Circular en el PDF</p>
+                    <p className="text-xs text-slate-400">Circular en el PDF (Máx 10MB - Auto-ajuste)</p>
                     <label className="cursor-pointer">
                       <span className="text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-full transition-colors">
                         Subir Logo
@@ -174,8 +174,8 @@ export const SettingsView: React.FC = () => {
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            if (file.size > 2 * 1024 * 1024) { // 2MB Limit
-                              alert("El logo es demasiado grande (Máx 2MB). Intenta con una imagen más pequeña.");
+                            if (file.size > 10 * 1024 * 1024) { // 10MB Limit
+                              alert("El archivo es demasiado pesado (Máx 10MB). Por favor reduce su tamaño.");
                               return;
                             }
 

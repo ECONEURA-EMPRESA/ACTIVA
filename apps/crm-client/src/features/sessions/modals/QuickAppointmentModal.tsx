@@ -51,7 +51,7 @@ export const QuickAppointmentModal: React.FC<QuickAppointmentModalProps> = ({
                 date,
                 time,
               });
-              console.log("CITA ENVIADA CORRECTAMENTE");
+
             } catch (err) {
               console.error("ERROR CITA:", err);
               alert("Error al procesar la cita");

@@ -3,7 +3,6 @@ import { Patient } from '@monorepo/shared'; // Strict Import
 import { User, Phone, Calendar, Music } from 'lucide-react';
 import { Card } from '../../../../components/ui/Card';
 import { Badge } from '../../../../components/ui/Badge';
-import { WhatsApp } from '../../../../lib/whatsappUtils';
 
 interface PatientHeaderProps {
     patient: Patient;
@@ -39,10 +38,14 @@ export const PatientHeader: React.FC<PatientHeaderProps> = ({ patient }) => {
                 {/* RIGHT: STATS & META */}
                 <div className="flex flex-wrap gap-6 text-sm text-slate-600">
                     <button
-                        onClick={() => WhatsApp.openChat(patient.contact, `Hola ${patient.name}, contactamos desde Activa...`)}
-                        className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-lg hover:bg-green-50 hover:text-green-600 transition-colors cursor-pointer group"
+                        onClick={() => {
+                            if (patient.contact) {
+                                window.location.href = `tel:${patient.contact.replace(/\s/g, '')}`;
+                            }
+                        }}
+                        className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-lg hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer group"
                     >
-                        <Phone className="w-4 h-4 text-brand-500 group-hover:text-green-500" />
+                        <Phone className="w-4 h-4 text-brand-500 group-hover:text-slate-700" />
                         <span className="font-bold">{patient.contact}</span>
                     </button>
                     <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-lg">

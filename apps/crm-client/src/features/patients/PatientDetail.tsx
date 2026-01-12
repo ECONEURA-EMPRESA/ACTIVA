@@ -16,7 +16,7 @@ import {
     Music,
     Folder,
     Save,
-    MessageCircle,
+    Phone,
     CalendarPlus,
 } from 'lucide-react';
 import { useCreateSession, useUpdateSession, useDeleteSession } from '../../api/mutations/useSessionMutations';
@@ -41,7 +41,7 @@ import { ReportModal } from './modals/ReportModal';
 
 import { TREATMENT_PHASES, getPhaseForSessionIndex } from '../../lib/clinicalUtils';
 import { FORMULATION_OPTIONS, PATHOLOGY_MAP, MOBILITY_MAP } from '../../lib/patientUtils';
-import { WhatsApp } from '../../lib/whatsappUtils';
+
 import { Patient, Session, FormulationData, ClinicalFormulation } from '../../lib/types';
 
 const RISK_LABELS: Record<string, string> = {
@@ -362,7 +362,7 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                 return timeA - timeB;
             });
 
-        console.log(`[Invoice] Total sessions found: ${allBillableSessions.length}`);
+
 
         if (allBillableSessions.length === 0)
             return alert('No se encontraron sesiones para facturar.');
@@ -600,16 +600,18 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                         variant="primary"
                         size="sm"
                         className="bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-600"
-                        icon={MessageCircle}
+                        icon={Phone}
                         onClick={() => {
-                            WhatsApp.openChat(
-                                patient.contact,
-                                `Hola ${patient.name}, le escribo desde Activa Musicoterapia...`
-                            );
-                            logActivity('system', `WhatsApp iniciado con ${patient.name}`);
+                            const targetPhone = patient.contact || patient.caregiverPhone;
+                            if (targetPhone) {
+                                window.location.href = `tel:${targetPhone.replace(/\s/g, '')}`;
+                                logActivity('system', `Llamada iniciada con ${patient.name}`);
+                            } else {
+                                showToast('No hay teléfono registrado', 'error');
+                            }
                         }}
                     >
-                        WhatsApp
+                        Llamar
                     </Button>
                     {canDelete && (
                         <Button

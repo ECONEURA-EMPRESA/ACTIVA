@@ -71,7 +71,7 @@ export const CognitiveModal: React.FC<CognitiveModalProps> = ({
     const [mmseDetails, setMmseDetails] = useState(initialData?.mmseDetails || {});
     const [gdsValue, setGdsValue] = useState(initialData?.gds || '');
     const [functionalScores, setFunctionalScores] = useState<number[]>(
-        initialScores || Array(9).fill(0),
+        initialScores || Array(EVALUATION_AREAS_ADULT.length).fill(0),
     );
 
     // Child States
@@ -344,6 +344,16 @@ export const CognitiveModal: React.FC<CognitiveModalProps> = ({
                                                 </div>
                                             );
                                         })}
+                                    </div>
+
+                                    <div className="md:col-span-2 mt-6">
+                                        <label className="label-pro mb-3">Observaciones y Conclusiones Clínicas</label>
+                                        <textarea
+                                            value={childObs}
+                                            onChange={(e) => setChildObs(e.target.value)}
+                                            className="input-pro h-32 resize-none bg-slate-50 border-slate-200"
+                                            placeholder="Síntesis cualitativa del perfil, fortalezas y necesidades de apoyo..."
+                                        />
                                     </div>
                                 </div>
                             </div>

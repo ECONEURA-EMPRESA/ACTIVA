@@ -5,7 +5,8 @@ import {
     setDoc,
     updateDoc,
     writeBatch,
-    query
+    query,
+    where
 } from 'firebase/firestore';
 import { db, auth } from '../../lib/firebase';
 import { GroupSession } from '../../lib/types';
@@ -37,7 +38,7 @@ export const GroupSessionRepository = {
 
             // Write to users/{uid}/group_sessions/{sessionId}
             await setDoc(doc(collectionRef, sessionId), sessionData);
-            console.log('GroupSessionRepository: Created in Subcollection', sessionId);
+
         } catch (error) {
             console.error('GroupSessionRepository: Create Error', error);
             throw error;
@@ -101,13 +102,44 @@ export const GroupSessionRepository = {
             batch.delete(rootDocRef);
 
             await batch.commit();
-            // Protocol: Silence
-
-            // If completely failed (highly unlikely with deleteDoc), throw
-            // But usually deleteDoc is idempotent.
-
         } catch (error) {
             console.error('GroupSessionRepository: Delete Error', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Delete ALL sessions for a specific group name
+     * (Effectively deletes the "Group")
+     */
+    deleteAllSessionsForGroup: async (groupName: string): Promise<void> => {
+        try {
+            const user = auth.currentUser;
+            if (!user) throw new Error('Unauthorized');
+
+            // 1. Query all sessions with this groupName
+            const q = query(
+                getCollectionRef(user.uid),
+                where('groupName', '==', groupName)
+            );
+            const snapshot = await getDocs(q);
+
+            if (snapshot.empty) return;
+
+            // 2. Batch Delete
+            const batch = writeBatch(db);
+
+            snapshot.docs.forEach(docSnap => {
+                // Delete from Subcollection
+                batch.delete(docSnap.ref);
+                // Try delete from legacy root (best effort, assuming ID match)
+                batch.delete(doc(db, 'group_sessions', docSnap.id));
+            });
+
+            await batch.commit();
+
+        } catch (error) {
+            console.error('GroupSessionRepository: DeleteAllSessions Error', error);
             throw error;
         }
     }

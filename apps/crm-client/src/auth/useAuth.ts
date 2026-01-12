@@ -20,6 +20,7 @@ export function useFirebaseAuthState() {
   const [demoMode, setDemoMode] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
 
+  /* AUTH STATE LISTENER */
   useEffect(() => {
     let unsubscribeProfile: (() => void) | undefined;
 
@@ -103,6 +104,7 @@ export function useFirebaseAuthState() {
     setDemoMode(true);
   };
 
+  /* GOOGLE AUTH WITH POPUP (RESTORED - RELIABLE) */
   const signInWithGoogle = async () => {
     setLoading(true);
     setError(null);
@@ -110,13 +112,18 @@ export function useFirebaseAuthState() {
       const { GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence } = await import('firebase/auth');
       const provider = new GoogleAuthProvider();
 
+      // FORCE ACCOUNT SELECTION (Prevents "Stuck" login)
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
+
       // FORCE PERSISTENCE: local (survives browser close)
       await setPersistence(auth, browserLocalPersistence);
 
+      // CLASSIC POPUP (Bypasses Redirect Restrictions)
       await signInWithPopup(auth, provider);
 
       logActivity('security', 'Inicio de sesión con Google exitoso');
-      // State update is handled by onAuthStateChanged listener automatically
     } catch (err: unknown) {
       console.error('Google Login Failed:', err);
 
@@ -131,6 +138,8 @@ export function useFirebaseAuthState() {
           message = 'Inicio de sesión cancelado por el usuario';
         } else if (firebaseErr.code === 'auth/domain-not-authorized') {
           message = 'Dominio no autorizado. Contacte soporte.';
+        } else if (firebaseErr.code === 'auth/popup-blocked') {
+          message = 'El navegador bloqueó la ventana emergente. Permita popups para este sitio.';
         }
       }
       setError(message);

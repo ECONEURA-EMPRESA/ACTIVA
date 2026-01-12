@@ -125,7 +125,7 @@ export const GroupSessionModal: React.FC<GroupSessionModalProps> = ({
               }}
               className="w-full text-left px-4 py-3 hover:bg-red-50 rounded-lg flex items-center gap-3 text-red-600 font-bold text-sm transition-colors mt-1"
             >
-              <Trash2 size={16} /> Eliminar Grupo
+              <Trash2 size={16} /> Eliminar Sesión
             </button>
           </div>
         )}

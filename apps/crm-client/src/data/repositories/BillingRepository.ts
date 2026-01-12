@@ -4,8 +4,7 @@ import {
     writeBatch,
     query,
     where,
-    getDocs,
-    orderBy
+    getDocs
 } from 'firebase/firestore';
 import { db, auth } from '../../lib/firebase';
 import { Invoice } from '@monorepo/shared';
@@ -64,7 +63,7 @@ export const BillingRepository = {
 
         // 3. Commit Atomically
         await batch.commit();
-        console.log(`[BillingRepository] Atomic Batch Committed: Invoice ${invoice.number} + ${sessions.length} Sessions`);
+
     },
 
     /**

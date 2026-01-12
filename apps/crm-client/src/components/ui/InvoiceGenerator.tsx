@@ -1,15 +1,12 @@
-import React, { useState } from 'react';
-
+import React, { useState, useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import { ArrowLeft, Edit, Printer } from 'lucide-react';
 import { Button } from './Button';
 import { InvoiceData, ClinicSettings, Session } from '../../lib/types';
 
-// Intentionally keeping layout simple as per snippets.
-// Assuming "clinicSettings" and data type based on context.
-
 interface InvoiceGeneratorProps {
-  data: InvoiceData; // Titanium Strict Type
-  clinicSettings: ClinicSettings; // Titanium Strict Type
+  data: InvoiceData;
+  clinicSettings: ClinicSettings;
   onClose: () => void;
 }
 
@@ -19,29 +16,34 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
   clinicSettings,
 }) => {
   const [invoiceNumber, setInvoiceNumber] = useState(
-    data.invoiceNumber || `FACT - ${Date.now().toString().slice(-6)} `,
+    data.invoiceNumber || `FACT-${Date.now().toString().slice(-6)}`,
   );
-  const date = new Date().toLocaleDateString('es-ES');
-  // Calculate Total
-  const total = data.sessions.reduce((sum: number, s: Session) => sum + (s.price || 0), 0);
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const printRef = useRef<HTMLDivElement>(null);
+
+  // @ts-ignore
+  const handlePrint = useReactToPrint({
+    content: () => printRef.current,
+    documentTitle: `Factura_${invoiceNumber.trim()}`,
+    removeAfterPrint: true,
+  } as any);
+
+  const date = new Date().toLocaleDateString('es-ES');
+  const total = data.sessions.reduce((sum: number, s: Session) => sum + (s.price || 0), 0);
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-slate-100 animate-in fade-in duration-200">
-      {/* Toolbar (Oculto al imprimir) */}
+      {/* Toolbar (Hidden on print) */}
       <div className="bg-slate-900 text-white p-4 flex justify-between items-center shadow-md no-print">
         <div className="flex items-center gap-4">
           <button onClick={onClose} className="hover:bg-slate-800 p-2 rounded-lg transition-colors">
             <ArrowLeft />
           </button>
-          <h2 className="font-bold text-lg">Vista Previa de Factura</h2>
+          <h2 className="font-bold text-lg">Vista Previa</h2>
         </div>
         <div className="flex gap-3">
           <div className="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
-            <span className="text-xs text-slate-400 uppercase font-bold">Nº Factura:</span>
+            <span className="text-xs text-slate-400 uppercase font-bold">Nº:</span>
             <input
               type="text"
               value={invoiceNumber}
@@ -61,10 +63,13 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
         </div>
       </div>
 
-      {/* Invoice Paper (Lo que se imprime) */}
+      {/* Invoice Paper */}
       <div className="flex-1 overflow-y-auto p-8 flex justify-center invoice-preview-container">
-        <div className="invoice-paper bg-white w-full max-w-[210mm] min-h-[297mm] p-[20mm] shadow-2xl relative text-slate-800 print-only">
-          {/* Cabecera */}
+        <div
+          ref={printRef}
+          className="invoice-paper bg-white w-full max-w-[210mm] min-h-[297mm] p-[20mm] shadow-2xl relative text-slate-800 print-only"
+        >
+          {/* Header */}
           <div className="flex justify-between items-start mb-16 border-b-2 border-pink-500 pb-8">
             <div>
               <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">
@@ -87,7 +92,7 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
             </div>
           </div>
 
-          {/* Cliente */}
+          {/* Client */}
           <div className="mb-12 bg-slate-50 p-6 rounded-xl border border-slate-100">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
               Facturar a
@@ -96,7 +101,7 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
             {data.clientMeta && <p className="text-sm text-slate-600 mt-1">{data.clientMeta}</p>}
           </div>
 
-          {/* Tabla Items */}
+          {/* Items Table */}
           <table className="w-full mb-12">
             <thead>
               <tr className="border-b border-slate-200">
@@ -146,7 +151,7 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
           <div className="absolute bottom-[20mm] left-[20mm] right-[20mm] border-t border-slate-200 pt-6 text-center">
             <p className="text-[10px] text-slate-400 leading-relaxed max-w-2xl mx-auto">
               {clinicSettings.legalText ||
-                'Documento informativo. El pago debe realizarse según las condiciones acordadas. De acuerdo con la Ley de Protección de Datos, sus datos son tratados con confidencialidad.'}
+                'Documento informativo. El pago debe realizarse según las condiciones acordadas. Tratamiento de datos conforme a RGPD.'}
             </p>
           </div>
         </div>

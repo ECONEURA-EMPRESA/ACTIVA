@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Button } from '../../components/ui/Button';
-import { ChevronLeft, ChevronRight, CalendarCheck, Users, StickyNote, MessageCircle, AlertTriangle, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarCheck, Users, StickyNote, Phone, AlertTriangle, Loader2 } from 'lucide-react';
 import { Patient, GroupSession } from '../../lib/types';
 import { Toast } from '../../components/ui/Toast';
 import { useSessionController } from '../../hooks/controllers/useSessionController';
-import { WhatsApp } from '../../lib/whatsappUtils';
 import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -302,12 +301,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                       <button
                         onClick={(evt) => {
                           evt.stopPropagation();
-                          const msg = `Hola ${e.title}, recordatorio de su sesión de Musicoterapia mañana. Por favor confirme asistencia.`;
-                          WhatsApp.openChat(e.contact, msg);
+                          if (e.contact) {
+                            window.location.href = `tel:${e.contact.replace(/\s/g, '')}`;
+                          }
                         }}
-                        className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 hover:bg-emerald-50 px-2 py-1 rounded transition-colors"
+                        className="text-[10px] font-bold text-slate-600 flex items-center gap-1 hover:bg-slate-50 px-2 py-1 rounded transition-colors"
                       >
-                        <MessageCircle size={12} /> Recordar
+                        <Phone size={12} /> Llamar
                       </button>
                     </div>
                   )}

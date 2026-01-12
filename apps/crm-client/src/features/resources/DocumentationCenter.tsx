@@ -74,7 +74,7 @@ export const DocumentationCenter: React.FC = () => {
             <div className="space-y-3">
               {[
                 { title: 'Pubmed: Music Therapy & Dementia', url: 'https://pubmed.ncbi.nlm.nih.gov/?term=music+therapy+dementia' },
-                { title: 'Asociación Española de Musicoterapia', url: 'https://aem.es' },
+                { title: 'Asociación Española de Musicoterapia (ADIMTE)', url: 'https://www.adimte.org/' },
                 { title: 'World Federation of Music Therapy', url: 'https://wfmt.info' },
               ].map((link, i) => (
                 <a

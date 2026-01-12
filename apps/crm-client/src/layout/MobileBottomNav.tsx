@@ -6,25 +6,32 @@ interface MobileBottomNavProps {
     onNavigate: (view: string) => void;
     onOpenMenu: () => void;
     onNewAction: () => void; // Central "FAB" action
+    isMenuOpen: boolean;
 }
+
+import { useScrollDirection } from '../hooks/useScrollDirection';
 
 export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     currentView,
     onNavigate,
     onOpenMenu,
     onNewAction,
+    isMenuOpen
 }) => {
+    const scrollDirection = useScrollDirection('main-content');
+    const isHidden = scrollDirection === 'down' || isMenuOpen;
+
     const navItems = [
         { id: 'dashboard', icon: Activity, label: 'Inicio' },
         { id: 'patients', icon: Users, label: 'Pacientes' },
-        { id: 'fab', icon: PlusCircle, label: '' }, // Placeholder for Center Button
+        { id: 'fab', icon: PlusCircle, label: '' }, // Placeholder for center button
         { id: 'calendar', icon: Calendar, label: 'Agenda' },
         { id: 'menu', icon: Menu, label: 'Menú' },
     ];
 
     return (
-        <div className="md:hidden fixed bottom-6 left-2 right-2 z-50 animate-in slide-in-from-bottom-6 duration-700 pointer-events-none">
-            {/* Pointer events auto so we can click buttons but touch through the gaps if needed (though gaps are small) */}
+        <div className={`md:hidden fixed bottom-6 left-2 right-2 z-50 transition-transform duration-300 pointer-events-none ${isHidden ? 'translate-y-[200%]' : 'translate-y-0'}`}>
+            {/* Pointer events auto so we can click buttons but touch through the gaps if needed */}
             <nav className="pointer-events-auto bg-slate-900/90 backdrop-blur-2xl border border-white/20 rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex items-center justify-between px-4 h-[85px] safe-bottom relative ring-1 ring-white/30">
                 {/* Glossy Overlay */}
                 <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />

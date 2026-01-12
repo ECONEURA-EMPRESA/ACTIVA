@@ -33,7 +33,13 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
-      onClick={onClick}
+      onClick={(e) => {
+        // TITANIUM HAPTICS
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate(10); // Light tap
+        }
+        if (onClick) onClick(e);
+      }}
       className={`rounded-xl font-bold flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 ${sizes[size]} ${variants[variant]} ${className}`}
       {...props}
     >

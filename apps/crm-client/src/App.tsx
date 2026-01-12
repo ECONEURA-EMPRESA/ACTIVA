@@ -1,5 +1,5 @@
 import React, { useState, Suspense, lazy } from 'react';
-import { Loader2 } from 'lucide-react';
+// Loader2 removed
 import { Routes, Route, Navigate, useNavigate, useLocation, useParams } from 'react-router-dom';
 
 // LAYOUT & THEME
@@ -8,6 +8,8 @@ import { AppLayout } from '@/layout/AppLayout';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 // AUTH
+import { AnimatePresence } from 'framer-motion'; // TITANIUM ANIMATION
+import { PageTransition } from './components/layout/PageTransition';
 import { LoginView } from '@/auth/LoginView';
 import { useFirebaseAuthState as useAuth } from '@/auth/useAuth';
 
@@ -62,13 +64,13 @@ const BillingView = lazy(() =>
   })),
 );
 
-// MODALS (Eager loaded for smoother UX on interactions, or Lazy if strictly optimizing bundle)
+// MODALS
 import { QuickAppointmentModal } from './features/sessions/modals/QuickAppointmentModal';
 import { CreateGroupModal } from './features/patients/modals/CreateGroupModal';
 import { GroupSessionModal } from './features/sessions/modals/GroupSessionModal';
 import { SessionRepository } from './data/repositories/SessionRepository';
-import { CommandMenu } from './components/ui/CommandMenu'; // NEW
-import { GroupDetailView } from './features/patients/GroupDetailView'; // NEW
+import { CommandMenu } from './components/ui/CommandMenu';
+import { GroupDetailView } from './features/patients/GroupDetailView';
 import { GroupsDirectory } from './features/patients/GroupsDirectory';
 
 // STORES
@@ -78,13 +80,12 @@ import { useUIStore } from './stores/useUIStore';
 import { Patient, GroupSession } from './lib/types';
 
 // Loading Spinner for Code Splitting Suspense
-const PageLoader = () => (
-  <div className="flex h-full min-h-[50vh] items-center justify-center">
-    <Loader2 className="animate-spin text-pink-500 opacity-50" size={32} />
-  </div>
-);
+import { OfflineIndicator } from './components/ui/OfflineIndicator';
+import { useRegisterSW } from 'virtual:pwa-register/react';
+import { PremiumSplash } from './components/ui/PremiumSplash';
 
-// Main App Component
+const PageLoader = () => <PremiumSplash />;
+
 // Main App Component
 import { usePatients, useCreatePatient, useUpdatePatient } from './api/queries';
 import { queryKeys } from './api/queryKeys';
@@ -128,12 +129,23 @@ function App() {
 
   // GLOBAL STATE (Server State via React Query)
   const { data: patients = [], isLoading: isLoadingPatients } = usePatients(demoMode || !user);
-  // const { data: clinicSettings = {} as ClinicSettings, isLoading: isLoadingSettings } = useSettings(demoMode || !user);
 
   // MUTATIONS
   const createPatient = useCreatePatient(demoMode);
   const updatePatient = useUpdatePatient(demoMode);
-  // const updateSettings = useUpdateSettings(demoMode);
+
+  // TITANIUM UPDATE LOGIC
+  const {
+    needRefresh: [needRefresh],
+    updateServiceWorker,
+  } = useRegisterSW({
+    onRegistered(r) {
+      if (import.meta.env.DEV) console.log('SW Registered: ' + r);
+    },
+    onRegisterError(error) {
+      if (import.meta.env.DEV) console.log('SW Registration Failed', error);
+    },
+  });
 
   // UI STORE (ZUSTAND - TITANIUM ARCHITECTURE)
   const quickAppointment = useUIStore((state) => state.quickAppointment);
@@ -155,7 +167,6 @@ function App() {
   }, [user]);
 
   const handleSaveGroupSession = async (data: any) => {
-
 
     // 1. Optimistic Update (Visible immediately in Group Views)
     setGroupSessions((prev) => [...prev, data]);
@@ -180,32 +191,18 @@ function App() {
           // Ideally this should be a Batch, but for now concurrent promises is fine for Beta.
           const syncPromises = linkedParticipants.map(async (p: any) => {
             const individualSessionPayload = {
-              date: data.date, // ISO YYYY-MM-DD from Modal 
-              // SessionRepository.create handles ID generation.
-              // We need to convert the Group Date to ISO if it's not already.
-              // data.date came from formatDateForDisplay (DD/MM/YYYY) which is bad for sorting but that's what we have.
-              // Let's rely on SessionRepository types.
-
-              // Actually, let's use the Date object if possible, or ISO string.
-              // GroupSessionModal saves 'date' as DD/MM/YYYY string. 
-              // We should probably save it as ISO in the individual record for better querying.
-              // But for now, let's just mirror the data.
-
-              id: `GS-${data.id}-${p.id}`, // Unique ID for this user's copy
+              date: data.date,
+              id: `GS-${data.id}-${p.id}`,
               type: 'group' as const,
               groupName: data.groupName,
-              groupId: data.id, // LINK TO MASTER
+              groupId: data.id,
               notes: `Sesión Grupal: ${data.groupName}. ${data.observations || ''}`,
-              // Price per person = Total / Count
               price: Math.round(Number(data.price) / (data.participants.length || 1)),
               paid: false,
               billable: true,
-              isAbsent: false, // Titanium Strict Type
+              isAbsent: false,
               activities: data.activities || [],
             };
-
-            // Fire and forget individual creation
-            // Now strictly typed thanks to Shared Schema update
             return SessionRepository.create(p.id, individualSessionPayload);
           });
 
@@ -213,8 +210,6 @@ function App() {
 
           // Force refresh of patients to show new sessions in PatientDetail immediately
           queryClient.invalidateQueries({ queryKey: queryKeys.patients.all });
-
-
         }
       }
 
@@ -301,7 +296,6 @@ function App() {
     updatePatient.mutate(updatedPatient, {
       onSuccess: () => {
         logActivity('patient', `Paciente actualizado: ${updatedPatient.name}`);
-        // navigate('/dashboard'); // REMOVED: Keep user on current screen (Titanium Standard)
       },
       onError: (err) => console.error('Failed to sync update:', err)
     });
@@ -322,7 +316,6 @@ function App() {
     createPatient.mutate(payload, {
       onSuccess: () => {
         logActivity('patient', `Nuevo paciente registrado: ${newPatientData.name}`);
-        // navigate('/dashboard'); // Removed per user request: 'no salir de pantalla'
       },
       onError: (err) => console.error('Failed to create:', err)
     });
@@ -346,10 +339,6 @@ function App() {
     };
 
     if (data.mode === 'new') {
-      // Create Patient + Session (Legacy Array only for now, manual migration later or dual write if possible)
-      // Since we don't have patientId yet, we rely on Legacy Array. 
-      // TIP: New SessionRepository migration tool will pick this up later.
-      // OR: We can't write to subcollection without ID.
       const payload = {
         name: data.name,
         age: 0,
@@ -368,19 +357,14 @@ function App() {
       createPatient.mutate(payload, {
         onSuccess: () => {
           logActivity('session', 'Cita rápida creada (Nuevo Paciente)');
-          // Ideally we would migrate immediately, but let's trust the Migration Button in Settings/PatientDetail
         }
       });
     } else {
       const patient = patients.find((p) => p.id == data.patientId);
       if (patient && patient.id) {
-        // 2. DUAL WRITE STRATEGY
-        // A. Legacy Array (for PatientDetail Legacy Tab)
         const updatedSessions = [{ id: Date.now().toString(), ...newSessionBase }, ...(patient.sessions || [])];
         const updatedPatient = { ...patient, sessions: updatedSessions } as Patient;
 
-        // B. Titanium Subcollection (for CalendarView)
-        // Fire and forget subcollection write
         SessionRepository.create(String(patient.id), newSessionBase as any)
           .then(() => { })
           .catch(err => console.error("Titanium Sync Error:", err));
@@ -413,28 +397,20 @@ function App() {
     return [...individualEvents, ...groupEventsList];
   }, [patients, groupSessions]);
 
-  if (authLoading)
-    return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
-        <Loader2 className="animate-spin text-pink-600" size={48} />
-      </div>
-    );
+  // UNIFIED LOADING STATE (To prevent Splash flicker/restart)
+  const isInitializing = authLoading || (user && isLoadingData);
+
+  if (isInitializing) return <PremiumSplash />;
 
   if (!user && !demoMode) {
     return (
       <>
-
         <LoginView onDemoLogin={enterDemoMode} />
       </>
     );
   }
 
-  if (isLoadingData)
-    return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
-        <Loader2 className="animate-spin text-indigo-600" size={48} />
-      </div>
-    );
+  // isLoadingData check removed from here as it's handled above
 
   return (
     <ErrorBoundary>
@@ -447,134 +423,164 @@ function App() {
         events={events}
       >
         <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route
-              path="/dashboard"
-              element={<DashboardView patients={patients} onViewChange={handleNavigate} />}
-            />
+          {/* UPDATE TOAST (TITANIUM SAFE MODE) */}
+          {needRefresh && (
+            <div className="fixed bottom-4 right-4 z-[100] bg-slate-900 text-white p-4 rounded-xl shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom duration-500 border border-white/10">
+              <div className="flex flex-col">
+                <span className="font-bold text-sm">Actualización Disponible</span>
+                <span className="text-xs text-slate-400">Nueva versión lista.</span>
+              </div>
+              <button
+                onClick={() => updateServiceWorker(true)}
+                className="bg-pink-600 hover:bg-pink-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"
+                title="Actualizar ahora"
+              >
+                ACTUALIZAR
+              </button>
+            </div>
+          )}
 
-            <Route
-              path="/patients"
-              element={
-                <PatientsDirectory
-                  patients={patients}
-                  groupSessions={groupSessions} // NEW
-                  onSelectPatient={(p) => navigate(`/patients/${p.id}`)}
-                  onSelectGroup={(gName) => navigate(`/groups/${encodeURIComponent(gName)}`)} // NEW
-                  onNewPatient={handleNewPatient}
-                  initialFilter="all"
-                />
-              }
-            />
-            {/* ... other filters ... */}
-            <Route
-              path="/patients/adults"
-              element={
-                <PatientsDirectory
-                  patients={patients}
-                  groupSessions={groupSessions} // NEW
-                  onSelectPatient={(p) => navigate(`/patients/${p.id}`)}
-                  onNewPatient={handleNewPatient}
-                  initialFilter="adults"
-                  onSelectGroup={(gName) => navigate(`/groups/${encodeURIComponent(gName)}`)}
-                />
-              }
-            />
-            <Route
-              path="/patients/kids"
-              element={
-                <PatientsDirectory
-                  patients={patients}
-                  groupSessions={groupSessions}
-                  onSelectPatient={(p) => navigate(`/patients/${p.id}`)}
-                  onNewPatient={handleNewPatient}
-                  initialFilter="kids"
-                  onSelectGroup={(gName) => navigate(`/groups/${encodeURIComponent(gName)}`)}
-                />
-              }
-            />
+          <AnimatePresence mode="wait">
+            <Routes location={location} key={location.pathname}>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route
+                path="/dashboard"
+                element={
+                  <PageTransition>
+                    <DashboardView patients={patients} onViewChange={handleNavigate} />
+                  </PageTransition>
+                }
+              />
 
-            <Route
-              path="/patients/:id"
-              element={
-                <PatientDetailWrapper
-                  patients={patients}
-                  onBack={() => navigate('/patients')}
-                  onUpdate={handleUpdatePatient}
-                />
-              }
-            />
-            {/* NEW GROUP DETAIL ROUTE */}
-            <Route
-              path="/groups/:groupName"
-              element={
-                <GroupDetailView
-                  groupSessions={groupSessions}
-                  onBack={() => navigate('/patients')}
-                />
-              }
-            />
+              <Route
+                path="/patients"
+                element={
+                  <PageTransition>
+                    <PatientsDirectory
+                      patients={patients}
+                      groupSessions={groupSessions} // NEW
+                      onSelectPatient={(p) => navigate(`/patients/${p.id}`)}
+                      onSelectGroup={(gName) => navigate(`/groups/${encodeURIComponent(gName)}`)} // NEW
+                      onNewPatient={handleNewPatient}
+                      initialFilter="all"
+                    />
+                  </PageTransition>
+                }
+              />
+              {/* ... other filters ... */}
+              <Route
+                path="/patients/adults"
+                element={
+                  <PatientsDirectory
+                    patients={patients}
+                    groupSessions={groupSessions} // NEW
+                    onSelectPatient={(p) => navigate(`/patients/${p.id}`)}
+                    onNewPatient={handleNewPatient}
+                    initialFilter="adults"
+                    onSelectGroup={(gName) => navigate(`/groups/${encodeURIComponent(gName)}`)}
+                  />
+                }
+              />
+              <Route
+                path="/patients/kids"
+                element={
+                  <PatientsDirectory
+                    patients={patients}
+                    groupSessions={groupSessions}
+                    onSelectPatient={(p) => navigate(`/patients/${p.id}`)}
+                    onNewPatient={handleNewPatient}
+                    initialFilter="kids"
+                    onSelectGroup={(gName) => navigate(`/groups/${encodeURIComponent(gName)}`)}
+                  />
+                }
+              />
 
-            <Route
-              path="/groups"
-              element={
-                <GroupsDirectory
-                  groupSessions={groupSessions}
-                  onSelectGroup={(gName) => navigate(`/groups/${encodeURIComponent(gName)}`)}
-                  onNewGroup={() => setIsCreateGroupOpen(true)}
-                />
-              }
-            />
-            <Route
-              path="/sessions"
-              element={
-                <SessionsManager
-                  patients={patients}
-                  onUpdatePatient={handleUpdatePatient}
-                  filterMode="individual"
-                />
-              }
-            />
-            <Route
-              path="/sessions/group"
-              element={
-                <SessionsManager
-                  patients={patients}
-                  onUpdatePatient={handleUpdatePatient}
-                  filterMode="group"
-                />
-              }
-            />
-            <Route
-              path="/sessions/group-history"
-              element={<GroupSessionsHistory sessions={groupSessions} />}
-            />
+              <Route
+                path="/patients/:id"
+                element={
+                  <PageTransition>
+                    <PatientDetailWrapper
+                      patients={patients}
+                      onBack={() => navigate('/patients')}
+                      onUpdate={handleUpdatePatient}
+                    />
+                  </PageTransition>
+                }
+              />
+              {/* NEW GROUP DETAIL ROUTE */}
+              <Route
+                path="/groups/:groupName"
+                element={
+                  <GroupDetailView
+                    groupSessions={groupSessions}
+                    onBack={() => navigate('/patients')}
+                  />
+                }
+              />
 
-            <Route
-              path="/calendar"
-              element={
-                <CalendarView
-                  patients={patients}
-                  groupSessions={groupSessions}
-                  onNavigate={handleNavigate}
-                  onOpenGroupModal={(mode, data) => groupSession.open(data ? undefined : undefined, mode, data)}
-                  onOpenSessionModal={() => { }}
-                  onOpenQuickAppointment={(mode) => quickAppointment.open(mode)}
-                />
-              }
-            />
+              <Route
+                path="/groups"
+                element={
+                  <GroupsDirectory
+                    groupSessions={groupSessions}
+                    onSelectGroup={(gName) => navigate(`/groups/${encodeURIComponent(gName)}`)}
+                    onNewGroup={() => setIsCreateGroupOpen(true)}
+                  />
+                }
+              />
+              <Route
+                path="/sessions"
+                element={
+                  <SessionsManager
+                    patients={patients}
+                    onUpdatePatient={handleUpdatePatient}
+                    filterMode="individual"
+                  />
+                }
+              />
+              <Route
+                path="/sessions/group"
+                element={
+                  <SessionsManager
+                    patients={patients}
+                    groupSessions={groupSessions}
+                    onUpdatePatient={handleUpdatePatient}
+                    filterMode="group"
+                  />
+                }
+              />
+              <Route
+                path="/sessions/group-history"
+                element={<GroupSessionsHistory sessions={groupSessions} />}
+              />
 
-            <Route path="/settings" element={<SettingsView />} />
-            <Route path="/resources" element={<DocumentationCenter />} />
-            <Route path="/reports" element={<ReportsView />} />
-            <Route path="/audit" element={<AuditView />} />
-            <Route path="/billing" element={<BillingView />} />
+              <Route
+                path="/calendar"
+                element={
+                  <PageTransition>
+                    <CalendarView
+                      patients={patients}
+                      groupSessions={groupSessions}
+                      onNavigate={handleNavigate}
+                      onOpenGroupModal={(mode, data) => groupSession.open(data ? undefined : undefined, mode, data)}
+                      onOpenSessionModal={() => { }}
+                      onOpenQuickAppointment={(mode) => quickAppointment.open(mode)}
+                    />
+                  </PageTransition>
+                }
+              />
 
-            {/* CATCH-ALL & LEGACY ROUTES */}
-            <Route path="/auth/login" element={<Navigate to="/dashboard" replace />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
+              <Route path="/settings" element={<SettingsView />} />
+              <Route path="/resources" element={<DocumentationCenter />} />
+              <Route path="/reports" element={<ReportsView />} />
+              <Route path="/audit" element={<AuditView />} />
+              <Route path="/billing" element={<BillingView />} />
+
+              {/* CATCH-ALL & LEGACY ROUTES */}
+              <Route path="/auth/login" element={<Navigate to="/dashboard" replace />} />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </AnimatePresence>
         </Suspense>
       </AppLayout>
 
@@ -609,6 +615,7 @@ function App() {
         />
       )}
       <CommandMenu />
+      <OfflineIndicator />
     </ErrorBoundary>
   );
 }

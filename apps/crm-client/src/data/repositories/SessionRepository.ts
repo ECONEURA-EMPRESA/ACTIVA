@@ -118,7 +118,7 @@ export const SessionRepository = {
         });
 
         await batch.commit();
-        // console.log('GroupSession: Atomic Create Success'); // Protocol: Silence
+
 
         return sessionId;
     },
@@ -181,6 +181,6 @@ export const SessionRepository = {
         batch.update(patientRef, { sessions: [] }); // Empty the array
 
         await batch.commit();
-        console.log(`Migrated ${patient.sessions.length} sessions for patient ${patient.name}`);
+
     }
 };

@@ -1,10 +1,5 @@
-import { useRef } from 'react';
-import { useReactToPrint } from 'react-to-print';
 import { FileText, Printer } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
-import { MmseTemplate } from './templates/MmseTemplate';
-import { MocaTemplate } from './templates/MocaTemplate';
-import { GdsTemplate } from './templates/GdsTemplate';
 
 const RESOURCES = [
     { id: 'moca', title: 'MoCA - Evaluación Cognitiva Montreal', description: 'Screening de deterioro cognitivo leve y demencia.', color: 'indigo' },
@@ -13,24 +8,16 @@ const RESOURCES = [
 ];
 
 export const ClinicalTemplates = () => {
-    // Refs for printing
-    const mocaRef = useRef<HTMLDivElement>(null);
-    const mmseRef = useRef<HTMLDivElement>(null);
-    const gdsRef = useRef<HTMLDivElement>(null);
-
-    // Print Handlers
-    const handlePrintMoca = useReactToPrint({
-        content: () => mocaRef.current,
-        documentTitle: 'MoCA_Evaluacion_Cognitiva'
-    } as any); // Titanium: Library type definition mismatch for 'content'
-    const handlePrintMmse = useReactToPrint({
-        content: () => mmseRef.current,
-        documentTitle: 'MMSE_Mini_Mental'
-    } as any);
-    const handlePrintGds = useReactToPrint({
-        content: () => gdsRef.current,
-        documentTitle: 'GDS_Escala_Yesavage'
-    } as any);
+    // External PDF Handlers (Local)
+    const handlePrintMoca = () => {
+        window.open('/resources/moca.pdf', '_blank');
+    };
+    const handlePrintMmse = () => {
+        window.open('/resources/minimental.pdf', '_blank');
+    };
+    const handlePrintGds = () => {
+        window.open('/resources/gds.pdf', '_blank');
+    };
 
     const printActions: Record<string, () => void> = {
         'moca': handlePrintMoca,
@@ -44,7 +31,8 @@ export const ClinicalTemplates = () => {
                 {RESOURCES.map(res => (
                     <div
                         key={res.id}
-                        className={`group bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-lg hover:border-${res.color}-200 transition-all flex flex-col justify-between h-[200px]`}
+                        // Removed fixed height h-[200px] to prevent overlapping. min-h ensures consistent look.
+                        className={`group bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-lg hover:border-${res.color}-200 transition-all flex flex-col justify-between min-h-[220px]`}
                     >
                         <div>
                             <div className={`w-12 h-12 rounded-xl bg-${res.color}-50 text-${res.color}-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
@@ -61,18 +49,11 @@ export const ClinicalTemplates = () => {
                                 icon={Printer}
                                 onClick={() => printActions[res.id] && printActions[res.id]()}
                             >
-                                Imprimir Plantilla
+                                {res.id.startsWith('manual_') ? 'Descargar Manual' : 'Abrir PDF Online'}
                             </Button>
                         </div>
                     </div>
                 ))}
-            </div>
-
-            {/* Off-screen Templates for Print Rendering (Titanium Style: No Inline) */}
-            <div className="absolute -top-[10000px] -left-[10000px]">
-                <MocaTemplate ref={mocaRef} />
-                <MmseTemplate ref={mmseRef} />
-                <GdsTemplate ref={gdsRef} />
             </div>
         </div>
     );

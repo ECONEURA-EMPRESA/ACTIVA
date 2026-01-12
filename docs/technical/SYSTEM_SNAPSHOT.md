@@ -2,8 +2,8 @@
 
 **Date:** 2026-01-02
 **Status:** ✅ OPERATIONAL / VERIFIED LOCALLY & LIVE
-**Project ID:** `metodo-activa-saas-1767353295`
-**Live URL:** [https://metodo-activa-saas-1767353295.web.app](https://metodo-activa-saas-1767353295.web.app)
+**Project ID:** `webycrm-activa`
+**Live URL:** [https://app-activamusicoterapia.web.app](https://app-activamusicoterapia.web.app)
 
 ---
 

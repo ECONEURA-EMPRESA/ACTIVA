@@ -8,7 +8,7 @@ import {
 
 import { Session, Patient } from '../../../lib/types';
 import { Card } from '../../../components/ui/Card';
-import { WhatsApp } from '../../../lib/whatsappUtils';
+
 
 type ExtendedSession = Session & { patientId?: string | number; time?: string };
 
@@ -225,10 +225,12 @@ export const DailyAgendaWidget: React.FC<DailyAgendaWidgetProps> = ({
                                     <button
                                         onClick={(evt) => {
                                             evt.stopPropagation();
-                                            WhatsApp.openChat(patient.contact, `Hola ${patient.name}, recordatorio de cita...`);
+                                            if (patient.contact) {
+                                                window.location.href = `tel:${patient.contact.replace(/\s/g, '')}`;
+                                            }
                                         }}
-                                        className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center hover:bg-emerald-100 hover:text-emerald-600 transition-colors z-10"
-                                        title="Abrir WhatsApp"
+                                        className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center hover:bg-slate-200 hover:text-slate-800 transition-colors z-10"
+                                        title="Llamar"
                                     >
                                         <Phone size={14} />
                                     </button>

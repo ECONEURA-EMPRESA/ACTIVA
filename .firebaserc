@@ -12,13 +12,6 @@
           "app-activamusicoterapia"
         ]
       }
-    },
-    "saas-activa": {
-      "hosting": {
-        "crm-client": [
-          "saas-activa"
-        ]
-      }
     }
   },
   "etags": {}

@@ -10,9 +10,19 @@ interface GroupSessionsHistoryProps {
 export const GroupSessionsHistory: React.FC<GroupSessionsHistoryProps> = ({ sessions }) => {
     const { groupHistory: internalHistory, isLoadingHistory } = useSessionController();
 
+    // Helper to parse dates (handles ISO and DD/MM/YYYY)
+    const parseDate = (dString: string) => {
+        if (!dString) return 0;
+        if (dString.includes('/')) {
+            const [day, month, year] = dString.split('/').map(Number);
+            return new Date(year, month - 1, day).getTime();
+        }
+        return new Date(dString).getTime();
+    };
+
     // Sort by date descending if using props
     const displayHistory = sessions
-        ? [...sessions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        ? [...sessions].sort((a, b) => parseDate(b.date) - parseDate(a.date))
         : internalHistory;
 
     const loading = sessions ? false : isLoadingHistory;

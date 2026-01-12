@@ -1,19 +1,12 @@
-import React from 'react';
+import { cn } from '../../lib/utils';
 
-interface SkeletonProps {
-    className?: string;
-    count?: number;
-}
+interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> { }
 
-export const Skeleton: React.FC<SkeletonProps> = ({ className, count = 1 }) => {
+export function Skeleton({ className, ...props }: SkeletonProps) {
     return (
-        <>
-            {Array.from({ length: count }).map((_, i) => (
-                <div
-                    key={i}
-                    className={`animate-pulse bg-slate-200 rounded-lg ${className}`}
-                />
-            ))}
-        </>
+        <div
+            className={cn("animate-pulse rounded-md bg-slate-200/80", className)}
+            {...props}
+        />
     );
-};
+}

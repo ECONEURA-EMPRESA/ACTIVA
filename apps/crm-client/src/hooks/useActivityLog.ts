@@ -16,13 +16,12 @@ export const useActivityLog = () => {
     const userId = auth.currentUser?.uid;
 
     // FETCH LOGS (Read-Only from DB)
-    const { data: activities = [] } = useQuery({
+    const { data: activities = [], isLoading: isQueryLoading, refetch } = useQuery({
         queryKey: ['activity_logs', userId],
         queryFn: async () => {
             if (!userId) return [];
 
             // TITANIUM FALLBACK: Fetch all logs for user and sort in memory.
-            // This voids the need for a composite index (userId + timestamp) which breaks the UI if missing.
             const q = query(
                 collection(db, 'activity_logs'),
                 where('userId', '==', userId)
@@ -69,6 +68,7 @@ export const useActivityLog = () => {
         activities,
         logActivity,
         latestActivities: activities.slice(0, 4),
-        isLoading: logMutation.isPending
+        isLoading: logMutation.isPending || isQueryLoading,
+        refetch
     };
 };

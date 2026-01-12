@@ -1,15 +1,16 @@
 import React from 'react';
 import { Card } from '../../../components/ui/Card';
-import { Activity, UserPlus, Settings2, CalendarCheck, FileSignature, CreditCard, ShieldCheck, FileX } from 'lucide-react';
+import { Activity, UserPlus, Settings2, CalendarCheck, FileSignature, CreditCard, ShieldCheck, FileX, Loader2 } from 'lucide-react';
 import { ActivityLogItem } from '../../../hooks/useActivityLog';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 interface SystemActivityProps {
     activities: ActivityLogItem[];
+    isLoading?: boolean;
 }
 
-export const SystemActivity: React.FC<SystemActivityProps> = ({ activities }) => {
+export const SystemActivity: React.FC<SystemActivityProps> = ({ activities, isLoading }) => {
     const getIcon = (type: string) => {
         switch (type) {
             case 'patient': return <UserPlus size={16} className="text-emerald-600" />;
@@ -32,7 +33,11 @@ export const SystemActivity: React.FC<SystemActivityProps> = ({ activities }) =>
             </div>
 
             <div className="space-y-4 flex-1">
-                {activities.length === 0 ? (
+                {isLoading ? (
+                    <div className="flex justify-center py-8">
+                        <Loader2 className="animate-spin text-indigo-500" size={24} />
+                    </div>
+                ) : activities.length === 0 ? (
                     <div className="text-center py-8 text-slate-400 text-sm">
                         Sin actividad registrada aún.
                     </div>

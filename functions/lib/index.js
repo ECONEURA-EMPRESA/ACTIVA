@@ -14,7 +14,7 @@ exports.lemonSqueezyWebhook = functions.https.onRequest(async (req, res) => {
             return;
         }
         // 2. Validate Signature
-        const secret = "activamusicoterapia-secret-key-123"; // TODO: Move to env var
+        const secret = process.env.LEMON_SQUEEZY_SECRET || "change-me-in-prod";
         const hmac = crypto.createHmac("sha256", secret);
         const digest = Buffer.from(hmac.update(req.rawBody).digest("hex"), "utf8");
         const signature = Buffer.from(req.get("X-Signature") || "", "utf8");

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import { useParams } from 'react-router-dom';
-import { ArrowLeft, Users, Calendar, Brain, Clock, Plus, Activity } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Users, Calendar, Brain, Clock, Plus, Activity, Trash2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { GroupSession } from '../../lib/types';
@@ -15,6 +15,7 @@ interface GroupDetailViewProps {
 export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ groupSessions, onBack }) => {
     const { groupName } = useParams<{ groupName: string }>();
     const decodedName = decodeURIComponent(groupName || '');
+    const navigate = useNavigate();
 
     const groupHistory = useMemo(() => {
         return groupSessions
@@ -40,6 +41,26 @@ export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ groupSessions,
 
     const handleNewSession = () => {
         useUIStore.getState().groupSession.open(decodedName);
+    };
+
+    const handleDeleteGroup = async () => {
+        if (!confirm('⚠️ ¿Estás seguro de ELIMINAR ESTE GRUPO y TODAS sus sesiones?\n\nEsta acción borrará permanentemente todo el historial del grupo y es irreversible.')) return;
+
+        const secondConfirm = prompt('Para confirmar, escribe "ELIMINAR" en mayúsculas:');
+        if (secondConfirm !== 'ELIMINAR') {
+            alert('Cancelado: El texto no coincide.');
+            return;
+        }
+
+        try {
+            const { GroupSessionRepository } = await import('../../data/repositories/GroupSessionRepository');
+            await GroupSessionRepository.deleteAllSessionsForGroup(decodedName);
+            alert('Grupo eliminado correctamente.');
+            navigate('/groups');
+        } catch (error) {
+            console.error(error);
+            alert('Error al eliminar grupo.');
+        }
     };
 
     if (!groupHistory.length) {
@@ -85,6 +106,15 @@ export const GroupDetailView: React.FC<GroupDetailViewProps> = ({ groupSessions,
                         <Calendar size={16} /> {groupHistory.length} Sesiones Realizadas
                     </p>
                 </div>
+
+                <Button
+                    variant="ghost"
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                    onClick={handleDeleteGroup}
+                    icon={Trash2}
+                >
+                    Eliminar Grupo
+                </Button>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

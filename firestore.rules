@@ -2,8 +2,8 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // --- FUNCTIONS ---
+
+    // --- HELPER FUNCTIONS ---
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -12,65 +12,45 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // --- RULES ---
-
-    // 1. USERS
+    // --- USERS (Therapists) ---
     match /users/{userId} {
       allow read, write: if isOwner(userId);
-      
-      // Subcollection: Group Sessions (Titanium Fix)
-      match /group_sessions/{sessionId} {
-        allow read, write: if isOwner(userId);
-      }
     }
 
-    // 2. SETTINGS
-    // New path: settings/{userId}
-    match /settings/{userId} {
-      allow read, write: if isOwner(userId);
-    }
-
-    // 3. PATIENTS & SESSIONS (Subcollection)
+    // --- PATIENTS ---
+    // Security: Only the therapist who owns the patient can read/write
     match /patients/{patientId} {
-      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid);
-      allow create: if isOwner(request.resource.data.userId);
-      allow update, delete: if isOwner(resource.data.userId);
-
-      // Subcollection: Sessions
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Subcollections (Sessions within Patient)
       match /sessions/{sessionId} {
-        allow read, write: if isOwner(get(/databases/$(database)/documents/patients/$(patientId)).data.userId);
+         allow read, write: if isAuthenticated() && get(/databases/$(database)/documents/patients/$(patientId)).data.userId == request.auth.uid;
       }
     }
 
-    // 4. SESSIONS (Collection Group Query)
-    match /{path=**}/sessions/{sessionId} {
-      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid);
+    // --- SESSIONS (Global Collection for Queries) ---
+    match /sessions/{sessionId} {
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
-    // 5. ACTIVITY LOGS (Immutable Audit Trail)
-    // Only allows CREATE. Delete/Update is FORBIDDEN.
+    // --- SETTINGS ---
+    match /settings/{settingId} {
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // --- RESOURCES (Global Read, Admin Write) ---
+    match /resources/{resourceId} {
+      allow read: if isAuthenticated(); // All therapists can read shared resources
+      allow write: if false; // Only Admin (via Console)
+    }
+
+    // --- ACTIVITY LOGS ---
     match /activity_logs/{logId} {
-       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-       allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
-       allow update, delete: if false; // IMMUTABLE
-    }
-
-
-    // 6. DAILY NOTES (Added for Dashboard)
-    match /daily_notes/{noteId} {
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
-    }
-
-    // 7. INVOICES (Titanium Billing)
-    match /invoices/{invoiceId} {
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
-    }
-
-    // Default Deny
-    match /{document=**} {
-      allow read, write: if false; 
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
   }
 }

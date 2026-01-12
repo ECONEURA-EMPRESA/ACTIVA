@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Activity, Menu, X, User } from 'lucide-react';
 import logoPremium from '../../assets/images/logo-premium.png';
 
-const CRM_URL = 'https://app-activamusicoterapia.web.app/auth/login';
+const CRM_URL = 'https://app-activamusicoterapia.firebaseapp.com/auth/login';
 
 const LoginButton = () => (
     <a

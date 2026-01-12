@@ -8,14 +8,14 @@
   ### The Sovereign Clinical Operating System for Neurorehabilitation.
 
   [![License](https://img.shields.io/badge/License-Proprietary%20(100%25%20IP)-0F172A.svg)](LICENSE)
-  [![Status](https://img.shields.io/badge/Status-Production%20Gold-10B981.svg)](https://metodo-activa-saas-1767353295.web.app)
+  [![Status](https://img.shields.io/badge/Status-Production%20Gold-10B981.svg)](https://app-activamusicoterapia.web.app)
   [![Tech](https://img.shields.io/badge/Stack-React%2018%20%7C%20TypeScript%20%7C%20Firebase-3B82F6.svg)](docs/technical/SYSTEM_SNAPSHOT.md)
   [![Performance](https://img.shields.io/badge/Lighthouse-99%2F100-F59E0B.svg)](PERFECT_AUDIT_LOG.md)
   [![Audit](https://img.shields.io/badge/Audit-Zero%20Debt-EC4899.svg)](PERFECT_AUDIT_LOG.md)
 
   <br />
   
-  <a href="https://metodo-activa-saas-1767353295.web.app"><strong>🌐 LAUNCH LIVE DEMO</strong></a>
+  <a href="https://app-activamusicoterapia.web.app"><strong>🌐 LAUNCH LIVE DEMO</strong></a>
   &nbsp;&nbsp;•&nbsp;&nbsp;
   <a href="docs/commercial/SALES_DECK.md"><strong>📄 INVESTOR DECK</strong></a>
   &nbsp;&nbsp;•&nbsp;&nbsp;

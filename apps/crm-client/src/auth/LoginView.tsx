@@ -104,6 +104,9 @@ export const LoginView: React.FC<LoginViewProps> = ({ onDemoLogin }) => {
                 {/* Input 'Metalizado' */}
                 <input
                   type="email"
+                  inputMode="email"
+                  autoCapitalize="none"
+                  autoComplete="username"
                   placeholder="doctor@clinica.com"
                   className="w-full bg-gradient-to-b from-slate-50 to-white border border-slate-200 text-slate-800 rounded-xl py-3.5 pl-11 pr-4 focus:ring-2 focus:ring-[#EC008C]/20 focus:border-[#EC008C] outline-none transition-all placeholder:text-slate-400 font-medium shadow-sm"
                   value={email}
@@ -205,12 +208,15 @@ export const LoginView: React.FC<LoginViewProps> = ({ onDemoLogin }) => {
               </svg>
               Google
             </button>
+            <p className="text-[10px] text-center text-slate-400 mt-2">
+              Si no tienes cuenta, se creará automáticamente.
+            </p>
           </form>
 
           <div className="mt-8 pt-6 border-t border-slate-200 flex flex-col gap-3 text-center">
             <button
               onClick={() => setIsRegistering(!isRegistering)}
-              className="text-xs font-semibold text-slate-500 hover:text-[#EC008C] transition-colors"
+              className="text-sm font-bold text-[#EC008C] hover:text-pink-700 transition-colors uppercase tracking-wide border-b border-transparent hover:border-pink-200 pb-0.5"
             >
               {isRegistering
                 ? 'Volver al Inicio de Sesión'

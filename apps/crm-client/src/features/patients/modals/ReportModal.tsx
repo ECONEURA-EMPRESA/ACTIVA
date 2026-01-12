@@ -1,11 +1,13 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, FileText, Printer, Wand2 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Patient } from '../../../lib/types';
 import logoCircular from '../../../assets/logo-circular.png';
 import { useActivityLog } from '../../../hooks/useActivityLog';
 import { PATHOLOGY_MAP } from '../../../lib/patientUtils';
+import { EVALUATION_AREAS_CHILD, EVALUATION_AREAS_ADULT } from '../../../lib/constants';
+import { useReactToPrint } from 'react-to-print';
 
 interface ReportModalProps {
   isOpen: boolean;
@@ -24,10 +26,35 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   const [isGenerating, setIsGenerating] = useState(true);
   const { logActivity } = useActivityLog();
 
+  // PRINT REF
+  const reportRef = useRef<HTMLDivElement>(null);
+
+  // @ts-ignore
+  const handlePrint = useReactToPrint({
+    content: () => reportRef.current,
+    documentTitle: `Informe_Clinico_${patient.name.replace(/\s+/g, '_')}`,
+    removeAfterPrint: true,
+    onAfterPrint: () => logActivity('report', `Informe clínico generado para: ${patient.name}`),
+  } as any);
+
+
   // Smart Template Logic (Refactored: Robust & Instant)
   useEffect(() => {
     if (isOpen) {
-      // Logic is synchronous and instant (Titanium Standard)
+      // Determine Type and Mapping
+      const isChild = patient.age < 18;
+      const labels = isChild ? EVALUATION_AREAS_CHILD : EVALUATION_AREAS_ADULT;
+      const scores = patient.currentEval || [];
+
+      const functionalText = scores.length > 0
+        ? labels.map((label: string, idx: number) => {
+          const score = scores[idx] || 0;
+          const level = score === 0 ? 'Nulo/No Evaluado' : score === 1 ? 'Bajo/Emergente' : score === 2 ? 'Medio/En Proceso' : 'Alto/Consolidado';
+          if (score === 0) return null; // Skip empty
+          return `- ${label}: ${level}`;
+        }).filter(Boolean).join('\n')
+        : 'Sin registro funcional detallado.';
+
       const today = new Date().toLocaleDateString('es-ES', {
         day: 'numeric',
         month: 'long',
@@ -56,9 +83,14 @@ El paciente inició el tratamiento el ${patient.joinedDate}. A fecha de hoy, ha 
 Actualmente se encuentra en una fase de mantenimiento y estimulación cognitiva activa.
 
 3. EVALUACIÓN Y EVOLUCIÓN
-En la última valoración psicométrica realizada, se obtuvieron los siguientes resultados:
+En la última valoración psicométrica y funcional realizada, se obtuvieron los siguientes resultados:
+
+PERFIL COGNITIVO / SCREENING:
 - MOCA (Montreal Cognitive Assessment): ${mocaScore}
 - Escala GDS (Reisberg): Estadio ${gdsScore}
+
+PERFIL FUNCIONAL Y MUSICAL:
+${functionalText}
 
 EVOLUCIÓN RECIENTE (Últimas 5 Sesiones):
 ${patient.sessions
@@ -71,7 +103,7 @@ ${patient.sessions
         }
 
 Observaciones cualitativas:
-${synthesisText || 'No se han registrado observaciones específicas en la síntesis diagnóstica.'}
+${synthesisText || ((patient.cognitiveScores as any)?.childObs || 'No se han registrado observaciones específicas.')}
 
 4. OBJETIVOS TRABAJADOS
 - Estimulación de la memoria autobiográfica a través de la reminiscencia musical.
@@ -89,69 +121,6 @@ Se recomienda la continuidad del tratamiento con una frecuencia de...`;
   }, [isOpen, patient]);
 
   if (!isOpen) return null;
-
-  const handlePrint = () => {
-    const printWindow = window.open('', '', 'height=600,width=800');
-    if (!printWindow) return;
-
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Informe ${patient.name}</title>
-          <style>
-            body { font-family: 'Times New Roman', serif; padding: 40px; line-height: 1.6; color: #333; }
-            .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #EC008C; padding-bottom: 20px; margin-bottom: 40px; }
-            .logo { height: 60px; }
-            .clinic-info { text-align: right; font-size: 12px; color: #666; }
-            h1 { font-size: 24px; text-align: center; margin-bottom: 30px; color: #000; text-transform: uppercase; letter-spacing: 2px; }
-            pre { font-family: 'Times New Roman', serif; white-space: pre-wrap; font-size: 14px; }
-            .signature-block { margin-top: 60px; display: flex; justify-content: space-between; }
-            .signature-box { text-align: center; }
-            .signature-line { width: 200px; border-top: 1px solid #000; margin-bottom: 5px; }
-            .footer { margin-top: 50px; border-top: 1px solid #ccc; padding-top: 20px; text-align: center; font-size: 10px; color: #999; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <img src="${logoCircular}" class="logo" />
-            <div class="clinic-info">
-              <strong>${clinicSettings.name || 'Clínica Método Activa'}</strong><br/>
-              ${clinicSettings.address || ''}<br/>
-              ${clinicSettings.email || ''} | ${clinicSettings.phone || ''}
-            </div>
-          </div>
-          
-          <pre>${reportText}</pre>
-
-          <div class="signature-block">
-            <div class="signature-box">
-              <hr class="signature-line" />
-              Fdo. El Terapeuta
-            </div>
-            <div class="signature-box">
-              <hr class="signature-line" />
-              VºBº Dirección
-            </div>
-          </div>
-
-          <div class="footer">
-            Documento generado automáticamente por Método Activa Clinical OS v5.0
-            <br/>
-            ${clinicSettings.legalText || ''}
-          </div>
-          <script>
-            window.onload = function() { window.print(); }
-          </script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-
-    // Explicit Log - No Console
-    // Titanium Standard: Only business logic logs, no debug noise
-    logActivity('report', `Informe clínico generado para: ${patient.name}`);
-  };
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -231,6 +200,38 @@ Se recomienda la continuidad del tratamiento con una frecuencia de...`;
           <Button onClick={handlePrint} icon={Printer}>
             Imprimir / Guardar PDF
           </Button>
+        </div>
+      </div>
+
+      {/* HIDDEN PRINT TEMPLATE - RENDERED IN DOM BUT HIDDEN */}
+      <div style={{ display: 'none' }}>
+        <div ref={reportRef} className="print-container p-10 font-serif text-slate-800 leading-relaxed" style={{ padding: '40px', fontFamily: '"Times New Roman", serif', color: '#333' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #EC008C', paddingBottom: '20px', marginBottom: '40px' }}>
+            <img src={logoCircular} style={{ height: '60px' }} alt="Logo" />
+            <div style={{ textAlign: 'right', fontSize: '12px', color: '#666' }}>
+              <strong>{clinicSettings.name || 'Clínica Método Activa'}</strong><br />
+              {clinicSettings.address || ''}<br />
+              {clinicSettings.email || ''} | {clinicSettings.phone || ''}
+            </div>
+          </div>
+
+          <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', fontSize: '14px' }}>{reportText}</pre>
+
+          <div style={{ marginTop: '60px', display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ width: '200px', borderTop: '1px solid #000', marginBottom: '5px' }}></div>
+              Fdo. El Terapeuta
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ width: '200px', borderTop: '1px solid #000', marginBottom: '5px' }}></div>
+              VºBº Dirección
+            </div>
+          </div>
+
+          <div style={{ marginTop: '50px', borderTop: '1px solid #ccc', paddingTop: '20px', textAlign: 'center', fontSize: '10px', color: '#999' }}>
+            Documento generado automáticamente por Método Activa Clinical OS v5.0<br />
+            {clinicSettings.legalText || ''}
+          </div>
         </div>
       </div>
     </div>

@@ -53,7 +53,7 @@ export const useDocumentController = (patientId?: string) => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: queryKeys.patients.documents(patientId!) });
             logActivity('delete', 'Documento eliminado');
-            console.log('Documento eliminado');
+
         },
         onError: (err) => {
             console.error('Delete Failed:', err);

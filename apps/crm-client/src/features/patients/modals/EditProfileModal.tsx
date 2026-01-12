@@ -3,6 +3,7 @@ import { X, UserCheck, Hash, Users, Music, Printer, Save } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { generatePatientReference, COMMON_PATHOLOGIES } from '../../../lib/patientUtils';
 import { compressImage } from '../../../lib/utils';
+import { useImageUpload } from '../../../hooks/useImageUpload'; // TITANIUM HOOK
 import { Patient } from '../../../lib/types';
 
 interface EditProfileModalProps {
@@ -32,6 +33,23 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose, onS
   const [age, setAge] = useState<string | number>(initialData?.age || '');
   const [birthDate, setBirthDate] = useState(initialData?.birthDate || '');
 
+  // SPLIT DATE STATE (TITANIUM FIX)
+  const initialDate = initialData?.birthDate ? new Date(initialData.birthDate) : null;
+  const [bDay, setBDay] = useState(initialDate ? initialDate.getDate().toString() : '');
+  const [bMonth, setBMonth] = useState(initialDate ? initialDate.getMonth().toString() : '0'); // 0-indexed
+  const [bYear, setBYear] = useState(initialDate ? initialDate.getFullYear().toString() : '');
+
+  // EFFECT: Constantly sync partials to main birthDate string for form submission
+  useEffect(() => {
+    if (bDay && bMonth && bYear && bYear.length === 4) {
+      const d = bDay.padStart(2, '0');
+      const m = (parseInt(bMonth) + 1).toString().padStart(2, '0');
+      const y = bYear;
+      setBirthDate(`${y}-${m}-${d}`);
+    }
+  }, [bDay, bMonth, bYear]);
+
+
   // EFFECT: Calcular edad si cambia nacimiento
   useEffect(() => {
     if (birthDate) {
@@ -54,46 +72,88 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose, onS
     }
   }, [name, date, isManualRef]);
 
+  // TITANIUM UPLOAD HOOK
+  const { uploadImage, uploading } = useImageUpload();
+
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
-    if (f) {
+    if (f && initialData?.id) { // Solo si hay ID (paciente ya creado o en edición)
       try {
-        const compressed = await compressImage(f);
-        setPhotoPreview(compressed);
+        // 1. Upload to Storage
+        const path = `patients/${initialData.id}/profile-${Date.now()}.jpg`;
+        const url = await uploadImage(f, path);
+        if (url) {
+          setPhotoPreview(url);
+        }
       } catch (err) {
-        console.error('Error compressing image:', err);
-        console.error('Error compressing image:', err);
-        // Toast should be triggered here ideally
-        console.error('Error al procesar la imagen. Inténtelo de nuevo.');
+        console.error('Upload Failed', err);
       }
+    } else if (f) {
+      const compressed = await compressImage(f);
+      setPhotoPreview(compressed);
     }
   };
 
   const handleDiagnosisChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value;
     setDiagnosisType(val);
-    // Directly use the value as pathology type since COMMON_PATHOLOGIES now uses correct codes
     setPathologyType(val);
   };
 
   const handlePrintConsent = () => {
     console.info(`Generando Consentimiento para ${name}.`);
-    // Logic for printing would go here
     window.print();
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-3xl rounded-2xl shadow-3d overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95">
-        <div className="px-8 py-5 border-b border-slate-100 flex justify-between bg-white sticky top-0 z-20">
-          <h2 className="text-xl font-bold text-slate-800">
+    // TITANIUM MOBILE LAYOUT FIX: Full Screen on Mobile, Modal on Desktop
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center pointer-events-none">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm pointer-events-auto transition-opacity"
+        onClick={onClose}
+      />
+
+      {/* Main Container */}
+      <div className="bg-white w-full md:w-full md:max-w-3xl h-[100dvh] md:h-auto md:max-h-[90vh] md:rounded-2xl shadow-3d overflow-hidden flex flex-col pointer-events-auto transform transition-transform duration-300 animate-in slide-in-from-bottom-full md:zoom-in-95">
+
+        {/* Header */}
+        <div className="px-4 py-3 md:px-6 md:py-4 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-20 shrink-0 safe-pt shadow-sm md:shadow-none min-h-[60px]">
+          {/* Mobile Cancel - Left */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex md:hidden text-slate-500 font-medium text-sm p-2 -ml-2 active:opacity-70"
+          >
+            Cancelar
+          </button>
+
+          <h2 className="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
             {initialData ? 'Editar Perfil' : 'Nueva Admisión'}
           </h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
-            <X />
+
+          {/* Desktop Close - Right */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="hidden md:block p-2 -mr-2 text-slate-400 hover:text-slate-600 active:bg-slate-100 rounded-full transition-colors"
+          >
+            <X size={24} />
+          </button>
+
+          {/* Mobile Save - Right */}
+          <button
+            type="button"
+            onClick={() => formRef.current?.requestSubmit()}
+            className="flex md:hidden bg-gradient-to-r from-pink-600 to-rose-600 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-md active:scale-95 transition-transform items-center gap-1.5"
+          >
+            <Save size={14} className="text-white/90" />
+            Guardar
           </button>
         </div>
-        <div className="p-8 overflow-y-auto">
+
+        {/* Scrollable Content - Added pb-32 for Mobile Safety and safe-pb */}
+        <div className="p-6 overflow-y-auto flex-1 overscroll-contain pb-32 md:pb-6">
           {/* FORMULARIO CON REFERENCIA (ref={formRef}) */}
           <form
             ref={formRef}
@@ -105,22 +165,19 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose, onS
 
               d.age = Number(d.age);
               d.reference = reference;
-              d.hasConsent = hasConsent; // Guardar estado del checkbox
+              d.hasConsent = hasConsent;
 
               if (photoPreview) d.photo = photoPreview;
 
-              // Logic for custom diagnosis
               const selectedOption = COMMON_PATHOLOGIES.find(p => p.value === d.diagnosisSelect);
 
               if (d.diagnosisSelect === 'other' || !d.diagnosisSelect) {
                 d.diagnosis = d.customDiagnosis;
                 d.pathologyType = 'other';
               } else if (selectedOption) {
-                // SAVE LABEL, NOT VALUE (e.g. "Alzheimer" instead of "dementia")
                 d.diagnosis = selectedOption.label;
                 d.pathologyType = selectedOption.value;
               } else {
-                // Fallback
                 d.diagnosis = d.diagnosisSelect;
                 d.pathologyType = pathologyType;
               }
@@ -132,17 +189,17 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose, onS
           >
             <div className="flex flex-col md:flex-row gap-8 items-start mb-8">
               <div className="flex flex-col items-center gap-3 mx-auto md:mx-0">
-                <div className="relative group cursor-pointer w-32 h-32 rounded-full border-4 border-white shadow-xl bg-slate-50 overflow-hidden ring-1 ring-slate-200 transition-all group-hover:scale-105">
+                <div className="relative group cursor-pointer w-28 h-28 md:w-32 md:h-32 rounded-full border-4 border-white shadow-xl bg-slate-50 overflow-hidden ring-1 ring-slate-200 transition-all group-hover:scale-105 active:scale-95">
                   {photoPreview ? (
                     <img src={photoPreview} className="w-full h-full object-cover" alt="Perfil" />
                   ) : (
-                    <UserCheck size={48} className="text-slate-300 m-auto mt-8" />
+                    <UserCheck size={40} className="text-slate-300 m-auto mt-8 md:mt-10" />
                   )}
                   <label
                     htmlFor="photo-upload"
                     className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white font-medium text-xs cursor-pointer backdrop-blur-sm"
                   >
-                    Cambiar Foto
+                    {uploading ? 'Subiendo...' : 'Cambiar Foto'}
                   </label>
                   <input
                     type="file"
@@ -164,30 +221,59 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose, onS
                       name="name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="input-pro"
+                      className="input-pro text-lg"
                       required
+                      autoCapitalize="words"
                       placeholder="Ej. Juan Pérez"
                     />
                   </div>
-                  <div className="grid grid-cols-3 gap-4">
+                  {/* MOBILE FIX: grid-cols-1 on mobile, 3 on desktop */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="label-pro">Nacimiento</label>
-                      <input
-                        name="birthDate"
-                        type="date"
-                        value={birthDate}
-                        onChange={(e) => setBirthDate(e.target.value)}
-                        className="input-pro"
-                      />
+                      {/* REMOVED DUPLICATE LABEL "Nacimiento" */}
+                      <label className="label-pro">Nacimiento (D/M/A)</label>
+                      <div className="flex gap-2">
+                        <input
+                          placeholder="Día"
+                          className="input-pro w-16 text-center px-1"
+                          type="number"
+                          inputMode="numeric"
+                          min={1}
+                          max={31}
+                          value={bDay}
+                          onChange={(e) => setBDay(e.target.value)}
+                        />
+                        <select
+                          className="input-pro flex-1 min-w-0 px-1 text-sm bg-white"
+                          value={bMonth}
+                          onChange={(e) => setBMonth(e.target.value)}
+                        >
+                          {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((mes, i) => (
+                            <option key={i} value={i}>{mes}</option>
+                          ))}
+                        </select>
+                        <input
+                          placeholder="Año"
+                          className="input-pro w-20 text-center px-1"
+                          type="number"
+                          inputMode="numeric"
+                          min={1920}
+                          max={new Date().getFullYear()}
+                          value={bYear}
+                          onChange={(e) => setBYear(e.target.value)}
+                        />
+                        <input type="hidden" name="birthDate" value={birthDate} />
+                      </div>
                     </div>
                     <div>
                       <label className="label-pro">Edad</label>
                       <input
                         name="age"
                         type="number"
+                        inputMode="numeric"
                         value={age}
                         onChange={(e) => setAge(e.target.value)}
-                        className="input-pro"
+                        className="input-pro font-bold text-slate-700"
                         required
                       />
                     </div>
@@ -218,6 +304,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose, onS
                       }}
                       className="input-pro font-mono text-xs bg-slate-50 border-slate-300 text-slate-600"
                       placeholder="JP-123125"
+                      autoCapitalize="characters"
                     />
                   </div>
                   <div>
@@ -273,6 +360,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose, onS
                     defaultValue={initialData?.caregiverPhone}
                     className="input-pro"
                     placeholder="+34 600..."
+                    inputMode="tel"
                   />
                 </div>
               </div>
@@ -366,8 +454,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose, onS
                 </div>
               </div>
 
-              {/* SECCIÓN 4: OBJETIVOS Y CONSENTIMIENTO */}
-              <div>
+              <div className="pb-4">
                 <label className="label-pro">Expectativas y Objetivos Iniciales</label>
                 <textarea
                   name="initialGoals"
@@ -377,7 +464,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose, onS
                 />
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-200 gap-4">
+              <div className="flex flex-col sm:flex-row items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-200 gap-4 mb-4">
                 <label className="flex items-center gap-3 cursor-pointer select-none">
                   <input
                     type="checkbox"
@@ -405,11 +492,12 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose, onS
           </form>
         </div>
 
-        <div className="p-6 border-t border-slate-100 flex justify-end gap-3 bg-slate-50 rounded-b-2xl">
-          <Button onClick={onClose} variant="secondary">
+        {/* Footer - Desktop Only (Mobile uses Header) */}
+        <div className="hidden md:flex p-6 border-t border-slate-100 justify-end gap-3 bg-slate-50 md:rounded-b-2xl shrink-0 safe-pb">
+          <Button onClick={onClose} variant="secondary" className="justify-center">
             Cancelar
           </Button>
-          <Button icon={Save} onClick={() => formRef.current?.requestSubmit()}>
+          <Button icon={Save} onClick={() => formRef.current?.requestSubmit()} className="justify-center">
             Guardar Cambios
           </Button>
         </div>

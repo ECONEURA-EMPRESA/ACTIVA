@@ -8,7 +8,7 @@ interface ToastProps {
 }
 
 export const Toast: React.FC<ToastProps> = ({ message, type = 'success', onClose }) => (
-  <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-4 fade-in duration-300">
+  <div className="fixed top-4 left-4 right-4 md:left-auto md:top-auto md:bottom-6 md:right-6 z-50 animate-in slide-in-from-top-4 md:slide-in-from-bottom-4 fade-in duration-300 flex justify-center md:block">
     <div
       className={`flex items-center gap-3 px-6 py-4 rounded-2xl shadow-3d border ${type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-red-50 border-red-100 text-red-800'}`}
     >

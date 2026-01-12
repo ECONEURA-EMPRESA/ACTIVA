@@ -5,9 +5,9 @@
         ],
         "target": {
             "namespace": "android_app",
-            "package_name": "com.metodoactiva.crm",
+            "package_name": "com.activamusicoterapia.crm",
             "sha256_cert_fingerprints": [
-                "XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX:XX"
+                "AB:82:FD:AE:D0:E2:35:58:6E:CD:C7:47:36:46:37:56:F1:DE:A5:D9:39:E4:63:A1:C8:55:71:35:8D:58:26:AE"
             ]
         }
     }

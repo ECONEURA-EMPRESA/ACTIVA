@@ -270,32 +270,39 @@ export const CHILD_DEV_DOMAINS = [
 
 export const ADULT_DEV_DOMAINS = [
   {
+    id: 'sensory',
+    title: 'Sensorial y Físico',
+    icon: Activity,
+    color: 'pink',
+    items: ['Procesamiento Auditivo', 'Estimulación Sensorial', 'Movimiento / Motricidad', 'Conciencia Corporal'],
+  },
+  {
     id: 'cognitive',
     title: 'Área Cognitiva',
     icon: Brain,
     color: 'blue',
-    items: ['Atención', 'Orientación'],
+    items: ['Atención', 'Orientación', 'Memoria', 'Funciones Ejecutivas'],
   },
   {
     id: 'emotional',
     title: 'Área Emocional',
     icon: Heart,
     color: 'rose',
-    items: ['Reg. Emocional', 'Exp. Emocional', 'Iniciativa'],
+    items: ['Reg. Emocional', 'Exp. Emocional', 'Iniciativa', 'Autoestima'],
   },
   {
     id: 'social',
     title: 'Social y Comunicación',
     icon: MessageSquare,
     color: 'emerald',
-    items: ['Com. Verbal', 'Com. No Verbal', 'Social'],
+    items: ['Com. Verbal', 'Com. No Verbal', 'Social', 'Participación'],
   },
   {
     id: 'musical',
-    title: 'Respuesta Musical',
+    title: 'Perfil Musical',
     icon: Music,
     color: 'purple',
-    items: ['Musical'],
+    items: ['Ritmo', 'Melodía / Canto', 'Conexión Emocional', 'Respuesta Sonora'],
   },
 ];
 
@@ -322,19 +329,17 @@ export const CHILD_LEVELS = [
   { value: 1, label: 'Emergente', color: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
   { value: 2, label: 'En Proceso', color: 'bg-blue-50 text-blue-700 border-blue-200' },
   { value: 3, label: 'Consolidado', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  { value: 0, label: 'Nulo', color: 'bg-slate-100 text-slate-400 border-slate-200' }, // Alternative
 ];
 
 // --- EVALUATION AREAS MAPPING ---
+// Must match items in ADULT_DEV_DOMAINS for index mapping
 export const EVALUATION_AREAS_ADULT = [
-  'Atención',
-  'Orientación',
-  'Reg. Emocional',
-  'Exp. Emocional',
-  'Com. Verbal',
-  'Com. No Verbal',
-  'Social',
-  'Musical',
-  'Iniciativa',
+  'Procesamiento Auditivo', 'Estimulación Sensorial', 'Movimiento / Motricidad', 'Conciencia Corporal',
+  'Atención', 'Orientación', 'Memoria', 'Funciones Ejecutivas',
+  'Reg. Emocional', 'Exp. Emocional', 'Iniciativa', 'Autoestima',
+  'Com. Verbal', 'Com. No Verbal', 'Social', 'Participación',
+  'Ritmo', 'Melodía / Canto', 'Conexión Emocional', 'Respuesta Sonora'
 ];
 export const EVALUATION_AREAS_CHILD = [
   'Sensoriomotor',

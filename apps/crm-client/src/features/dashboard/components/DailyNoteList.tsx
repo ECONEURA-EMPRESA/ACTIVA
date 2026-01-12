@@ -100,22 +100,29 @@ export const DailyNoteList: React.FC<DailyNoteListProps> = ({ dateStr }) => {
                 )}
             </div>
             {/* Add New Input */}
-            <div className="pt-3 mt-auto relative">
+            <form
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    handleAdd();
+                }}
+                className="pt-3 mt-auto relative"
+            >
                 <input
                     className="w-full pl-3 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all"
                     placeholder="Nueva nota..."
                     value={newItemText}
                     onChange={(e) => setNewItemText(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+                    inputMode="text"
+                    enterKeyHint="done"
                 />
                 <button
-                    onClick={handleAdd}
+                    type="submit"
                     disabled={!newItemText.trim()}
                     className="absolute right-1 top-4 p-1.5 bg-emerald-500 text-white rounded-md hover:bg-emerald-600 disabled:opacity-50 disabled:hover:bg-emerald-500 transition-colors shadow-sm"
                 >
                     <Plus size={14} />
                 </button>
-            </div>
+            </form>
         </div>
     );
 };

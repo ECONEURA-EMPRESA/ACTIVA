@@ -15,7 +15,7 @@ interface DashboardViewProps {
 
 export const DashboardView: React.FC<DashboardViewProps> = ({ patients, onViewChange }) => {
   const { role, login } = useAuth();
-  const { latestActivities } = useActivityLog();
+  const { latestActivities, isLoading: isLogLoading } = useActivityLog();
   const [searchQuery, setSearchQuery] = useState('');
 
   // Lifted Date State for Coordination
@@ -92,14 +92,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ patients, onViewCh
         {/* RIGHT: ACTIVITY LOG + DAILY NOTES (1 COL STACKED) */}
         <div className="h-full flex flex-col gap-6 overflow-hidden">
 
-          {/* Activity Log */}
-          <div className="flex-1 min-h-[300px] overflow-hidden">
-            <SystemActivity activities={latestActivities} />
-          </div>
-
-          {/* Daily Post-it Note */}
+          {/* Daily Post-it Note (TOP PRIORITY) */}
           <div className="shrink-0 h-[300px] border border-transparent">
             <PostItWidget date={selectedDate} />
+          </div>
+
+          {/* Activity Log (SECONDARY) */}
+          <div className="flex-1 min-h-[300px] overflow-hidden">
+            <SystemActivity activities={latestActivities} isLoading={isLogLoading} />
           </div>
 
         </div>

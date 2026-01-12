@@ -1,5 +1,11 @@
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 import { ClinicSettings, Patient, Session } from './types';
 import { generateInvoiceHTML } from './templates/invoiceTemplate';
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 export const formatDateForInput = (dateStr?: string): string => {
   if (!dateStr) return new Date().toISOString().split('T')[0];
