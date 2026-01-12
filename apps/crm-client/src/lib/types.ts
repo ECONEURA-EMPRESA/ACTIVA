@@ -64,6 +64,7 @@ export interface GroupSession {
   location: string;
   type: 'group';
   participantNames: string[];
+  participants?: { id: string; name: string }[];
   price: number;
   paid: boolean;
   methodology?: string;

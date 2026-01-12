@@ -91,7 +91,7 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                 showToast('Paciente eliminado correctamente', 'success');
                 onBack(); // Return to directory
             },
-            onError: (err: any) => {
+            onError: (err: unknown) => {
                 console.error(err);
                 setShowDeleteModal(false);
                 showToast('Error al eliminar paciente', 'error');
@@ -250,15 +250,15 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
     }
 
     const FormulationSection: React.FC<FormulationSectionProps> = ({ title, optionsKey, fieldKey, initialData, onSave }) => {
-        const isFormulationData = (val: any): val is FormulationData => {
+        const isFormulationData = React.useCallback((val: unknown): val is FormulationData => {
             return typeof val === 'object' && val !== null && 'selected' in val;
-        };
+        }, []);
 
-        const normalizeData = (val: any): FormulationData => {
+        const normalizeData = React.useCallback((val: unknown): FormulationData => {
             return isFormulationData(val)
                 ? val
                 : { selected: [], text: typeof val === 'string' ? val : '' };
-        };
+        }, [isFormulationData]);
 
         const [localData, setLocalData] = useState<FormulationData>(normalizeData(initialData));
         const [isDirty, setIsDirty] = useState(false);
@@ -288,7 +288,7 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                 }
             }
             setLocalData(data);
-        }, [initialData, fieldKey, patient.diagnosis]);
+        }, [initialData, fieldKey, patient.diagnosis, normalizeData]);
 
         const handleCheck = (option: string) => {
             const newSelected = localData.selected.includes(option)
@@ -699,7 +699,7 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                                 title="Síntesis Diagnóstica"
                                 optionsKey="synthesis"
                                 fieldKey="synthesis"
-                                initialData={patient.clinicalFormulation?.synthesis as any}
+                                initialData={patient.clinicalFormulation?.synthesis as FormulationData}
                                 onSave={(key, data) => {
                                     onUpdate({
                                         ...patient,
@@ -716,7 +716,7 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                                 title="Objetivos Terapéuticos"
                                 optionsKey="objectives"
                                 fieldKey="objectives"
-                                initialData={patient.clinicalFormulation?.objectives as any}
+                                initialData={patient.clinicalFormulation?.objectives as FormulationData}
                                 onSave={(key, data) => {
                                     onUpdate({
                                         ...patient,

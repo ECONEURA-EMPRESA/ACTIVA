@@ -28,7 +28,7 @@ export const useInvoiceController = () => {
     });
 
     const updateStatusMutation = useMutation({
-        mutationFn: (params: { id: string, status: Invoice['status'], paidAt?: string, method?: string }) =>
+        mutationFn: (params: { id: string, status: Invoice['status'], paidAt?: string, method?: Invoice['paymentMethod'] }) =>
             InvoiceRepository.updateStatus(params.id, params.status, params.paidAt, params.method),
         onSuccess: (_data, variables) => {
             queryClient.invalidateQueries({ queryKey: ['invoices'] });

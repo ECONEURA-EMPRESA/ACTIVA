@@ -11,6 +11,7 @@ const NoteRow = ({ item, onUpdate, onDelete }: { item: NoteItem, onUpdate: (id: 
     const [isEditing, setIsEditing] = useState(false);
     const [text, setText] = useState(item.text);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         setText(item.text);
     }, [item.text]);

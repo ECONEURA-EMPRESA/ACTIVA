@@ -102,10 +102,10 @@ export const BillingView = () => {
                         />
                     </div>
                     <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 px-1 -mx-1 scrollbar-hide">
-                        {['ALL', 'DRAFT', 'PENDING', 'PAID'].map((status) => (
+                        {(['ALL', 'DRAFT', 'PENDING', 'PAID'] as const).map((status) => (
                             <button
                                 key={status}
-                                onClick={() => setStatusFilter(status as any)}
+                                onClick={() => setStatusFilter(status)}
                                 className={`px-4 py-2 text-xs font-bold rounded-full transition-all whitespace-nowrap active:scale-95 ${statusFilter === status
                                     ? 'bg-slate-900 text-white shadow-md'
                                     : 'bg-white text-slate-500 border border-slate-200'

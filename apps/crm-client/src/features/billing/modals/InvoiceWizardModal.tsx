@@ -27,7 +27,7 @@ export const InvoiceWizardModal: React.FC<InvoiceWizardModalProps> = ({ isOpen, 
     const [selectedSessionIds, setSelectedSessionIds] = useState<string[]>([]);
 
     const [searchTerm, setSearchTerm] = useState('');
-    const [invoiceDate, setInvoiceDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+    const [invoiceDate, setInvoiceDate] = useState(() => format(new Date(), 'yyyy-MM-dd'));
 
     const { createInvoice, isCreating } = useInvoiceController();
 
@@ -44,6 +44,7 @@ export const InvoiceWizardModal: React.FC<InvoiceWizardModalProps> = ({ isOpen, 
 
     useEffect(() => {
         if (settings?.billing) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setBillingData({
                 legalName: settings.billing.legalName || '',
                 nif: settings.billing.nif || '',
@@ -113,6 +114,7 @@ export const InvoiceWizardModal: React.FC<InvoiceWizardModalProps> = ({ isOpen, 
     useEffect(() => {
         if (isOpen) {
             // Generate distinct default when opening
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setCustomInvoiceNumber(`INV-${Date.now().toString().slice(-6)}`);
         }
     }, [isOpen]);
@@ -127,7 +129,7 @@ export const InvoiceWizardModal: React.FC<InvoiceWizardModalProps> = ({ isOpen, 
         // 2. UPSERT SETTINGS (Save Billing Info for future)
         try {
             await updateSettings({ billing: billingData });
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.error("Failed to auto-save settings", e);
             // Silent fail for settings, proceeding with invoice
         }
@@ -137,13 +139,17 @@ export const InvoiceWizardModal: React.FC<InvoiceWizardModalProps> = ({ isOpen, 
         const total = sessionsToBill.reduce((acc, s) => acc + (Number(s.price) || 0), 0);
 
         // 4. Prepare Payload
+        const issueDate = new Date(invoiceDate);
+        const dueDate = new Date(issueDate);
+        dueDate.setDate(dueDate.getDate() + 7);
+
         const invoicePayload = {
             id: crypto.randomUUID(),
             number: customInvoiceNumber, // USE CUSTOM NUMBER
             patientId: mode === 'INDIVIDUAL' ? (selectedPatient?.id as string) : 'GROUPS',
             patientName: mode === 'INDIVIDUAL' ? selectedPatient?.name || 'Cliente' : selectedGroupName || 'Grupo',
-            date: new Date(invoiceDate).toISOString(),
-            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            date: issueDate.toISOString(),
+            dueDate: dueDate.toISOString(),
             status: 'PENDING' as const,
             items: sessionsToBill.map(s => ({
                 id: crypto.randomUUID(),
@@ -353,12 +359,12 @@ export const InvoiceWizardModal: React.FC<InvoiceWizardModalProps> = ({ isOpen, 
                                             <div className="flex-1">
                                                 <p className="font-bold text-slate-800 text-sm">
                                                     {mode === 'GROUP' && 'groupName' in session
-                                                        ? (session as any).groupName
+                                                        ? (session as { groupName: string }).groupName
                                                         : (session.type === 'individual' ? 'Sesión Individual' : 'Sesión Grupal')}
                                                 </p>
                                                 <p className="text-xs text-slate-500 flex items-center gap-1">
                                                     <Calendar size={12} />
-                                                    {session.date} - {'time' in session ? (session as any).time : ''}
+                                                    {session.date} - {'time' in session ? (session as { time: string }).time : ''}
                                                 </p>
                                             </div>
                                             <div className="font-black text-slate-700">
@@ -560,7 +566,7 @@ export const InvoiceWizardModal: React.FC<InvoiceWizardModalProps> = ({ isOpen, 
                 <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 transition-all">
                     {step > 1 && (
                         <button
-                            onClick={() => setStep(prev => prev - 1 as any)}
+                            onClick={() => setStep(prev => (prev - 1) as 1 | 2 | 3 | 4)}
                             className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-200 transition-colors"
                         >
                             Atrás
@@ -572,7 +578,7 @@ export const InvoiceWizardModal: React.FC<InvoiceWizardModalProps> = ({ isOpen, 
                             onClick={() => {
                                 // Validation before next
                                 if (step === 3 && selectedSessionIds.length === 0) return alert("Selecciona al menos una sesión");
-                                setStep(prev => prev + 1 as any);
+                                setStep(prev => (prev + 1) as 1 | 2 | 3 | 4);
                             }}
                             disabled={
                                 (step === 1) || // Step 1 buttons do the nav

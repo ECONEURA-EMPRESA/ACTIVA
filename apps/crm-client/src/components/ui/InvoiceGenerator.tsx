@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { useReactToPrint } from 'react-to-print';
+import { useReactToPrint, UseReactToPrintOptions } from 'react-to-print';
 import { ArrowLeft, Edit, Printer } from 'lucide-react';
 import { Button } from './Button';
 import { InvoiceData, ClinicSettings, Session } from '../../lib/types';
@@ -16,17 +16,16 @@ export const InvoiceGenerator: React.FC<InvoiceGeneratorProps> = ({
   clinicSettings,
 }) => {
   const [invoiceNumber, setInvoiceNumber] = useState(
-    data.invoiceNumber || `FACT-${Date.now().toString().slice(-6)}`,
+    () => data.invoiceNumber || `FACT-${Date.now().toString().slice(-6)}`,
   );
 
   const printRef = useRef<HTMLDivElement>(null);
 
-  // @ts-ignore
   const handlePrint = useReactToPrint({
     content: () => printRef.current,
     documentTitle: `Factura_${invoiceNumber.trim()}`,
     removeAfterPrint: true,
-  } as any);
+  } as UseReactToPrintOptions);
 
   const date = new Date().toLocaleDateString('es-ES');
   const total = data.sessions.reduce((sum: number, s: Session) => sum + (s.price || 0), 0);

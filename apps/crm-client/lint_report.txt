@@ -1,0 +1,300 @@
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\App.tsx
+  169:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  185:65  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  192:65  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  368:72  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\components\ui\Skeleton.tsx
+  3:11  error  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\context\AuthContext.tsx
+  79:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\context\ThemeContext.tsx
+  34:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\data\repositories\InvoiceRepository.ts
+  60:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\data\repositories\NoteRepository.ts
+  26:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\data\repositories\ReportRepository.ts
+  30:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\billing\modals\InvoiceWizardModal.tsx
+  130:21  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-explicit-any
+  146:31  error    Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\billing\modals\InvoiceWizardModal.tsx:146:31
+  144 |             patientName: mode === 'INDIVIDUAL' ? selectedPatient?.name || 'Cliente' : selectedGroupName || 'Grupo',
+  145 |             date: new Date(invoiceDate).toISOString(),
+> 146 |             dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      |                               ^^^^^^^^^^ Cannot call impure function
+  147 |             status: 'PENDING' as const,
+  148 |             items: sessionsToBill.map(s => ({
+  149 |                 id: crypto.randomUUID(),  react-hooks/purity
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\dashboard\DashboardView.tsx
+  13:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\dashboard\components\DailyNoteList.tsx
+  15:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\dashboard\components\DailyNoteList.tsx:15:9
+  13 |
+  14 |     useEffect(() => {
+> 15 |         setText(item.text);
+     |         ^^^^^^^ Avoid calling setState() directly within an effect
+  16 |     }, [item.text]);
+  17 |
+  18 |     const handleSave = () => {  react-hooks/set-state-in-effect
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\dashboard\widgets\WeeklyAgendaWidget.tsx
+  26:22  error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. This value was memoized in source but not in compilation output.
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\dashboard\widgets\WeeklyAgendaWidget.tsx:26:22
+  24 |     const today = new Date();
+  25 |     const startOfCurrentWeek = startOfWeek(today, { weekStartsOn: 1 }); // Monday start like a civilized person
+> 26 |     const weekDays = useMemo(() => {
+     |                      ^^^^^^^^^^^^^^^
+> 27 |         return Array.from({ length: 7 }).map((_, i) => addDays(startOfCurrentWeek, i));
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 28 |     }, [today]);
+     | ^^^^^^^^^^^^^^^^ Could not preserve existing memoization
+  29 |
+  30 |     // Track drag state for visual feedback
+  31 |     const [draggingId, setDraggingId] = useState<string | null>(null);  react-hooks/preserve-manual-memoization
+  28:8   warning  React Hook useMemo has a missing dependency: 'startOfCurrentWeek'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      react-hooks/exhaustive-deps
+  28:9   error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. This dependency may be mutated later, which could cause the value to change unexpectedly.
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\dashboard\widgets\WeeklyAgendaWidget.tsx:28:9
+  26 |     const weekDays = useMemo(() => {
+  27 |         return Array.from({ length: 7 }).map((_, i) => addDays(startOfCurrentWeek, i));
+> 28 |     }, [today]);
+     |         ^^^^^ This dependency may be modified later
+  29 |
+  30 |     // Track drag state for visual feedback
+  31 |     const [draggingId, setDraggingId] = useState<string | null>(null);                                                                                                                                                                                                                                                                                      react-hooks/preserve-manual-memoization
+  58:59  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\PatientDetail.tsx
+   94:28  warning  Unexpected any. Specify a different type                                                                                                                                                                                                       @typescript-eslint/no-explicit-any
+  132:52  warning  Unexpected any. Specify a different type                                                                                                                                                                                                       @typescript-eslint/no-explicit-any
+  253:41  warning  Unexpected any. Specify a different type                                                                                                                                                                                                       @typescript-eslint/no-explicit-any
+  257:37  warning  Unexpected any. Specify a different type                                                                                                                                                                                                       @typescript-eslint/no-explicit-any
+  291:12  warning  React Hook useEffect has a missing dependency: 'normalizeData'. Either include it or remove the dependency array. Outer scope values like 'patient.diagnosis' aren't valid dependencies because mutating them doesn't re-render the component  react-hooks/exhaustive-deps
+  500:36  warning  Unexpected any. Specify a different type                                                                                                                                                                                                       @typescript-eslint/no-explicit-any
+  702:88  warning  Unexpected any. Specify a different type                                                                                                                                                                                                       @typescript-eslint/no-explicit-any
+  719:89  warning  Unexpected any. Specify a different type                                                                                                                                                                                                       @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\PatientsDirectory.tsx
+  17:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\components\FormulationTab.tsx
+   9:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  16:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  22:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  28:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\components\GDSSelectionCards.tsx
+  4:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\components\PatientTabs.tsx
+  22:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\modals\AdmissionChecklistModal.tsx
+  7:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\modals\ClinicalGuideModal.tsx
+  42:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\modals\CognitiveModal.tsx
+   44:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   45:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  179:71  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  270:65  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  477:57  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\modals\EditProfileModal.tsx
+   11:18  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-explicit-any
+   48:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\modals\EditProfileModal.tsx:48:7
+  46 |       const m = (parseInt(bMonth) + 1).toString().padStart(2, '0');
+  47 |       const y = bYear;
+> 48 |       setBirthDate(`${y}-${m}-${d}`);
+     |       ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  49 |     }
+  50 |   }, [bDay, bMonth, bYear]);
+  51 |      react-hooks/set-state-in-effect
+   63:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\modals\EditProfileModal.tsx:63:7
+  61 |         calculatedAge--;
+  62 |       }
+> 63 |       setAge(calculatedAge);
+     |       ^^^^^^ Avoid calling setState() directly within an effect
+  64 |     }
+  65 |   }, [birthDate]);
+  66 |                                                                                         react-hooks/set-state-in-effect
+   71:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\modals\EditProfileModal.tsx:71:7
+  69 |     if (!isManualRef && name && date) {
+  70 |       const autoRef = generatePatientReference(name, date);
+> 71 |       setReference(autoRef);
+     |       ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  72 |     }
+  73 |   }, [name, date, isManualRef]);
+  74 |  react-hooks/set-state-in-effect
+  164:24  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\modals\MusicalIdentityModal.tsx
+  164:66  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  175:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\modals\ReportModal.tsx
+   16:19  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+  105:49  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+  117:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\modals\ReportModal.tsx:117:7
+  115 | Se recomienda la continuidad del tratamiento con una frecuencia de...`;
+  116 |
+> 117 |       setReportText(draft);
+      |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  118 |       setIsGenerating(false);
+  119 |     }
+  120 |   }, [isOpen, patient]);  react-hooks/set-state-in-effect
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\modals\SafetyModal.tsx
+  138:99  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  183:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\modals\SessionModal.tsx
+  16:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  18:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\titanium\components\PatientHeader.tsx
+  53:69  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\titanium\components\PatientHeader.tsx:53:69
+  51 |                     <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-lg">
+  52 |                         <Calendar className="w-4 h-4 text-brand-500" />
+> 53 |                         <span>Desde {new Date(patient.joinedDate || Date.now()).toLocaleDateString()}</span>
+     |                                                                     ^^^^^^^^^^ Cannot call impure function
+  54 |                     </div>
+  55 |                     {patient.musicalIdentity?.likes?.[0] && (
+  56 |                         <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-lg">  react-hooks/purity
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\reports\ReportsView.tsx
+  37:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  42:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\sessions\CalendarView.tsx
+  13:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  14:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\sessions\SessionsManager.tsx
+   53:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   53:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   58:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   58:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  142:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  142:72  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  161:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\sessions\modals\GroupSessionModal.tsx
+   48:6   warning  React Hook useEffect has a missing dependency: 'groupName'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  412:66  warning  Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\sessions\modals\QuickAppointmentModal.tsx
+  9:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\settings\SettingsView.tsx
+   23:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\settings\SettingsView.tsx:23:7
+  21 |   useEffect(() => {
+  22 |     if (settings) {
+> 23 |       setFormData(settings);
+     |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  24 |     }
+  25 |   }, [settings]);
+  26 |  react-hooks/set-state-in-effect
+  299:30  warning  'e' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\hooks\controllers\useDocumentController.ts
+  49:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\hooks\useImageUpload.ts
+  85:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\layout\AppLayout.tsx
+  13:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\layout\SidebarAgenda.tsx
+  6:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\lib\constants.ts
+  181:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\lib\firebase.ts
+  22:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\stores\useUIStore.ts
+  14:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  15:79  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  42:96  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\vite-env.d.ts
+  10:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+Ô£û 81 problems (11 errors, 70 warnings)
+

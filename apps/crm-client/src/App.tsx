@@ -15,12 +15,12 @@ import { useFirebaseAuthState as useAuth } from '@/auth/useAuth';
 
 // FEATURES (LAZY LOADED)
 const DashboardView = lazy(() =>
-  import('@/features/dashboard/DashboardView').then((module) => ({
+  import('@/features/dashboard/DashboardView').then((module: { DashboardView: React.ComponentType<any> }) => ({
     default: module.DashboardView,
   })),
 );
 const PatientsDirectory = lazy(() =>
-  import('@/features/patients/PatientsDirectory').then((module) => ({
+  import('@/features/patients/PatientsDirectory').then((module: { PatientsDirectory: React.ComponentType<any> }) => ({
     default: module.PatientsDirectory,
   })),
 );
@@ -28,7 +28,7 @@ const PatientDetail = lazy(() =>
   import('./features/patients/PatientDetail').then((module) => ({ default: module.PatientDetail })),
 );
 const SessionsManager = lazy(() =>
-  import('./features/sessions/SessionsManager').then((module) => ({
+  import('./features/sessions/SessionsManager').then((module: { SessionsManager: React.ComponentType<any> }) => ({
     default: module.SessionsManager,
   })),
 );
@@ -59,7 +59,7 @@ const ReportsView = lazy(() =>
   })),
 );
 const BillingView = lazy(() =>
-  import('./features/billing/BillingView').then((module) => ({
+  import('./features/billing/BillingView').then((module: { BillingView: React.ComponentType<any> }) => ({
     default: module.BillingView,
   })),
 );
@@ -166,7 +166,7 @@ function App() {
     }
   }, [user]);
 
-  const handleSaveGroupSession = async (data: any) => {
+  const handleSaveGroupSession = async (data: GroupSession) => {
 
     // 1. Optimistic Update (Visible immediately in Group Views)
     setGroupSessions((prev) => [...prev, data]);
@@ -182,14 +182,14 @@ function App() {
 
       // B. FAN-OUT: Sync to Individual Patient Histories (Billing & Personal Logs)
       if (data.participants && Array.isArray(data.participants)) {
-        const linkedParticipants = data.participants.filter((p: any) => p.id); // Only those with IDs
+        const linkedParticipants = data.participants.filter((p) => p.id); // Only those with IDs
 
         if (linkedParticipants.length > 0) {
 
 
           // We iterate and create individual sessions
           // Ideally this should be a Batch, but for now concurrent promises is fine for Beta.
-          const syncPromises = linkedParticipants.map(async (p: any) => {
+          const syncPromises = linkedParticipants.map(async (p) => {
             const individualSessionPayload = {
               date: data.date,
               id: `GS-${data.id}-${p.id}`,
@@ -197,7 +197,7 @@ function App() {
               groupName: data.groupName,
               groupId: data.id,
               notes: `Sesión Grupal: ${data.groupName}. ${data.observations || ''}`,
-              price: Math.round(Number(data.price) / (data.participants.length || 1)),
+              price: Math.round(Number(data.price) / (data.participants?.length || 1)),
               paid: false,
               billable: true,
               isAbsent: false,
@@ -459,8 +459,8 @@ function App() {
                     <PatientsDirectory
                       patients={patients}
                       groupSessions={groupSessions} // NEW
-                      onSelectPatient={(p) => navigate(`/patients/${p.id}`)}
-                      onSelectGroup={(gName) => navigate(`/groups/${encodeURIComponent(gName)}`)} // NEW
+                      onSelectPatient={(p: Patient) => navigate(`/patients/${p.id}`)}
+                      onSelectGroup={(gName: string) => navigate(`/groups/${encodeURIComponent(gName)}`)} // NEW
                       onNewPatient={handleNewPatient}
                       initialFilter="all"
                     />
@@ -474,10 +474,10 @@ function App() {
                   <PatientsDirectory
                     patients={patients}
                     groupSessions={groupSessions} // NEW
-                    onSelectPatient={(p) => navigate(`/patients/${p.id}`)}
+                    onSelectPatient={(p: Patient) => navigate(`/patients/${p.id}`)}
                     onNewPatient={handleNewPatient}
                     initialFilter="adults"
-                    onSelectGroup={(gName) => navigate(`/groups/${encodeURIComponent(gName)}`)}
+                    onSelectGroup={(gName: string) => navigate(`/groups/${encodeURIComponent(gName)}`)}
                   />
                 }
               />
@@ -487,10 +487,10 @@ function App() {
                   <PatientsDirectory
                     patients={patients}
                     groupSessions={groupSessions}
-                    onSelectPatient={(p) => navigate(`/patients/${p.id}`)}
+                    onSelectPatient={(p: Patient) => navigate(`/patients/${p.id}`)}
                     onNewPatient={handleNewPatient}
                     initialFilter="kids"
-                    onSelectGroup={(gName) => navigate(`/groups/${encodeURIComponent(gName)}`)}
+                    onSelectGroup={(gName: string) => navigate(`/groups/${encodeURIComponent(gName)}`)}
                   />
                 }
               />

@@ -27,9 +27,10 @@ export const ReportRepository = {
         try {
             const snapshot = await getDocs(q);
             return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as ClinicalReport));
-        } catch (error: any) {
+        } catch (error: unknown) {
             // Graceful fallback if index is missing
-            if (error.code === 'failed-precondition') {
+            const err = error as { code?: string };
+            if (err.code === 'failed-precondition') {
                 console.warn("Titanium Warning: Missing Collection Group Index for 'reports'.");
                 throw new Error("Requiere Índice de Firestore (Collection Group: reports).");
             }

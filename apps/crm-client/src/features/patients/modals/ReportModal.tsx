@@ -7,7 +7,7 @@ import logoCircular from '../../../assets/logo-circular.png';
 import { useActivityLog } from '../../../hooks/useActivityLog';
 import { PATHOLOGY_MAP } from '../../../lib/patientUtils';
 import { EVALUATION_AREAS_CHILD, EVALUATION_AREAS_ADULT } from '../../../lib/constants';
-import { useReactToPrint } from 'react-to-print';
+import { useReactToPrint, UseReactToPrintOptions } from 'react-to-print';
 
 interface ReportModalProps {
   isOpen: boolean;
@@ -29,13 +29,12 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   // PRINT REF
   const reportRef = useRef<HTMLDivElement>(null);
 
-  // @ts-ignore
   const handlePrint = useReactToPrint({
     content: () => reportRef.current,
     documentTitle: `Informe_Clinico_${patient.name.replace(/\s+/g, '_')}`,
     removeAfterPrint: true,
     onAfterPrint: () => logActivity('report', `Informe clínico generado para: ${patient.name}`),
-  } as any);
+  } as UseReactToPrintOptions);
 
 
   // Smart Template Logic (Refactored: Robust & Instant)

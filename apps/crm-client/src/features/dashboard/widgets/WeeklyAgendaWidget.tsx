@@ -23,9 +23,7 @@ export const WeeklyAgendaWidget: React.FC<WeeklyAgendaWidgetProps> = ({
     // 1. Get current week days
     const today = new Date();
     const startOfCurrentWeek = startOfWeek(today, { weekStartsOn: 1 }); // Monday start like a civilized person
-    const weekDays = useMemo(() => {
-        return Array.from({ length: 7 }).map((_, i) => addDays(startOfCurrentWeek, i));
-    }, [today]);
+    const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(startOfCurrentWeek, i));
 
     // Track drag state for visual feedback
     const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -55,7 +53,7 @@ export const WeeklyAgendaWidget: React.FC<WeeklyAgendaWidgetProps> = ({
 
     // --- DND HANDLERS ---
 
-    const handleDragStart = (e: React.DragEvent, session: any) => {
+    const handleDragStart = (e: React.DragEvent, session: ExtendedSession) => {
         e.dataTransfer.setData('application/json', JSON.stringify({
             sessionId: session.id,
             patientId: session.patientId,

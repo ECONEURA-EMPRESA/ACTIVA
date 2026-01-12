@@ -55,9 +55,9 @@ export const InvoiceRepository = {
         await setDoc(docRef, data, { merge: true });
     },
 
-    async updateStatus(id: string, status: Invoice['status'], paidAt?: string, method?: string): Promise<void> {
+    async updateStatus(id: string, status: Invoice['status'], paidAt?: string, method?: Invoice['paymentMethod']): Promise<void> {
         const docRef = doc(db, COLLECTION, id);
-        const updates: any = { status, updatedAt: new Date().toISOString() };
+        const updates: Partial<Invoice> & { updatedAt: string } = { status, updatedAt: new Date().toISOString() };
         if (paidAt) updates.paidAt = paidAt;
         if (method) updates.paymentMethod = method;
 
@@ -86,7 +86,7 @@ export const InvoiceRepository = {
                 return `INV-${currentYear}-${nextSeq.toString().padStart(3, '0')}`;
             }
             return `INV-${new Date().getFullYear()}-001`;
-        } catch (e) {
+        } catch {
             return `INV-${new Date().getFullYear()}-${Date.now().toString().slice(-3)}`; // Fallback
         }
     }

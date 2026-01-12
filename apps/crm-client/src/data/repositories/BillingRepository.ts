@@ -15,6 +15,7 @@ export interface BillableSessionRef {
     patientId?: string; // Required for individual
     price: number;
     date: string;
+    paid?: boolean;
 }
 
 export const BillingRepository = {
@@ -88,7 +89,7 @@ export const BillingRepository = {
             return snapshot.docs
                 .map(d => {
                     const data = d.data();
-                    return { ...data, id: d.id } as any;
+                    return { ...data, id: d.id } as BillableSessionRef;
                 })
                 .filter(d => !d.paid) // Memory filter to avoid composite index requirement immediately
                 .map(d => ({

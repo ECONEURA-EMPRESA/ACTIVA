@@ -23,7 +23,7 @@ export interface DailyNote {
     content: string; // Legacy
     items: NoteItem[]; // New
     color?: string;
-    updatedAt?: any;
+    updatedAt?: unknown;
 }
 
 export const NoteRepository = {

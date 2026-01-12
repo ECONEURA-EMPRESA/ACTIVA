@@ -10,7 +10,7 @@ import { PostItWidget } from './widgets/PostItWidget';
 
 interface DashboardViewProps {
   patients: Patient[];
-  onViewChange: (view: string, data?: any) => void;
+  onViewChange: (view: string, data?: unknown) => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({ patients, onViewChange }) => {
