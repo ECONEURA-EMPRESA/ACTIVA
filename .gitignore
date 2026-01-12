@@ -49,3 +49,4 @@ firebase-debug.log
 dist
 .DS_Store
 *.log
+node_modules
