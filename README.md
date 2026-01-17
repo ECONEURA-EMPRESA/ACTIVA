@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/assets/logo.png" alt="Activa Logo" width="180" />
+  <img src="docs/assets/logo.png" alt="Activa Logo" width="180" style="border-radius: 50%" />
   <h1>MÉTODO ACTIVA™</h1>
   <p><strong>SOVEREIGN CLINICAL OPERATING SYSTEM</strong></p>
 
@@ -36,21 +36,27 @@
 ### 1. THE COMMAND CENTER (CRM)
 Real-time clinical dashboard.
 
-![CRM Dashboard](docs/showcase/dashboard_preview.jpg)
+<div align="center">
+  <img src="docs/showcase/dashboard_preview.jpg" alt="CRM Dashboard" />
+</div>
 
 <br/>
 
-### 2. THE PATIENT COMPANION (Mobile App)
-Native-grade PWA for continuous therapy.
+### 2. PATIENT COMPANION (Mobile PWA)
+Native-grade performance on iOS & Android. Offline-first architecture for continuity of care.
 
-<img src="docs/showcase/mobile_preview_dark.jpg" width="400" alt="Mobile App" />
+<div align="center">
+  <img src="docs/showcase/mobile_preview_dark.jpg" width="400" alt="Mobile App" style="border-radius: 24px;" />
+</div>
 
 <br/>
 
 ### 3. THE CORPORATE PORTAL
 High-conversion patient acquisition.
 
-![Web Landing](docs/showcase/web_landing.jpg)
+<div align="center">
+  <img src="docs/showcase/web_landing.jpg" alt="Web Landing" />
+</div>
 
 ---
 
