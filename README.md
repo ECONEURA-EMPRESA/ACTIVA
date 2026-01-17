@@ -14,7 +14,6 @@
     <img src="https://img.shields.io/badge/STATUS-PRODUCTION%20GOLD-10b981?style=for-the-badge&logo=google-cloud&logoColor=white" alt="Status" />
     <img src="https://img.shields.io/badge/SECURITY-FORENSIC%20AUDIT%20PASSED-b91c1c?style=for-the-badge&logo=fortinet&logoColor=white" alt="Security" />
     <img src="https://img.shields.io/badge/CODEBASE-177k%2B%20LINES-blue?style=for-the-badge&logo=typescript&logoColor=white" alt="Size" />
-    <img src="https://img.shields.io/badge/LICENSE-PROPRIETARY%20IP-purple?style=for-the-badge&logo=law&logoColor=white" alt="License" />
   </p>
 
   <br />
@@ -24,12 +23,37 @@
       &nbsp;•&nbsp;
       <a href="#-technical-monograph">TECHNICAL MONOGRAPH</a>
       &nbsp;•&nbsp;
-      <a href="#-forensic-audit-report">AUDIT REPORT</a>
-      &nbsp;•&nbsp;
       <a href="#-sovereign-architecture">ARCHITECTURE</a>
     </strong>
   </p>
   <br />
+</div>
+
+---
+
+## 📸 PRODUCT SHOWCASE
+
+### 🖥️ The Clinical OS (Web & Tablet)
+*Engineered for high-velocity clinical operations. Real-time patient tracking and financial analytics.*
+<div align="center">
+  <img src="docs/showcase/dashboard_preview.jpg" width="100%" style="border-radius: 12px; border: 1px solid #334155; box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.5);" />
+</div>
+
+<br/>
+
+### 📱 Patient Companion (Mobile PWA)
+*Native-grade performance on iOS & Android. Offline-first architecture for continuity of care.*
+<div align="center" style="display: flex; gap: 20px; justify-content: center;">
+  <img src="docs/showcase/mobile_preview_dark.jpg" width="45%" style="border-radius: 20px; border: 1px solid #334155;" />
+  <img src="docs/showcase/mobile_preview_light.jpg" width="45%" style="border-radius: 20px; border: 1px solid #334155;" />
+</div>
+
+<br/>
+
+### 🌐 Corporate Portal
+*Modern patient acquisition interface with high-conversion funnel.*
+<div align="center">
+  <img src="docs/showcase/web_landing.jpg" width="100%" style="border-radius: 12px; border: 1px solid #334155;" />
 </div>
 
 ---
@@ -44,7 +68,7 @@ It is engineered to handle the specific complexities of **Neurorehabilitation** 
 
 ---
 
-## �️ Forensic Audit Report (Jan 2026)
+## 🛡️ Forensic Audit Report (Jan 2026)
 
 Before the "Golden Release", this repository underwent a rigorous **Forensic Code Audit (Standard SOP-SEC-2026)**.
 
