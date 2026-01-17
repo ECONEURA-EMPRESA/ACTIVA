@@ -1,0 +1,12 @@
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\dashboard\components\DailyNoteList.tsx:::16
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\dashboard\widgets\DailyAgendaWidget.tsx:::218,226,280
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\dashboard\widgets\SystemActivity.tsx:::61
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\components\FormulationTab.tsx:::9,22
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\components\PatientTabs.tsx:::22
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\modals\ClinicalGuideModal.tsx:::42
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\modals\CognitiveModal.tsx:::44,187
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\modals\ReportModal.tsx:::105
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\patients\modals\SafetyModal.tsx:::138
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\reports\ReportsView.tsx:::42
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\features\settings\SettingsView.tsx:::27,301
+C:\Users\Usuario\.gemini\antigravity\scratch\monorepo-crm-activa\apps\crm-client\src\lib\dateUtils.ts:::43

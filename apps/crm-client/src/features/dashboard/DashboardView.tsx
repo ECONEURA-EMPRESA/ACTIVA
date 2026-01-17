@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Shield, PlusCircle, Search } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
-import { Patient } from '../../lib/types';
+import { Patient, NavigationPayload } from '../../lib/types';
 import { useAuth } from '../../context/AuthContext';
 import { SystemActivity } from './widgets/SystemActivity';
 import { useActivityLog } from '../../hooks/useActivityLog';
@@ -10,13 +10,26 @@ import { PostItWidget } from './widgets/PostItWidget';
 
 interface DashboardViewProps {
   patients: Patient[];
-  onViewChange: (view: string, data?: unknown) => void;
+  onViewChange: (view: string, data?: NavigationPayload) => void;
 }
+
+import { PullToRefresh } from '../../components/layout/PullToRefresh';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '../../api/queryKeys';
 
 export const DashboardView: React.FC<DashboardViewProps> = ({ patients, onViewChange }) => {
   const { role, login } = useAuth();
   const { latestActivities, isLoading: isLogLoading } = useActivityLog();
   const [searchQuery, setSearchQuery] = useState('');
+  const queryClient = useQueryClient();
+
+  // TITANIUM REFRESH LOGIC
+  const handleRefresh = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.patients.all }),
+      // Add other keys if necessary
+    ]);
+  };
 
   // Lifted Date State for Coordination
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -72,38 +85,40 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ patients, onViewCh
       </header>
 
       {/* RADICAL LAYOUT: FULL WIDTH AGENDA */}
-      {/* RADICAL LAYOUT: DAILY AGENDA + ACTIVITY + NOTES */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 overflow-hidden">
+      <PullToRefresh onRefresh={handleRefresh}>
+        {/* RADICAL LAYOUT: DAILY AGENDA + ACTIVITY + NOTES */}
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 overflow-hidden">
 
-        {/* LEFT: DAILY VISUAL AGENDA (2 COLS) */}
-        <div className="xl:col-span-2 h-full overflow-hidden">
-          <DailyAgendaWidget
-            sessions={allSessions}
-            patients={patients}
-            onSessionClick={(_, p) => {
-              if (p) onNavigate('patient-detail', p);
-            }}
-            selectedDate={selectedDate}
-            onDateChange={setSelectedDate}
-            onNewAppointment={() => onViewChange('patients')}
-          />
-        </div>
-
-        {/* RIGHT: ACTIVITY LOG + DAILY NOTES (1 COL STACKED) */}
-        <div className="h-full flex flex-col gap-6 overflow-hidden">
-
-          {/* Daily Post-it Note (TOP PRIORITY) */}
-          <div className="shrink-0 h-[300px] border border-transparent">
-            <PostItWidget date={selectedDate} />
+          {/* LEFT: DAILY VISUAL AGENDA (2 COLS) */}
+          <div className="xl:col-span-2 h-full overflow-hidden">
+            <DailyAgendaWidget
+              sessions={allSessions}
+              patients={patients}
+              onSessionClick={(_, p) => {
+                if (p) onNavigate('patient-detail', p);
+              }}
+              selectedDate={selectedDate}
+              onDateChange={setSelectedDate}
+              onNewAppointment={() => onViewChange('patients')}
+            />
           </div>
 
-          {/* Activity Log (SECONDARY) */}
-          <div className="flex-1 min-h-[300px] overflow-hidden">
-            <SystemActivity activities={latestActivities} isLoading={isLogLoading} />
-          </div>
+          {/* RIGHT: ACTIVITY LOG + DAILY NOTES (1 COL STACKED) */}
+          <div className="h-full flex flex-col gap-6 overflow-hidden">
 
+            {/* Daily Post-it Note (TOP PRIORITY) */}
+            <div className="shrink-0 h-[300px] border border-transparent">
+              <PostItWidget date={selectedDate} />
+            </div>
+
+            {/* Activity Log (SECONDARY) */}
+            <div className="flex-1 min-h-[300px] overflow-hidden">
+              <SystemActivity activities={latestActivities} isLoading={isLogLoading} />
+            </div>
+
+          </div>
         </div>
-      </div>
-    </div >
+      </PullToRefresh>
+    </div>
   );
 };

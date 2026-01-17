@@ -45,7 +45,7 @@ export const GroupSessionModal: React.FC<GroupSessionModalProps> = ({
 
   useEffect(() => {
     if (initialGroupName && !groupName) setGroupName(initialGroupName);
-  }, [initialGroupName]);
+  }, [initialGroupName, groupName]);
 
   const handleAddParticipant = () => {
     // 1. Try add Real Patient
@@ -409,7 +409,7 @@ export const GroupSessionModal: React.FC<GroupSessionModalProps> = ({
                         <button
                           key={level}
                           type="button"
-                          onClick={() => setEnergyLevel(level as any)}
+                          onClick={() => setEnergyLevel(level as 'High' | 'Medium' | 'Low')}
                           className={`px-3 py-1 text-xs font-bold rounded-lg border transition-all ${energyLevel === level
                             ? (level === 'High' ? 'bg-amber-100 border-amber-300 text-amber-700' : level === 'Medium' ? 'bg-slate-100 border-slate-300 text-slate-700' : 'bg-slate-50 border-slate-200 text-slate-400')
                             : 'bg-white border-slate-100 text-slate-400 hover:border-slate-300'

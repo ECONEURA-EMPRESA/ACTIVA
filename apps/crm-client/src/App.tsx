@@ -1,6 +1,6 @@
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState, Suspense } from 'react';
 // Loader2 removed
-import { Routes, Route, Navigate, useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 // LAYOUT & THEME
 
@@ -9,60 +9,13 @@ import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 // AUTH
 import { AnimatePresence } from 'framer-motion'; // TITANIUM ANIMATION
-import { PageTransition } from './components/layout/PageTransition';
 import { LoginView } from '@/auth/LoginView';
 import { useFirebaseAuthState as useAuth } from '@/auth/useAuth';
 
-// FEATURES (LAZY LOADED)
-const DashboardView = lazy(() =>
-  import('@/features/dashboard/DashboardView').then((module: { DashboardView: React.ComponentType<any> }) => ({
-    default: module.DashboardView,
-  })),
-);
-const PatientsDirectory = lazy(() =>
-  import('@/features/patients/PatientsDirectory').then((module: { PatientsDirectory: React.ComponentType<any> }) => ({
-    default: module.PatientsDirectory,
-  })),
-);
-const PatientDetail = lazy(() =>
-  import('./features/patients/PatientDetail').then((module) => ({ default: module.PatientDetail })),
-);
-const SessionsManager = lazy(() =>
-  import('./features/sessions/SessionsManager').then((module: { SessionsManager: React.ComponentType<any> }) => ({
-    default: module.SessionsManager,
-  })),
-);
-const GroupSessionsHistory = lazy(() =>
-  import('./features/sessions/GroupSessionsHistory').then((module) => ({
-    default: module.GroupSessionsHistory,
-  })),
-);
-const CalendarView = lazy(() =>
-  import('./features/sessions/CalendarView').then((module) => ({ default: module.CalendarView })),
-);
-const SettingsView = lazy(() =>
-  import('./features/settings/SettingsView').then((module) => ({ default: module.SettingsView })),
-);
-const DocumentationCenter = lazy(() =>
-  import('./features/resources/DocumentationCenter').then((module) => ({
-    default: module.DocumentationCenter,
-  })),
-);
-const AuditView = lazy(() =>
-  import('./features/settings/AuditView').then((module) => ({
-    default: module.AuditView,
-  })),
-);
-const ReportsView = lazy(() =>
-  import('./features/reports/ReportsView').then((module) => ({
-    default: module.ReportsView,
-  })),
-);
-const BillingView = lazy(() =>
-  import('./features/billing/BillingView').then((module: { BillingView: React.ComponentType<any> }) => ({
-    default: module.BillingView,
-  })),
-);
+// ROUTES
+import { AppRoutes } from './routes/AppRoutes';
+
+// MODALS
 
 // MODALS
 import { QuickAppointmentModal } from './features/sessions/modals/QuickAppointmentModal';
@@ -70,19 +23,16 @@ import { CreateGroupModal } from './features/patients/modals/CreateGroupModal';
 import { GroupSessionModal } from './features/sessions/modals/GroupSessionModal';
 import { SessionRepository } from './data/repositories/SessionRepository';
 import { CommandMenu } from './components/ui/CommandMenu';
-import { GroupDetailView } from './features/patients/GroupDetailView';
-import { GroupsDirectory } from './features/patients/GroupsDirectory';
-
 // STORES
 import { useUIStore } from './stores/useUIStore';
 
 // API & TYPES
-import { Patient, GroupSession } from './lib/types';
+import { Patient, GroupSession, CalendarEvent, NavigationPayload, Session } from './lib/types';
 
 // Loading Spinner for Code Splitting Suspense
 import { OfflineIndicator } from './components/ui/OfflineIndicator';
-import { useRegisterSW } from 'virtual:pwa-register/react';
 import { PremiumSplash } from './components/ui/PremiumSplash';
+import { ReloadPrompt } from './components/ui/ReloadPrompt';
 
 const PageLoader = () => <PremiumSplash />;
 
@@ -134,18 +84,7 @@ function App() {
   const createPatient = useCreatePatient(demoMode);
   const updatePatient = useUpdatePatient(demoMode);
 
-  // TITANIUM UPDATE LOGIC
-  const {
-    needRefresh: [needRefresh],
-    updateServiceWorker,
-  } = useRegisterSW({
-    onRegistered(r) {
-      if (import.meta.env.DEV) console.log('SW Registered: ' + r);
-    },
-    onRegisterError(error) {
-      if (import.meta.env.DEV) console.log('SW Registration Failed', error);
-    },
-  });
+
 
   // UI STORE (ZUSTAND - TITANIUM ARCHITECTURE)
   const quickAppointment = useUIStore((state) => state.quickAppointment);
@@ -236,55 +175,78 @@ function App() {
   const currentView = getCurrentViewID(location.pathname);
 
   // ROUTING HANDLER (ADAPTER FOR LEGACY COMPONENTS)
-  const handleNavigate = (viewId: string, data?: { id?: string | number } | string) => {
-    switch (viewId) {
-      case 'dashboard':
-        navigate('/dashboard');
-        break;
-      case 'patients':
-        navigate('/patients');
-        break;
-      case 'patients-adults':
-        navigate('/patients/adults');
-        break;
-      case 'patients-kids':
-        navigate('/patients/kids');
-        break;
-      case 'sessions':
-        navigate('/sessions');
-        break;
-      case 'groups':
-        navigate('/groups');
-        break;
-      case 'group-sessions':
-        navigate('/sessions/group');
-        break;
-      case 'group-sessions-history':
-        navigate('/sessions/group-history');
-        break;
-      case 'calendar':
-        navigate('/calendar');
-        break;
-      case 'settings':
-        navigate('/settings');
-        break;
-      case 'resources':
-        navigate('/resources');
-        break;
-      case 'patient-detail':
-        if (typeof data !== 'string' && data?.id) navigate(`/patients/${data.id}`);
-        else if (typeof data === 'string')
-          navigate(`/patients/${data}`); // Handle ID passed directly
-        else navigate('/patients');
-        break;
-      case 'reports':
-        navigate('/reports');
-        break;
-      case 'billing':
-        navigate('/billing');
-        break;
-      default:
-        navigate('/dashboard');
+  const handleNavigate = (viewId: string, data?: NavigationPayload) => {
+    // State driven by URL
+
+    // TITANIUM: Native View Transitions
+    if (!document.startViewTransition) {
+      processNavigation();
+      return;
+    }
+
+    document.startViewTransition(() => {
+      processNavigation();
+    });
+
+    function processNavigation() {
+      switch (viewId) {
+        case 'dashboard':
+          navigate('/dashboard');
+          break;
+        case 'patients':
+          // Check if data has mode 'new' 
+          if (data && typeof data === 'object' && 'mode' in data && data.mode === 'new') {
+            // Logic to open new patient modal handled by route param ?action=new if desired, 
+            // but for now likely handled by internal state or query param.
+            // Using query param is cleaner:
+            navigate('/patients?action=new');
+          } else {
+            navigate('/patients');
+          }
+          break;
+        case 'patients-adults':
+          navigate('/patients/adults');
+          break;
+        case 'patients-kids':
+          navigate('/patients/kids');
+          break;
+        case 'sessions':
+          navigate('/sessions');
+          break;
+        case 'groups':
+          navigate('/groups');
+          break;
+        case 'group-sessions':
+          navigate('/sessions/group');
+          break;
+        case 'group-sessions-history':
+          navigate('/sessions/group-history');
+          break;
+        case 'calendar':
+          navigate('/calendar');
+          break;
+        case 'settings':
+          navigate('/settings');
+          break;
+        case 'resources':
+          navigate('/resources');
+          break;
+        case 'patient-detail':
+          if (typeof data === 'string' || typeof data === 'number') {
+            navigate(`/patients/${data}`);
+          } else if (data && typeof data === 'object' && 'id' in data) {
+            navigate(`/patients/${data.id}`);
+          }
+          break;
+        case 'reports':
+          navigate('/reports');
+          break;
+        case 'billing':
+          navigate('/billing');
+          break;
+        default:
+          navigate('/dashboard');
+      }
     }
   };
 
@@ -365,7 +327,7 @@ function App() {
         const updatedSessions = [{ id: Date.now().toString(), ...newSessionBase }, ...(patient.sessions || [])];
         const updatedPatient = { ...patient, sessions: updatedSessions } as Patient;
 
-        SessionRepository.create(String(patient.id), newSessionBase as any)
+        SessionRepository.create(String(patient.id), newSessionBase as unknown as Session)
           .then(() => { })
           .catch(err => console.error("Titanium Sync Error:", err));
 
@@ -379,7 +341,7 @@ function App() {
 
 
 
-  const events = React.useMemo(() => {
+  const events: CalendarEvent[] = React.useMemo(() => {
     const individualEvents = patients.flatMap((p) =>
       (p.sessions || []).map((s) => ({
         date: s.date,
@@ -423,163 +385,20 @@ function App() {
         events={events}
       >
         <Suspense fallback={<PageLoader />}>
-          {/* UPDATE TOAST (TITANIUM SAFE MODE) */}
-          {needRefresh && (
-            <div className="fixed bottom-4 right-4 z-[100] bg-slate-900 text-white p-4 rounded-xl shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom duration-500 border border-white/10">
-              <div className="flex flex-col">
-                <span className="font-bold text-sm">Actualización Disponible</span>
-                <span className="text-xs text-slate-400">Nueva versión lista.</span>
-              </div>
-              <button
-                onClick={() => updateServiceWorker(true)}
-                className="bg-pink-600 hover:bg-pink-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"
-                title="Actualizar ahora"
-              >
-                ACTUALIZAR
-              </button>
-            </div>
-          )}
+          <ReloadPrompt />
+
 
           <AnimatePresence mode="wait">
-            <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <PageTransition>
-                    <DashboardView patients={patients} onViewChange={handleNavigate} />
-                  </PageTransition>
-                }
-              />
-
-              <Route
-                path="/patients"
-                element={
-                  <PageTransition>
-                    <PatientsDirectory
-                      patients={patients}
-                      groupSessions={groupSessions} // NEW
-                      onSelectPatient={(p: Patient) => navigate(`/patients/${p.id}`)}
-                      onSelectGroup={(gName: string) => navigate(`/groups/${encodeURIComponent(gName)}`)} // NEW
-                      onNewPatient={handleNewPatient}
-                      initialFilter="all"
-                    />
-                  </PageTransition>
-                }
-              />
-              {/* ... other filters ... */}
-              <Route
-                path="/patients/adults"
-                element={
-                  <PatientsDirectory
-                    patients={patients}
-                    groupSessions={groupSessions} // NEW
-                    onSelectPatient={(p: Patient) => navigate(`/patients/${p.id}`)}
-                    onNewPatient={handleNewPatient}
-                    initialFilter="adults"
-                    onSelectGroup={(gName: string) => navigate(`/groups/${encodeURIComponent(gName)}`)}
-                  />
-                }
-              />
-              <Route
-                path="/patients/kids"
-                element={
-                  <PatientsDirectory
-                    patients={patients}
-                    groupSessions={groupSessions}
-                    onSelectPatient={(p: Patient) => navigate(`/patients/${p.id}`)}
-                    onNewPatient={handleNewPatient}
-                    initialFilter="kids"
-                    onSelectGroup={(gName: string) => navigate(`/groups/${encodeURIComponent(gName)}`)}
-                  />
-                }
-              />
-
-              <Route
-                path="/patients/:id"
-                element={
-                  <PageTransition>
-                    <PatientDetailWrapper
-                      patients={patients}
-                      onBack={() => navigate('/patients')}
-                      onUpdate={handleUpdatePatient}
-                    />
-                  </PageTransition>
-                }
-              />
-              {/* NEW GROUP DETAIL ROUTE */}
-              <Route
-                path="/groups/:groupName"
-                element={
-                  <GroupDetailView
-                    groupSessions={groupSessions}
-                    onBack={() => navigate('/patients')}
-                  />
-                }
-              />
-
-              <Route
-                path="/groups"
-                element={
-                  <GroupsDirectory
-                    groupSessions={groupSessions}
-                    onSelectGroup={(gName) => navigate(`/groups/${encodeURIComponent(gName)}`)}
-                    onNewGroup={() => setIsCreateGroupOpen(true)}
-                  />
-                }
-              />
-              <Route
-                path="/sessions"
-                element={
-                  <SessionsManager
-                    patients={patients}
-                    onUpdatePatient={handleUpdatePatient}
-                    filterMode="individual"
-                  />
-                }
-              />
-              <Route
-                path="/sessions/group"
-                element={
-                  <SessionsManager
-                    patients={patients}
-                    groupSessions={groupSessions}
-                    onUpdatePatient={handleUpdatePatient}
-                    filterMode="group"
-                  />
-                }
-              />
-              <Route
-                path="/sessions/group-history"
-                element={<GroupSessionsHistory sessions={groupSessions} />}
-              />
-
-              <Route
-                path="/calendar"
-                element={
-                  <PageTransition>
-                    <CalendarView
-                      patients={patients}
-                      groupSessions={groupSessions}
-                      onNavigate={handleNavigate}
-                      onOpenGroupModal={(mode, data) => groupSession.open(data ? undefined : undefined, mode, data)}
-                      onOpenSessionModal={() => { }}
-                      onOpenQuickAppointment={(mode) => quickAppointment.open(mode)}
-                    />
-                  </PageTransition>
-                }
-              />
-
-              <Route path="/settings" element={<SettingsView />} />
-              <Route path="/resources" element={<DocumentationCenter />} />
-              <Route path="/reports" element={<ReportsView />} />
-              <Route path="/audit" element={<AuditView />} />
-              <Route path="/billing" element={<BillingView />} />
-
-              {/* CATCH-ALL & LEGACY ROUTES */}
-              <Route path="/auth/login" element={<Navigate to="/dashboard" replace />} />
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </Routes>
+            <AppRoutes
+              patients={patients}
+              groupSessions={groupSessions}
+              onNavigate={handleNavigate}
+              onUpdatePatient={handleUpdatePatient}
+              onNewPatient={handleNewPatient}
+              onNewGroup={() => setIsCreateGroupOpen(true)}
+              onOpenGroupModal={(mode, data) => groupSession.open(data ? undefined : undefined, mode, data)}
+              onOpenQuickAppointment={(mode) => quickAppointment.open(mode)}
+            />
           </AnimatePresence>
         </Suspense>
       </AppLayout>
@@ -620,23 +439,6 @@ function App() {
   );
 }
 
-interface PatientDetailWrapperProps {
-  patients: Patient[];
-  onBack: () => void;
-  onUpdate: (updated: Patient) => void;
-}
-
-const PatientDetailWrapper: React.FC<PatientDetailWrapperProps> = ({ patients, onBack, onUpdate }) => {
-  const { id } = useParams();
-  const patient = patients.find((p) => String(p.id) === id);
-  if (!patient) return <div className="text-center p-10">Paciente no encontrado</div>;
-  return (
-    <PatientDetail
-      patient={patient}
-      onBack={onBack}
-      onUpdate={onUpdate}
-    />
-  );
-};
-
 export default App;
+
+

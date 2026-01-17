@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -9,6 +10,12 @@ export default defineConfig({
     alias: {
       '@': '/src',
     },
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.ts',
+    include: ['**/*.test.{ts,tsx}'],
   },
   plugins: [
     react(),
@@ -43,18 +50,32 @@ export default defineConfig({
         ],
         screenshots: [
           {
-            src: "screenshot-mobile-1.png",
+            src: "screenshot-clinic-1.jpg",
             sizes: "1290x2796",
-            type: "image/png",
+            type: "image/jpeg",
             form_factor: "narrow",
             label: "Gestión de Pacientes"
           },
           {
-            src: "screenshot-desktop-1.png",
-            sizes: "1920x1080",
-            type: "image/png",
-            form_factor: "wide",
-            label: "Dashboard Clínico"
+            src: "screenshot-clinic-2.jpg",
+            sizes: "1290x2796",
+            type: "image/jpeg",
+            form_factor: "narrow",
+            label: "Agenda Global"
+          },
+          {
+            src: "screenshot-clinic-3.jpg",
+            sizes: "1290x2796",
+            type: "image/jpeg",
+            form_factor: "narrow",
+            label: "Facturación"
+          },
+          {
+            src: "screenshot-clinic-4.jpg",
+            sizes: "1290x2796",
+            type: "image/jpeg",
+            form_factor: "narrow",
+            label: "Dashboard"
           }
         ],
         shortcuts: [
@@ -71,39 +92,9 @@ export default defineConfig({
         ]
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        navigateFallbackDenylist: [/^\/__\/auth/],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // <== 365 days
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'gstatic-fonts-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // <== 365 days
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              },
-            }
-          }
-        ]
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
       }
     }),
   ],
@@ -120,3 +111,4 @@ export default defineConfig({
     }
   },
 });
+

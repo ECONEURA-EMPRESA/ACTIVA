@@ -96,7 +96,12 @@ export const WeeklyAgendaWidget: React.FC<WeeklyAgendaWidgetProps> = ({
                         <Users className="text-indigo-600" strokeWidth={1.5} /> Agenda Semanal
                     </h3>
                     <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mt-0.5">
-                        {format(startOfCurrentWeek, 'd MMM', { locale: es })} - {format(weekDays[6], 'd MMM', { locale: es })}
+                        {(() => {
+                            // Safe render logic
+                            const d1 = !isNaN(startOfCurrentWeek.getTime()) ? startOfCurrentWeek : new Date();
+                            const d2 = !isNaN(weekDays[6].getTime()) ? weekDays[6] : new Date();
+                            return <>{format(d1, 'd MMM', { locale: es })} - {format(d2, 'd MMM', { locale: es })}</>;
+                        })()}
                     </p>
                 </div>
                 <div className="text-[10px] text-slate-400 font-medium px-2 py-1 bg-slate-50 rounded-lg border border-slate-100">
@@ -128,10 +133,10 @@ export const WeeklyAgendaWidget: React.FC<WeeklyAgendaWidgetProps> = ({
                             >
                                 <div className="text-center pb-2 border-b border-slate-100/50 pointer-events-none select-none">
                                     <p className={`text-[10px] font-bold uppercase tracking-wider ${isToday ? 'text-indigo-600' : 'text-slate-400'}`}>
-                                        {format(day, 'EEE', { locale: es })}
+                                        {(() => { try { return format(day, 'EEE', { locale: es }); } catch { return '---'; } })()}
                                     </p>
                                     <p className={`text-xl font-black ${isToday ? 'text-indigo-700' : 'text-slate-700'}`}>
-                                        {format(day, 'd')}
+                                        {(() => { try { return format(day, 'd'); } catch { return '-'; } })()}
                                     </p>
                                 </div>
 

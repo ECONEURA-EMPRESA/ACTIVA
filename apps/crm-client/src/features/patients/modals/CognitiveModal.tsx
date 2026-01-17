@@ -12,7 +12,7 @@ import {
     CHILD_LEVELS,
 } from '../../../lib/constants';
 // import { EVALUATION_AREAS } from '../../../lib/clinicalUtils';
-// import { CognitiveScores } from '../../../lib/types';
+import { CognitiveScores } from '../../../lib/types';
 // import { CognitiveRadar } from '../components/CustomerRadar';
 import { formatDateForDisplay } from '../../../lib/patientUtils';
 import { formatDateForInput } from '../../../lib/utils';
@@ -39,10 +39,18 @@ const GDSSelector = ({ value, onChange }: { value: string; onChange: (v: string)
     </div>
 );
 
+// Extended interface for frontend-specific fields
+interface ExtendedCognitiveScores extends CognitiveScores {
+    childProfile?: Record<string, Record<string, number>>;
+    childObs?: string;
+    functionalScores?: number[];
+    // Removed index signature to enforce strictness. Access via specific keys or casting if absolutely necessary but avoided.
+}
+
 interface CognitiveModalProps {
     onClose: () => void;
-    onSave: (data: any) => void;
-    initialData?: any;
+    onSave: (data: CognitiveScores) => void;
+    initialData?: ExtendedCognitiveScores;
     initialScores?: number[];
     isChild?: boolean;
     isGeriatric?: boolean; // NEW
@@ -69,7 +77,7 @@ export const CognitiveModal: React.FC<CognitiveModalProps> = ({
     // Adult States
     const [mocaDetails, setMocaDetails] = useState(initialData?.mocaDetails || {});
     const [mmseDetails, setMmseDetails] = useState(initialData?.mmseDetails || {});
-    const [gdsValue, setGdsValue] = useState(initialData?.gds || '');
+    const [gdsValue, setGdsValue] = useState(String(initialData?.gds || ''));
     const [functionalScores, setFunctionalScores] = useState<number[]>(
         initialScores || Array(EVALUATION_AREAS_ADULT.length).fill(0),
     );
@@ -80,8 +88,8 @@ export const CognitiveModal: React.FC<CognitiveModalProps> = ({
     );
     const [childObs, setChildObs] = useState(initialData?.childObs || '');
 
-    const mocaTotal = MOCA_SECTIONS.reduce((sum, s) => sum + parseInt(mocaDetails[s.id] || '0'), 0);
-    const mmseTotal = MMSE_SECTIONS.reduce((sum, s) => sum + parseInt(mmseDetails[s.id] || '0'), 0);
+    const mocaTotal = MOCA_SECTIONS.reduce((sum, s) => sum + parseInt(String(mocaDetails[s.id] || 0)), 0);
+    const mmseTotal = MMSE_SECTIONS.reduce((sum, s) => sum + parseInt(String(mmseDetails[s.id] || 0)), 0);
 
     // Updates
     const updateChildProfile = (domainId: string, item: string, value: number) => {
@@ -120,7 +128,7 @@ export const CognitiveModal: React.FC<CognitiveModalProps> = ({
             mmseDetails,
             childProfile,
             childObs,
-        });
+        } as unknown as CognitiveScores);
     };
 
     return (
@@ -176,7 +184,7 @@ export const CognitiveModal: React.FC<CognitiveModalProps> = ({
                         ].map((tab) => (
                             <button
                                 key={tab.id}
-                                onClick={() => setActiveTab(tab.id as any)}
+                                onClick={() => setActiveTab(tab.id as 'general' | 'moca' | 'mmse')}
                                 className={`flex-1 py-3 text-sm font-bold transition-all ${activeTab === tab.id ? 'bg-pink-50 text-pink-700 border-b-2 border-pink-500' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
                             >
                                 {tab.label}
@@ -267,7 +275,7 @@ export const CognitiveModal: React.FC<CognitiveModalProps> = ({
                                         {/* Import ADULT_DEV_DOMAINS inside the file imports first, but for now assuming it's available or I'll add import */}
                                         {ADULT_DEV_DOMAINS.map((domain) => {
                                             const DomainIcon = domain.icon;
-                                            const colorClasses: any = {
+                                            const colorClasses: Record<string, string> = {
                                                 blue: 'bg-blue-50 border-blue-100 text-blue-700',
                                                 emerald: 'bg-emerald-50 border-emerald-100 text-emerald-700',
                                                 purple: 'bg-purple-50 border-purple-100 text-purple-700',
@@ -474,7 +482,7 @@ export const CognitiveModal: React.FC<CognitiveModalProps> = ({
                                 ].map((domain) => {
                                     const DomainIcon = domain.icon;
                                     // Map color names to tailwind classes explicitly
-                                    const colorClasses: any = {
+                                    const colorClasses: Record<string, string> = {
                                         blue: 'bg-blue-50 border-blue-100 text-blue-700',
                                         emerald: 'bg-emerald-50 border-emerald-100 text-emerald-700',
                                         purple: 'bg-purple-50 border-purple-100 text-purple-700',

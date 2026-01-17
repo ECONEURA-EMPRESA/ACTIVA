@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, FileText, Printer, Wand2 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
-import { Patient } from '../../../lib/types';
+import { Patient, ClinicSettings } from '../../../lib/types';
 import logoCircular from '../../../assets/logo-circular.png';
 import { useActivityLog } from '../../../hooks/useActivityLog';
 import { PATHOLOGY_MAP } from '../../../lib/patientUtils';
@@ -13,7 +13,7 @@ interface ReportModalProps {
   isOpen: boolean;
   onClose: () => void;
   patient: Patient;
-  clinicSettings: any;
+  clinicSettings: ClinicSettings;
 }
 
 export const ReportModal: React.FC<ReportModalProps> = ({
@@ -39,7 +39,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
 
   // Smart Template Logic (Refactored: Robust & Instant)
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && patient && !reportText) {
       // Determine Type and Mapping
       const isChild = patient.age < 18;
       const labels = isChild ? EVALUATION_AREAS_CHILD : EVALUATION_AREAS_ADULT;
@@ -102,7 +102,7 @@ ${patient.sessions
         }
 
 Observaciones cualitativas:
-${synthesisText || ((patient.cognitiveScores as any)?.childObs || 'No se han registrado observaciones específicas.')}
+${synthesisText || ((patient.cognitiveScores as unknown as { childObs?: string })?.childObs || 'No se han registrado observaciones específicas.')}
 
 4. OBJETIVOS TRABAJADOS
 - Estimulación de la memoria autobiográfica a través de la reminiscencia musical.
@@ -114,10 +114,13 @@ Se observa una respuesta favorable a la intervención musical...[Espacio para qu
 
 Se recomienda la continuidad del tratamiento con una frecuencia de...`;
 
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setReportText(draft);
+
       setIsGenerating(false);
     }
-  }, [isOpen, patient]);
+  }, [isOpen, patient, reportText]);
+
 
   if (!isOpen) return null;
 

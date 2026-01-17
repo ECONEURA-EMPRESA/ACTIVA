@@ -6,6 +6,7 @@ import {
   persistentMultipleTabManager
 } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import { getPerformance } from 'firebase/performance'; // TITANIUM OBSERVABILITY
 
 // --- CONFIGURACIÓN FIREBASE ---
 // En entorno Vite usamos import.meta.env
@@ -19,11 +20,13 @@ const defaultConfig = {
 };
 
 // Allow manual override for debugging if needed
-const firebaseConfig = (window as any).TITANIUM_CONFIG_OVERRIDE || defaultConfig;
+// Use strict env variables typed in vite-env.d.ts
+const firebaseConfig = defaultConfig;
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const storage = getStorage(app); // EXPORT STORAGE
+export const perf = getPerformance(app); // EXPORT PERFORMANCE
 
 // Initialize Firestore with modern persistence settings
 export const db = initializeFirestore(app, {

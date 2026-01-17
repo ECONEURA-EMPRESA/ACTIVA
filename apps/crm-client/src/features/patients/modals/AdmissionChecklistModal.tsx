@@ -4,7 +4,7 @@ import { ADMISSION_CHECKS } from '../../../lib/constants';
 
 interface AdmissionChecklistModalProps {
   onClose: () => void;
-  onSave: (checks: any) => void;
+  onSave: (checks: { safety: string[]; prep: string[] }) => void;
   initialData?: { safety: string[]; prep: string[] };
   isChild?: boolean;
 }

@@ -12,6 +12,22 @@ import {
 // Re-exporting for local usage
 export type { Patient, Session, ClinicalFormulation, CognitiveScores, ClinicalSafetyProfile, MusicalIdentity, PsychosocialContext };
 
+// TITANIUM NAVIGATION
+export interface NavigationOptions {
+  mode?: 'new' | 'edit';
+  id?: string | number;
+  action?: string;
+}
+export type NavigationPayload = Patient | string | number | NavigationOptions | undefined;
+
+export interface CalendarEvent {
+  date: string;
+  time: string;
+  type: 'individual' | 'group';
+  title?: string;
+  patientName?: string;
+}
+
 // --- FRONTEND SPECIFIC TYPES ---
 
 export interface ClinicSettings {
@@ -143,4 +159,12 @@ export interface ClinicalReport {
   content: string;
   status: 'draft' | 'final';
   generatedBy: string;
+}
+
+export interface ClinicalGuide {
+  title: string;
+  objectives: string[];
+  techniques: string[];
+  precautions: string[];
+  focus: string;
 }

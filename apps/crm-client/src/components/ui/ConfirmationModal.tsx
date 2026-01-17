@@ -1,6 +1,7 @@
 import React from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 import { Button } from './Button';
+import { useHaptic } from '../../hooks/useHaptic';
 
 interface ConfirmationModalProps {
     isOpen: boolean;
@@ -25,6 +26,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     variant = 'danger',
     isLoading = false,
 }) => {
+    const haptics = useHaptic();
     if (!isOpen) return null;
 
     return (
@@ -46,12 +48,22 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                     </p>
 
                     <div className="flex gap-3 justify-end">
-                        <Button variant="secondary" onClick={onClose} disabled={isLoading}>
+                        <Button
+                            variant="secondary"
+                            onClick={() => {
+                                haptics.trigger('light');
+                                onClose();
+                            }}
+                            disabled={isLoading}
+                        >
                             {cancelLabel}
                         </Button>
                         <Button
                             variant={variant === 'danger' ? 'danger' : 'primary'}
-                            onClick={onConfirm}
+                            onClick={() => {
+                                haptics.trigger(variant === 'danger' ? 'heavy' : 'medium');
+                                onConfirm();
+                            }}
                             disabled={isLoading}
                         >
                             {isLoading ? 'Procesando...' : confirmLabel}

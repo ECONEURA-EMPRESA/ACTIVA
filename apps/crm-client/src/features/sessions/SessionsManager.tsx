@@ -3,19 +3,24 @@ import { Search } from 'lucide-react';
 // Button removed (unused)
 import { Card } from '../../components/ui/Card';
 import { Patient, Session, GroupSession } from '../../lib/types';
-import { SessionModal } from '../../features/patients/modals/SessionModal';
+import { SessionModal, ExtendedSession } from '../../features/patients/modals/SessionModal';
 import { GroupSessionModal } from './modals/GroupSessionModal';
 
 interface SessionsManagerProps {
   patients: Patient[];
-  groupSessions?: GroupSession[]; // NEW PROP
+  groupSessions?: GroupSession[];
   onUpdatePatient: (updatedPatient: Patient) => void;
   filterMode?: 'individual' | 'group';
 }
 
+// Strict Discriminated Union for Display
+type DisplaySession =
+  | (Session & { type: 'individual'; patientName: string; patient: Patient })
+  | (GroupSession & { type: 'group'; patientName: string });
+
 export const SessionsManager: React.FC<SessionsManagerProps> = ({
   patients,
-  groupSessions = [], // Default to empty
+  groupSessions = [],
   onUpdatePatient,
   filterMode = 'individual',
 }) => {
@@ -28,19 +33,23 @@ export const SessionsManager: React.FC<SessionsManagerProps> = ({
   } | null>(null);
 
   // PREPARE DATA SOURCE
-  const displaySessions = React.useMemo(() => {
+  const displaySessions: DisplaySession[] = React.useMemo(() => {
     if (filterMode === 'group') {
       // Use Master Group Sessions
       return groupSessions.map(g => ({
         ...g,
         type: 'group' as const,
-        patientName: g.groupName || 'Grupo', // Map groupName to patientName for display compatibility or custom handle
-        // Map other fields as necessary for the Card if they differ
+        patientName: g.groupName || 'Grupo',
       }));
     } else {
       // Use Individual Sessions
       return patients.flatMap((p) =>
-        (p.sessions || []).map((s) => ({ ...s, patientName: p.name, patient: p, type: 'individual' as const })),
+        (p.sessions || []).map((s) => ({
+          ...s,
+          patientName: p.name,
+          patient: p,
+          type: 'individual' as const
+        })),
       );
     }
   }, [filterMode, groupSessions, patients]);
@@ -50,13 +59,15 @@ export const SessionsManager: React.FC<SessionsManagerProps> = ({
     .filter((s) => s.type === (filterMode === 'group' ? 'group' : 'individual'))
     .filter(
       (s) => {
-        const notes = (s as any).notes || (s as any).observations || '';
-        return (
-          s.patientName.toLowerCase().includes(search.toLowerCase()) ||
-          notes.toLowerCase().includes(search.toLowerCase()) ||
-          // Extra search for Group Name if mapped differently
-          ((s as any).groupName && (s as any).groupName.toLowerCase().includes(search.toLowerCase()))
-        );
+        // Strict property access based on discriminated union
+        const notes = (s.type === 'individual' ? s.notes : s.observations) || '';
+
+        const matchesSearch = s.patientName.toLowerCase().includes(search.toLowerCase()) ||
+          notes.toLowerCase().includes(search.toLowerCase());
+
+        const matchesGroup = s.type === 'group' && s.groupName?.toLowerCase().includes(search.toLowerCase());
+
+        return matchesSearch || matchesGroup;
       }
     )
     .sort((a, b) => {
@@ -72,7 +83,11 @@ export const SessionsManager: React.FC<SessionsManagerProps> = ({
       return parse(b.date) - parse(a.date);
     });
 
-  const handleSaveSession = (newSession: Session) => {
+  const handleSaveSession = (data: Session | ExtendedSession) => {
+    // Adapter for ExtendedSession -> Session
+    const newSession = data as Session;
+    if (!newSession.type) newSession.type = 'individual'; // Default
+
     // En individual, encontramos al paciente y actualizamos
     if (selectedSession) {
       const p = selectedSession.patient;
@@ -85,9 +100,6 @@ export const SessionsManager: React.FC<SessionsManagerProps> = ({
   };
 
   const handleSaveGroupSession = (newSession: GroupSession) => {
-    // This logic is mostly for optimistic updates in App.tsx or local handling.
-    // If we are using master list passed from parent, we might not need this here unless we emit up.
-    // But existing logic tried to update patients. We will leave it harmless for now.
     if (newSession.participantNames) {
       patients.forEach((p) => {
         if (newSession.participantNames?.includes(p.name)) {
@@ -139,7 +151,7 @@ export const SessionsManager: React.FC<SessionsManagerProps> = ({
             className="p-4 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between hover:border-pink-200 transition-colors cursor-pointer"
             onClick={() => {
               if (s.type === 'individual') {
-                setSelectedSession({ session: s as any, patient: (s as any).patient });
+                setSelectedSession({ session: s, patient: s.patient });
                 setIsSessionModalOpen(true);
               }
             }}
@@ -153,12 +165,13 @@ export const SessionsManager: React.FC<SessionsManagerProps> = ({
               </div>
               <div>
                 <h4 className="font-bold text-slate-900 text-lg">
+                  {/* Strict access */}
                   {s.type === 'group' ? (s.groupName || 'Sesión Grupal') : s.patientName}
                 </h4>
                 <div className="flex items-center gap-2 text-sm text-slate-500">
                   {s.type === 'group' && (
                     <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">
-                      {(s as any).participantNames?.length || 0} Participantes
+                      {s.participantNames?.length || 0} Participantes
                     </span>
                   )}
                   <span>{s.price}€</span>

@@ -10,7 +10,7 @@ export const GdsTemplate = forwardRef<HTMLDivElement>((_, ref) => {
                     <p className="text-sm font-bold text-slate-500">Escala de Depresión Geriátrica (15 ítems)</p>
                 </div>
                 <div className="opacity-50 grayscale">
-                    <h2 className="text-xl font-bold">MÉTODO ACTIVA</h2>
+                    <h2 className="text-xl font-bold">ACTIVA MUSICOTERAPIA</h2>
                 </div>
             </header>
 

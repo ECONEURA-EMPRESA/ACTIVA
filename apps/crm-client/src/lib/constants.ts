@@ -178,7 +178,11 @@ export const ADMISSION_CHECKS = {
   ],
 };
 
-export const CLINICAL_GUIDES: Record<string, any> = {
+import { ClinicalGuide } from './types';
+
+// ... (other constants remain the same, I will use precise ranges to avoid deleting them) 
+
+export const CLINICAL_GUIDES: Record<string, ClinicalGuide> = {
   dementia: {
     title: 'Deterioro Cognitivo',
     objectives: [

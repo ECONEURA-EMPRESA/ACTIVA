@@ -32,7 +32,12 @@ export const useActivityLog = () => {
                 // In-Memory Sort & Limit (Safe for < 1000 items)
                 return snapshot.docs
                     .map(d => ({ id: d.id, ...d.data() } as ActivityLogItem))
-                    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                    .filter(item => item.timestamp && !isNaN(new Date(item.timestamp).getTime())) // Filter invalid dates
+                    .sort((a, b) => {
+                        const dateA = new Date(a.timestamp).getTime();
+                        const dateB = new Date(b.timestamp).getTime();
+                        return dateB - dateA;
+                    })
                     .slice(0, 50);
             } catch (err) {
                 console.error("Activity Log Query Failed:", err);

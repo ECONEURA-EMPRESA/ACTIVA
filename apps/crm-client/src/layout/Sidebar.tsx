@@ -95,8 +95,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span className="text-sm font-black tracking-widest text-slate-800 leading-none">
                   ACTIVA
                 </span>
-                <span className="text-[0.55rem] font-bold text-[#EC008C] uppercase tracking-[0.2em]">
-                  {t('sidebar.brand.enterprise')}
+                <span className="text-[0.45rem] font-bold text-[#EC008C] uppercase tracking-[0.1em]">
+                  MUSICOTERAPIA
                 </span>
               </div>
             )}
@@ -354,7 +354,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </span>
                 </div>
                 <div className="mt-0.5 ml-0.5">
-                  <span className="text-[8px] text-slate-400 font-mono opacity-60">v5.1.0 (Live)</span>
+                  <span className="text-[8px] text-slate-400 font-mono opacity-60">v5.1.0 (Reset)</span>
                 </div>
               </div>
             )}

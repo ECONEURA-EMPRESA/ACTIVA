@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { BookOpen, HeartPulse, GraduationCap, X } from 'lucide-react';
 import { Navigation } from '../components/layout/Navigation';
 import { Hero } from '../components/landing/Hero';
-import { Methodology } from '../components/landing/Methodology';
-import { Services } from '../components/landing/Services';
-import { Software } from '../components/landing/Software';
+import Services from '../components/landing/Services';
+import { Professionals } from '../components/landing/Professionals';
 import { FAQ } from '../components/landing/FAQ';
 import { Testimonials } from '../components/landing/Testimonials';
 import { About } from '../components/landing/About';
@@ -18,7 +17,6 @@ import { SeoHead } from '../components/shared/SeoHead';
 export const Home = () => {
     const [activeModal, setActiveModal] = useState<string | null>(null);
     const [formStep, setFormStep] = useState(0);
-    const [showContent, setShowContent] = useState(false);
 
     const openModal = (type: string) => { setActiveModal(type); setFormStep(0); };
     const closeModal = () => setActiveModal(null);
@@ -98,8 +96,8 @@ export const Home = () => {
     return (
         <>
             <SeoHead schema={schema} />
-            <Preloader onComplete={() => setShowContent(true)} />
-            <div className={`font-['Inter'] antialiased selection:bg-[#EC008C] selection:text-white bg-[#F9FAFB] text-[#0A0F1D] transition-opacity duration-1000 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
+
+            <div className="font-['Inter'] antialiased selection:bg-[#EC008C] selection:text-white bg-white text-slate-600">
 
                 {/* MODAL COMPONENT */}
                 {activeModal && modalConfig[activeModal] && (
@@ -126,11 +124,10 @@ export const Home = () => {
 
                 <Navigation />
 
-                <main className="relative flex flex-col justify-center min-h-[calc(100vh-96px)] pt-24 overflow-hidden">
+                <main className="relative flex flex-col justify-center min-h-screen overflow-hidden">
                     <Hero onOpenModal={openModal} />
-                    <Methodology onOpenModal={openModal} />
                     <Services onOpenModal={openModal} />
-                    <Software onOpenModal={openModal} />
+                    <Professionals onOpenModal={openModal} />
                     <FAQ />
                     <Testimonials />
                     <About />

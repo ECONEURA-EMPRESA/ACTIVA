@@ -50,7 +50,7 @@ export const PatientHeader: React.FC<PatientHeaderProps> = ({ patient }) => {
                     </button>
                     <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-lg">
                         <Calendar className="w-4 h-4 text-brand-500" />
-                        <span>Desde {new Date(patient.joinedDate || Date.now()).toLocaleDateString()}</span>
+                        <span>Desde {new Date(patient.joinedDate || new Date()).toLocaleDateString()}</span>
                     </div>
                     {patient.musicalIdentity?.likes?.[0] && (
                         <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-lg">

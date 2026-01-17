@@ -13,10 +13,14 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "backup": "tsx scripts/backup-firestore.ts",
-    "restore": "tsx scripts/restore-firestore.ts"
+    "restore": "tsx scripts/restore-firestore.ts",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.3.1",
+    "@commitlint/config-conventional": "^20.3.1",
     "@firebase/rules-unit-testing": "^5.0.0",
+    "@playwright/test": "^1.57.0",
     "@types/jest": "^30.0.0",
     "@typescript-eslint/eslint-plugin": "^8.51.0",
     "@typescript-eslint/parser": "^8.51.0",
@@ -26,6 +30,8 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.26",
     "firebase-admin": "^11.11.1",
+    "firebase-tools": "^15.3.1",
+    "husky": "^9.1.7",
     "jest": "^30.2.0",
     "prettier": "latest",
     "ts-jest": "^29.4.6",
@@ -37,5 +43,9 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "@tanstack/react-query-persist-client": "^5.90.20",
+    "idb-keyval": "^6.2.2"
+  }
 }

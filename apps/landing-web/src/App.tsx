@@ -6,6 +6,7 @@ import { Terms } from './pages/legal/Terms';
 import { NotFound } from './pages/NotFound';
 
 const Home = lazy(() => import('./pages/Home'));
+const BenefitsPost = lazy(() => import('./pages/blog/BenefitsPost').then(module => ({ default: module.BenefitsPost })));
 
 function App() {
     return (
@@ -15,7 +16,7 @@ function App() {
                     <Route
                         path="/"
                         element={
-                            <Suspense fallback={<div className="min-h-screen bg-white" />}>
+                            <Suspense fallback={<div className="min-h-screen" />}>
                                 <Home />
                             </Suspense>
                         }
@@ -23,8 +24,19 @@ function App() {
                     <Route path="/legal/privacy" element={<Privacy />} />
                     <Route path="/legal/terms" element={<Terms />} />
 
+                    {/* Blog Routes */}
+                    <Route
+                        path="/blog/beneficios-musicoterapia"
+                        element={
+                            <Suspense fallback={<div className="min-h-screen bg-[#020617]" />}>
+                                <BenefitsPost />
+                            </Suspense>
+                        }
+                    />
+
                     {/* Auth Redirects - SEO Friendly */}
                     <Route path="/auth/login" element={<AuthRedirect />} />
+                    <Route path="/dashboard" element={<DashboardRedirect />} />
 
                     <Route path="*" element={<NotFound />} />
                 </Routes>
@@ -34,7 +46,12 @@ function App() {
 }
 
 const AuthRedirect = () => {
-    window.location.href = 'https://app-activamusicoterapia.web.app/auth/login';
+    window.location.href = 'https://app.activamusicoterapia.com/auth/login';
+    return null;
+};
+
+const DashboardRedirect = () => {
+    window.location.href = 'https://app.activamusicoterapia.com/dashboard';
     return null;
 };
 

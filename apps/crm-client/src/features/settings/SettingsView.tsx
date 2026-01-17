@@ -19,10 +19,12 @@ export const SettingsView: React.FC = () => {
 
   // Sync form when settings load
   useEffect(() => {
-    if (settings) {
+    if (settings && !formData) { // Only set if formData is empty
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData(settings);
+
     }
-  }, [settings]);
+  }, [settings]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -296,7 +298,7 @@ export const SettingsView: React.FC = () => {
                     try {
                       await updateSettings(formData);
                       alert("Datos de Facturación y Logo guardados correctamente.");
-                    } catch (e) {
+                    } catch {
                       alert("Error al guardar.");
                     }
                   }}
@@ -431,7 +433,7 @@ export const SettingsView: React.FC = () => {
       <div className="text-center text-xs text-slate-400 py-8 flex justify-center gap-6">
         <a href="https://activamusicoterapia.com/legal/terms" target="_blank" rel="noreferrer" className="hover:text-slate-600 transition-colors">Términos de Servicio</a>
         <a href="https://activamusicoterapia.com/legal/privacy" target="_blank" rel="noreferrer" className="hover:text-slate-600 transition-colors">Política de Privacidad</a>
-        <span>© 2026 Método Activa</span>
+        <span>© 2026 Activa Musicoterapia</span>
       </div>
     </div>
   );

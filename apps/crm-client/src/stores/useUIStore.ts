@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { GroupSession } from '../lib/types';
 
 interface QuickAppointmentState {
     isOpen: boolean;
@@ -11,8 +12,8 @@ interface GroupSessionState {
     isOpen: boolean;
     mode: 'schedule' | 'evolution';
     initialGroupName?: string;
-    data?: any; // New Field
-    open: (initialGroupName?: string, mode?: 'schedule' | 'evolution', data?: any) => void;
+    data?: GroupSession; // Strict Type
+    open: (initialGroupName?: string, mode?: 'schedule' | 'evolution', data?: GroupSession) => void;
     close: () => void;
 }
 
@@ -39,7 +40,7 @@ export const useUIStore = create<UIStore>((set) => ({
         mode: 'evolution',
         initialGroupName: undefined,
         data: undefined,
-        open: (initialGroupName?: string, mode: 'schedule' | 'evolution' = 'evolution', data?: any) => set((state: UIStore) => ({
+        open: (initialGroupName?: string, mode: 'schedule' | 'evolution' = 'evolution', data?: GroupSession) => set((state: UIStore) => ({
             groupSession: { ...state.groupSession, isOpen: true, initialGroupName, mode, data }
         })),
         close: () => set((state: UIStore) => ({

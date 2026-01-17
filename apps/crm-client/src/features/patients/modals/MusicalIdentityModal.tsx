@@ -161,7 +161,15 @@ export const MusicalIdentityModal: React.FC<MusicalIdentityModalProps> = ({
     );
 };
 
-const TagInput = ({ placeholder, tags, onAdd, onRemove, color }: any) => {
+interface TagInputProps {
+    placeholder: string;
+    tags: string[];
+    onAdd: (tag: string) => void;
+    onRemove: (tag: string) => void;
+    color: string;
+}
+
+const TagInput: React.FC<TagInputProps> = ({ placeholder, tags, onAdd, onRemove, color }) => {
     const [val, setVal] = useState('');
 
     // Add pending tag on Enter or Blur
@@ -172,7 +180,7 @@ const TagInput = ({ placeholder, tags, onAdd, onRemove, color }: any) => {
         }
     };
 
-    const handleKey = (e: any) => {
+    const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             e.preventDefault();
             commitTag();

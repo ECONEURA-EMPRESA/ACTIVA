@@ -10,7 +10,8 @@ interface PostItWidgetProps {
 }
 
 export const PostItWidget: React.FC<PostItWidgetProps> = ({ date }) => {
-    const dateStr = format(date, 'yyyy-MM-dd');
+    const safeDate = (date instanceof Date && !isNaN(date.getTime())) ? date : new Date();
+    const dateStr = format(safeDate, 'yyyy-MM-dd');
     const {
         items,
         deleteDailyNote,
@@ -57,7 +58,7 @@ export const PostItWidget: React.FC<PostItWidgetProps> = ({ date }) => {
 
                         <div className="h-4 w-[1px] bg-slate-200 mx-1"></div>
                         <span className="text-[10px] font-mono font-medium text-slate-400 uppercase">
-                            {format(date, 'MMM dd', { locale: es })}
+                            {format(safeDate, 'MMM dd', { locale: es })}
                         </span>
                     </div>
                 </div>

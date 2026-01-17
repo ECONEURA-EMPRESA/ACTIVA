@@ -11,7 +11,7 @@ export const MmseTemplate = forwardRef<HTMLDivElement>((_, ref) => {
                 </div>
                 <div className="opacity-50 grayscale">
                     {/* Add Logo if available, or just Text */}
-                    <h2 className="text-xl font-bold">MÉTODO ACTIVA</h2>
+                    <h2 className="text-xl font-bold">ACTIVA MUSICOTERAPIA</h2>
                 </div>
             </header>
 

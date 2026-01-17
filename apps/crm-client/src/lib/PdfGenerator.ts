@@ -189,7 +189,7 @@ export const PdfGenerator = {
         // Brand Note
         doc.setFontSize(6);
         doc.setTextColor(203, 213, 225); // Slate 300
-        doc.text("Generado por Método Activa CRM", pageWidth / 2, pageHeight - 10, { align: 'center' });
+        doc.text("Generado por Activa Musicoterapia CRM", pageWidth / 2, pageHeight - 10, { align: 'center' });
 
         doc.save(`Factura_${invoice.number}.pdf`);
     }

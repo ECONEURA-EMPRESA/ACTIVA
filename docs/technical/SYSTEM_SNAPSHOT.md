@@ -3,7 +3,7 @@
 **Date:** 2026-01-02
 **Status:** ✅ OPERATIONAL / VERIFIED LOCALLY & LIVE
 **Project ID:** `webycrm-activa`
-**Live URL:** [https://app-activamusicoterapia.web.app](https://app-activamusicoterapia.web.app)
+**Live URL:** [https://activamusicoterapia.com](https://activamusicoterapia.com)
 
 ---
 

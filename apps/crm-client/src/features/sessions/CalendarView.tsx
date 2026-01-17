@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '../../components/ui/Button';
-import { ChevronLeft, ChevronRight, CalendarCheck, Users, StickyNote, Phone, AlertTriangle, Loader2 } from 'lucide-react';
-import { Patient, GroupSession } from '../../lib/types';
+import { ChevronLeft, ChevronRight, CalendarCheck, Users, Phone, AlertTriangle, Loader2 } from 'lucide-react';
+import { Patient, GroupSession, NavigationPayload } from '../../lib/types';
 import { Toast } from '../../components/ui/Toast';
 import { useSessionController } from '../../hooks/controllers/useSessionController';
 import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns';
@@ -10,8 +10,8 @@ import { es } from 'date-fns/locale';
 interface CalendarViewProps {
   patients: Patient[];
   groupSessions: GroupSession[]; // Kept for now, should move to controller too eventually
-  onNavigate: (view: string, data?: any) => void;
-  onOpenGroupModal: (mode: 'schedule' | 'evolution', data?: any) => void;
+  onNavigate: (view: string, data?: NavigationPayload) => void;
+  onOpenGroupModal: (mode: 'schedule' | 'evolution', data?: GroupSession) => void;
   onOpenSessionModal: () => void;
   onOpenQuickAppointment: (mode: 'new' | 'existing') => void;
 }
@@ -26,7 +26,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   // const { user } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(new Date());
-  const [dailyNotes, setDailyNotes] = useState('');
+
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
 
   // Derive date range for the query (current month)
@@ -86,9 +86,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   const { days, firstDay } = getDaysInMonth(currentDate);
 
-  // Mini Calendar (Next Month)
-  const nextMonthDate = addMonths(currentDate, 1);
-  const { days: nextDays, firstDay: nextFirstDay } = getDaysInMonth(nextMonthDate);
+
 
   // Selected Day Events
   const selectedEvents = allEvents.filter(
@@ -224,34 +222,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
       {/* Right Panel */}
       <div className="w-full lg:w-80 flex flex-col gap-6 shrink-0 order-first lg:order-last">
-        {/* Next Month Mini */}
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hidden lg:block">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 text-center">
-            {format(nextMonthDate, 'MMMM yyyy', { locale: es })}
-          </h3>
-          <div className="grid grid-cols-7 gap-1 text-[10px] text-center">
-            {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((d) => (
-              <span key={d} className="font-bold text-slate-300">
-                {d}
-              </span>
-            ))}
-            {Array(nextFirstDay)
-              .fill(null)
-              .map((_, i) => (
-                <div key={i} />
-              ))}
-            {Array(nextDays)
-              .fill(null)
-              .map((_, i) => (
-                <div key={i} className="text-slate-500 py-1">
-                  {i + 1}
-                </div>
-              ))}
-          </div>
-        </div>
 
         {/* Selected Day Details */}
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex-1 flex flex-col">
+        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex-1 flex flex-col h-full">
           <div className="mb-4 border-b border-slate-100 pb-4">
             <h2 className="text-3xl font-black text-slate-900">{selectedDay.getDate()}</h2>
             <p className="text-slate-500 uppercase font-bold text-xs">
@@ -319,18 +292,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 <span>Sin sesiones</span>
               </div>
             )}
-          </div>
-
-          <div>
-            <label className="label-pro flex items-center gap-2 text-xs">
-              <StickyNote size={12} /> Notas del Día
-            </label>
-            <textarea
-              className="input-pro h-24 text-xs bg-yellow-50 border-yellow-100 resize-none focus:ring-yellow-200"
-              placeholder="Recordatorios..."
-              value={dailyNotes}
-              onChange={(e) => setDailyNotes(e.target.value)}
-            />
           </div>
         </div>
       </div>

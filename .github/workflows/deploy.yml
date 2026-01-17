@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  PROJECT_ID: crm-activa-2512311714
   REGION: europe-west1
   GAR_REPO: crm-repo
   SERVICE_NAME: crm-api-prod

@@ -13,8 +13,9 @@ interface PatientsDirectoryProps {
   patients: Patient[];
   groupSessions?: GroupSession[]; // NEW
   onSelectPatient: (patient: Patient) => void;
+  // onNavigate removed (unused)
   onSelectGroup?: (groupName: string) => void; // NEW
-  onNewPatient: (data: any) => void;
+  onNewPatient: (data: Omit<Patient, 'id'>) => void;
   initialFilter?: 'all' | 'adults' | 'kids';
 }
 
@@ -278,7 +279,7 @@ export const PatientsDirectory: React.FC<PatientsDirectoryProps> = ({
         <EditProfileModal
           onClose={() => setIsAdmissionOpen(false)}
           onSave={(data) => {
-            onNewPatient(data);
+            onNewPatient(data as Omit<Patient, 'id'>);
             setIsAdmissionOpen(false);
           }}
         />

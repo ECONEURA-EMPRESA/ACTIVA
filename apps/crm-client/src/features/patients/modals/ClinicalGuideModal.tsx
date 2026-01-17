@@ -39,7 +39,7 @@ export const ClinicalGuideModal: React.FC<ClinicalGuideModalProps> = ({ onClose 
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id as 'dementia' | 'neuro' | 'mood' | 'other')}
               className={`flex-1 min-w-[120px] py-4 flex flex-col items-center gap-2 border-b-2 transition-all ${activeTab === tab.id ? `${tab.color} border-current bg-slate-50` : 'text-slate-400 border-transparent hover:text-slate-600 hover:bg-slate-50'}`}
             >
               <tab.icon size={20} />

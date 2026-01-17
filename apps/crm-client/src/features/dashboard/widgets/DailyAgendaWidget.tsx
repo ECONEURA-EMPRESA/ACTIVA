@@ -29,6 +29,33 @@ export const DailyAgendaWidget: React.FC<DailyAgendaWidgetProps> = ({
     onDateChange,
     onNewAppointment
 }) => {
+    // Helper for safe date parsing
+    const parseSafeDate = (dateVal: string | Date | undefined): Date => {
+        if (!dateVal) return new Date();
+        if (dateVal instanceof Date) return isNaN(dateVal.getTime()) ? new Date() : dateVal;
+
+        try {
+            if (typeof dateVal === 'string') {
+                if (dateVal.includes('/')) {
+                    const parts = dateVal.split('/');
+                    if (parts.length === 3) {
+                        const d = parseInt(parts[0], 10);
+                        const m = parseInt(parts[1], 10);
+                        const y = parseInt(parts[2], 10);
+                        if (!isNaN(d) && !isNaN(m) && !isNaN(y)) {
+                            return new Date(y, m - 1, d);
+                        }
+                    }
+                }
+                const parsed = new Date(dateVal);
+                return isNaN(parsed.getTime()) ? new Date() : parsed;
+            }
+        } catch {
+            return new Date();
+        }
+        return new Date();
+    };
+
     // State for Search only (No more payment filters)
     const [searchTerm, setSearchTerm] = useState('');
     const [searchVisible, setSearchVisible] = useState(false);
@@ -36,13 +63,7 @@ export const DailyAgendaWidget: React.FC<DailyAgendaWidgetProps> = ({
     // 1. Filter sessions for selected date
     const dailySessions = useMemo(() => {
         return sessions.filter(s => {
-            let sDate: Date;
-            if (s.date.includes('/')) {
-                const [d, m, y] = s.date.split('/');
-                sDate = new Date(Number(y), Number(m) - 1, Number(d));
-            } else {
-                sDate = new Date(s.date);
-            }
+            const sDate = parseSafeDate(s.date as string | undefined);
             return isSameDay(sDate, selectedDate);
         });
     }, [sessions, selectedDate]);
@@ -79,9 +100,17 @@ export const DailyAgendaWidget: React.FC<DailyAgendaWidgetProps> = ({
                         AGENDA DIARIA
                     </span>
                     <h2 className="text-xl md:text-2xl font-bold text-slate-800 tracking-tight capitalize">
-                        {format(selectedDate, "EEEE d", { locale: es })}
+                        {(() => {
+                            try {
+                                return !isNaN(selectedDate.getTime()) ? format(selectedDate, "EEEE d", { locale: es }) : "Agenda";
+                            } catch { return "Agenda"; }
+                        })()}
                         <span className="text-slate-300 font-light ml-2">
-                            {format(selectedDate, "MMMM", { locale: es })}
+                            {(() => {
+                                try {
+                                    return !isNaN(selectedDate.getTime()) ? format(selectedDate, "MMMM", { locale: es }) : "";
+                                } catch { return ""; }
+                            })()}
                         </span>
                     </h2>
                 </div>
@@ -165,18 +194,52 @@ export const DailyAgendaWidget: React.FC<DailyAgendaWidgetProps> = ({
 
                                 {/* 0. TIMES COLUMN (Grouped) */}
                                 <div className="flex flex-col items-center justify-center pr-4 border-r border-slate-100/50 min-w-[80px] py-1 gap-1">
-                                    {patientSessions.map((s, idx) => (
-                                        <div key={idx} className="flex flex-col items-center">
-                                            <span className="text-xl md:text-2xl font-black text-slate-700 tracking-tight group-hover:text-indigo-600 transition-colors">
-                                                {s.time || '10:00'}
-                                            </span>
-                                            {idx === 0 && (
-                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-0.5">
-                                                    {format(new Date(s.date), 'd MMM', { locale: es })}
+                                    {patientSessions.map((s, idx) => {
+                                        // SAFE DATE PARSING (Titanium Fix - Robust)
+                                        let sessionDate = new Date();
+                                        try {
+                                            if (s.date && typeof s.date === 'string') {
+                                                if (s.date.includes('/')) {
+                                                    const parts = s.date.split('/');
+                                                    if (parts.length === 3) {
+                                                        const d = parseInt(parts[0], 10);
+                                                        const m = parseInt(parts[1], 10);
+                                                        const y = parseInt(parts[2], 10);
+                                                        if (!isNaN(d) && !isNaN(m) && !isNaN(y)) {
+                                                            sessionDate = new Date(y, m - 1, d);
+                                                        }
+                                                    }
+                                                } else {
+                                                    const parsed = new Date(s.date);
+                                                    if (!isNaN(parsed.getTime())) {
+                                                        sessionDate = parsed;
+                                                    }
+                                                }
+                                            } else if ((s.date as unknown) instanceof Date) {
+                                                sessionDate = s.date as unknown as Date;
+                                            }
+
+                                            // Final Safety Check
+                                            if (isNaN(sessionDate.getTime())) {
+                                                sessionDate = new Date();
+                                            }
+                                        } catch {
+                                            sessionDate = new Date();
+                                        }
+
+                                        return (
+                                            <div key={idx} className="flex flex-col items-center">
+                                                <span className="text-xl md:text-2xl font-black text-slate-700 tracking-tight group-hover:text-indigo-600 transition-colors">
+                                                    {s.time || '10:00'}
                                                 </span>
-                                            )}
-                                        </div>
-                                    ))}
+                                                {idx === 0 && (
+                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-0.5">
+                                                        {format(sessionDate, 'd MMM', { locale: es })}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
 
                                 {/* 1. PHOTO (Elevated) */}
@@ -202,11 +265,21 @@ export const DailyAgendaWidget: React.FC<DailyAgendaWidgetProps> = ({
                                         <h3 className="text-base md:text-lg font-bold text-slate-800 leading-tight group-hover:text-indigo-700 transition-colors">
                                             {patient.name}
                                         </h3>
-                                        {patient.birthDate && (
-                                            <span className="shrink-0 inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-600 text-[10px] font-bold uppercase tracking-wider">
-                                                {differenceInYears(new Date(), new Date(patient.birthDate))} AÑOS
-                                            </span>
-                                        )}
+                                        {(() => {
+                                            try {
+                                                if (patient.birthDate) {
+                                                    const bDate = new Date(patient.birthDate);
+                                                    if (!isNaN(bDate.getTime())) {
+                                                        return (
+                                                            <span className="shrink-0 inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-600 text-[10px] font-bold uppercase tracking-wider">
+                                                                {differenceInYears(new Date(), bDate)} AÑOS
+                                                            </span>
+                                                        );
+                                                    }
+                                                }
+                                            } catch { return null; }
+                                            return null;
+                                        })()}
                                     </div>
 
                                     <div className="flex items-center gap-3 w-full">

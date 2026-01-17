@@ -1,7 +1,7 @@
 import React from 'react';
 
 
-export const GDS_STAGES = [
+const GDS_STAGES = [
   {
     id: 1,
     title: 'GDS 1: Sin Deterioro',

@@ -10,6 +10,7 @@ interface MobileBottomNavProps {
 }
 
 import { useScrollDirection } from '../hooks/useScrollDirection';
+import { useHaptic } from '../hooks/useHaptic';
 
 export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     currentView,
@@ -18,6 +19,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     onNewAction,
     isMenuOpen
 }) => {
+    const haptics = useHaptic();
     const scrollDirection = useScrollDirection('main-content');
     const isHidden = scrollDirection === 'down' || isMenuOpen;
 
@@ -42,7 +44,10 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                             <div key={item.id} className="relative -top-10 group">
                                 <div className="absolute inset-0 bg-pink-500 blur-2xl opacity-50 group-hover:opacity-75 transition-opacity rounded-full" />
                                 <button
-                                    onClick={onNewAction}
+                                    onClick={() => {
+                                        haptics.trigger('medium');
+                                        onNewAction();
+                                    }}
                                     className="relative bg-gradient-to-tr from-pink-500 via-rose-500 to-pink-600 text-white rounded-full p-5 shadow-2xl shadow-pink-900/50 border-[6px] border-slate-100/10 ring-2 ring-pink-400/50 active:scale-95 active:rotate-90 transition-all duration-300"
                                 >
                                     <PlusCircle size={36} strokeWidth={2} className="drop-shadow-lg" />
@@ -55,7 +60,10 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                         return (
                             <button
                                 key={item.id}
-                                onClick={onOpenMenu}
+                                onClick={() => {
+                                    haptics.trigger('light');
+                                    onOpenMenu();
+                                }}
                                 className="flex flex-col items-center justify-center w-16 h-full gap-2 text-slate-400 active:text-white transition-colors relative group"
                             >
                                 <div className="absolute inset-0 bg-white/5 opacity-0 group-active:opacity-100 rounded-2xl transition-opacity scale-75" />
@@ -70,7 +78,10 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                     return (
                         <button
                             key={item.id}
-                            onClick={() => onNavigate(item.id)}
+                            onClick={() => {
+                                haptics.trigger('light');
+                                onNavigate(item.id);
+                            }}
                             className={`flex flex-col items-center justify-center w-16 h-full gap-2 transition-all relative ${isActive ? 'text-white' : 'text-slate-400 active:text-white'
                                 }`}
                         >

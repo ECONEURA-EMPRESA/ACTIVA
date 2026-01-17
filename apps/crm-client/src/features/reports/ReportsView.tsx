@@ -34,12 +34,12 @@ export const ReportsView: React.FC = () => {
             <AlertTriangle className="mx-auto text-amber-500 mb-4" size={48} />
             <h3 className="text-lg font-bold text-amber-900">Requiere Configuración</h3>
             <p className="text-amber-700 mb-4">
-                {(error as any)?.message?.includes('Index')
+                {(error as Error)?.message?.includes('Index')
                     ? 'Falta el índice "Collection Group" en Firebase. Contacta al administrador.'
                     : 'Error al cargar los informes.'}
             </p>
             <p className="text-xs font-mono text-amber-600 bg-amber-100 p-2 rounded inline-block">
-                {(error as any)?.message || 'Unknown Error'}
+                {(error as Error)?.message || 'Unknown Error'}
             </p>
         </div>
     );

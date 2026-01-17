@@ -1,31 +1,32 @@
 import React from 'react';
 import { Card } from '../../../components/ui/Card';
-import { ClinicalFormulation } from '../../../lib/types'; // Importing ClinicalFormulation type
+import { ClinicalFormulation, FormulationData } from '../../../lib/types';
 import { FORMULATION_OPTIONS as FORMULATION_DATA } from '../../../lib/constants'; // Importing constant data
 
 interface FormulationTabProps {
   data: ClinicalFormulation;
   isEditing: boolean;
-  onChange: (field: string, value: any) => void;
+  onChange: (field: string, value: unknown) => void;
 }
 
 export const FormulationTab: React.FC<FormulationTabProps> = ({ data, isEditing, onChange }) => {
   // Helper para manejar cambios en legacy vs new structure
   // Si data.synthesis es string (legacy), asumimos text. Si es objeto, usamos text y selected
   const getText = (field: string) => {
-    const val = (data as any)[field];
+    const val = data ? data[field as keyof FormulationData] : undefined;
     if (typeof val === 'string') return val;
-    return val?.text || '';
+    if (typeof val === 'object' && val !== null && 'text' in val) return (val as { text: string }).text || '';
+    return '';
   };
 
   const getSelected = (field: string): string[] => {
-    const val = (data as any)[field];
-    if (typeof val === 'object' && val.selected) return val.selected;
+    const val = data[field as keyof ClinicalFormulation];
+    if (typeof val === 'object' && val !== null && 'selected' in val) return (val as { selected: string[] }).selected;
     return [];
   };
 
   const renderSection = (title: string, field: keyof typeof FORMULATION_DATA, color: string) => {
-    const options = (FORMULATION_DATA as any)[field] || [];
+    const options = (FORMULATION_DATA as Record<string, string[]>)[field] || [];
     // const currentText = getText(title.toLowerCase()); // Simplificacion: usar el key correcto
     // Mejor usar un mapeo explícito
     const fieldKeyMap: Record<string, string> = {

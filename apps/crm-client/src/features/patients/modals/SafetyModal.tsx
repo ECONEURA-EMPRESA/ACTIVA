@@ -135,10 +135,10 @@ export const SafetyModal: React.FC<SafetyModalProps> = ({
                             ].map((opt) => (
                                 <button
                                     key={opt.val}
-                                    onClick={() => setSafety({ ...safety, mobilityAid: opt.val as any })}
+                                    onClick={() => setSafety({ ...safety, mobilityAid: opt.val as ClinicalSafetyProfile['mobilityAid'] })}
                                     className={`text-sm py-2 px-3 rounded-lg border font-medium transition-all ${safety.mobilityAid === opt.val
-                                            ? 'bg-red-600 text-white border-red-600 shadow-md transform scale-105'
-                                            : 'bg-white text-slate-600 border-slate-200 hover:border-red-300 hover:text-red-600'
+                                        ? 'bg-red-600 text-white border-red-600 shadow-md transform scale-105'
+                                        : 'bg-white text-slate-600 border-slate-200 hover:border-red-300 hover:text-red-600'
                                         }`}
                                 >
                                     {opt.label}
@@ -180,7 +180,7 @@ export const SafetyModal: React.FC<SafetyModalProps> = ({
     );
 };
 
-const RiskToggle = ({ label, desc, active, onClick }: any) => (
+const RiskToggle = ({ label, desc, active, onClick }: { label: string; desc: string; active: boolean; onClick: () => void }) => (
     <div
         onClick={onClick}
         className={`p-3 rounded-xl border cursor-pointer transition-all active:scale-95 ${active

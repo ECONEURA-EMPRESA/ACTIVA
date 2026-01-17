@@ -1,88 +1,85 @@
-import { HeartPulse, Stethoscope, Brain } from 'lucide-react';
+import { ArrowRight, HeartPulse, Stethoscope, Play } from 'lucide-react';
 import { RevealSection } from '../ui/RevealSection';
-import heroImg from '../../assets/images/hero-main.jpg';
+import heroBg from '../../assets/images/hero-bg.png';
 
 interface HeroProps {
-    onOpenModal: (modal: string) => void;
+    onOpenModal: (type: 'clinic' | 'course') => void;
 }
 
 export const Hero = ({ onOpenModal }: HeroProps) => {
     return (
-        <div className="relative bg-slate-50 min-h-screen flex items-center pt-20 pb-32">
-            {/* Background Elements */}
-            <div className="absolute top-0 right-0 w-[1000px] h-[1000px] bg-[#EC008C] rounded-full blur-[180px] opacity-[0.06] translate-x-1/3 -translate-y-1/4 animate-breathe pointer-events-none"></div>
-            <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-[#3B82F6] rounded-full blur-[200px] opacity-[0.06] -translate-x-1/4 translate-y-1/4 animate-breathe-slow pointer-events-none"></div>
+        <div className="relative h-screen min-h-[800px] flex items-center justify-center overflow-hidden bg-[#020617]" itemScope itemType="https://schema.org/MedicalClinic">
 
-            <div className="max-w-[1440px] mx-auto px-6 lg:px-12 w-full relative z-10">
+            {/* SYMPHONY OF LIGHT: Living Image Engine */}
+            <div className="absolute inset-0 z-0 overflow-hidden bg-black">
+
+                {/* LAYER 1: The Image (Motion) */}
+                <div className="absolute inset-0">
+                    <img
+                        src={heroBg}
+                        alt="Background Neurociencia y Arte"
+                        // AGGRESSIVE SCALE & SHIFT to kill the white strip definitively
+                        // -mt-4 pulls it UP under the navbar
+                        // scale-125 ensures it covers everything horizontally
+                        className="w-full h-full object-cover object-center opacity-70 animate-ken-burns transform-gpu will-change-transform scale-125 -mt-4 origin-center"
+                    />
+                </div>
+
+                {/* LAYER 2: The ''Breathing'' Atmosphere - DARK BASE */}
+                <div className="absolute inset-0 bg-[#020617] mix-blend-color opacity-20"></div>
+
+                {/* LAYER 3: Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-black/40 mix-blend-multiply animate-pulse-slow"></div>
+
+                {/* LAYER 4: Volumetric Light Beams */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-900/10 to-transparent skew-x-12 translate-x-[-50%] animate-shift-light mix-blend-overlay"></div>
+
+                {/* LAYER 5: Vignette & Depth */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#020617_90%)]"></div>
+            </div>
+
+            <div className="relative z-20 max-w-[1600px] mx-auto px-6 flex flex-col items-center text-center">
                 <RevealSection>
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
 
-                        {/* Text Area */}
-                        <div className="lg:col-span-7 flex flex-col gap-10 z-20">
-                            <div className="flex justify-start">
-                                <div className="glass-card inline-flex items-center gap-3 px-5 py-2.5 rounded-full border border-white/40 shadow-sm hover:shadow-md transition-shadow cursor-default group backdrop-blur-md">
-                                    <span className="relative flex h-2.5 w-2.5">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3B82F6] opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#3B82F6]"></span>
-                                    </span>
-                                    <span className="text-[#0A0F1D] text-xs font-['Outfit'] font-bold uppercase tracking-widest">Ecosistema Integral de Salud</span>
-                                </div>
-                            </div>
-
-                            <h1 className="text-6xl sm:text-7xl lg:text-8xl font-['Outfit'] font-extrabold tracking-tighter text-[#0A0F1D] leading-[0.95]">
-                                La Música es <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#EC008C] to-[#3B82F6] relative inline-block pb-2">
-                                    Ciencia
-                                </span>, Arte<br /> y Salud.
-                            </h1>
-
-                            <p className="text-xl text-[#64748B] font-['Inter'] leading-relaxed font-light max-w-2xl">
-                                Descubre el <strong className="text-[#0A0F1D] font-bold">Método Activa</strong>: una fusión pionera de neurorehabilitación clínica, tecnología avanzada y formación académica diseñada para transformar vidas a través del sonido.
-                            </p>
-
-                            <div className="flex flex-col sm:flex-row gap-5 pt-4">
-                                <button onClick={() => onOpenModal('clinic')} className="h-16 px-10 rounded-full bg-[#EC008C] text-white text-lg font-['Outfit'] font-bold shadow-2xl shadow-[#EC008C]/30 hover:bg-[#D6007E] hover:shadow-[#EC008C]/50 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3 group active:scale-95">
-                                    <HeartPulse size={22} className="group-hover:scale-110 transition-transform" />
-                                    Soy Paciente
-                                </button>
-                                <button onClick={() => onOpenModal('course')} className="h-16 px-10 rounded-full bg-white border border-gray-200 text-[#0A0F1D] text-lg font-['Outfit'] font-bold hover:bg-gray-50 hover:border-[#0A0F1D] transition-all duration-300 flex items-center justify-center gap-3 shadow-lg active:scale-95 group">
-                                    <Stethoscope size={22} className="text-[#64748B] group-hover:text-[#3B82F6] transition-colors" />
-                                    Soy Profesional
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Image Area with Overlap */}
-                        <div className="lg:col-span-5 relative perspective-container lg:h-[800px] flex items-center">
-                            <div className="relative w-full aspect-[4/5] rounded-[3rem] overflow-hidden shadow-2xl shadow-[#0A0F1D]/20 ring-1 ring-white/50 group lg:absolute lg:right-0 lg:top-0 lg:mt-12 lg:w-[120%] lg:-ml-[20%] z-10 tilt-card">
-                                <div
-                                    className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 ease-out group-hover:scale-105"
-                                    style={{ backgroundImage: `url(${heroImg})` }}
-                                    role="img"
-                                    aria-label="Sesión de musicoterapia neurológica con Método Activa"
-                                ></div>
-                                <div className="absolute inset-0 bg-gradient-to-t from-[#0A0F1D] via-transparent to-transparent opacity-60"></div>
-                            </div>
-
-                            {/* Floating Glass Card - Overlapping */}
-                            <div className="absolute bottom-10 left-0 lg:-left-20 lg:bottom-10 z-30 w-full lg:w-[400px]">
-                                <div className="glass-panel p-8 rounded-[2rem] hover:-translate-y-3 transition-all duration-500 group cursor-default">
-                                    <div className="flex items-start gap-6">
-                                        <div className="w-16 h-16 rounded-2xl bg-[#0A0F1D] flex items-center justify-center text-white shrink-0 shadow-xl group-hover:scale-110 transition-transform duration-500">
-                                            <Brain size={32} strokeWidth={1.5} />
-                                        </div>
-                                        <div className="flex-1">
-                                            <h3 className="font-['Outfit'] font-bold text-[#0A0F1D] text-2xl mb-2">Atención Temprana</h3>
-                                            <p className="text-sm font-['Inter'] text-[#64748B] font-medium leading-relaxed">
-                                                Intervención infantil para autismo y TDAH. Sesiones familiares y grupos de habilidades sociales.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
+                    {/* SUPER-BADGE: MUSICOTERAPIA */}
+                    <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-blue-900/20 border border-blue-500/30 backdrop-blur-md mb-8 group hover:bg-blue-900/30 transition-all duration-500 cursor-default shadow-[0_0_20px_rgba(59,130,246,0.2)]">
+                        <span className="relative flex h-3 w-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-400"></span>
+                        </span>
+                        <span className="text-cyan-100 text-sm font-['Outfit'] font-bold tracking-[0.2em] uppercase">MUSICOTERAPIA</span>
                     </div>
+
+                    {/* MASSIVE HEADLINE (UPDATED SLOGAN) */}
+                    <h1 className="text-7xl sm:text-8xl lg:text-[10rem] font-['Outfit'] font-black tracking-tighter text-white leading-[0.85] mb-8 drop-shadow-2xl">
+                        EL ARTE <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-white to-pink-500 animate-pulse-slow">ES SALUD.</span>
+                    </h1>
+
+                    <p className="text-xl sm:text-2xl lg:text-3xl text-slate-300 font-['Inter'] font-light max-w-4xl mx-auto mb-12 leading-relaxed text-balance drop-shadow-md">
+                        Activa Musicoterapia aplica un método probado que utiliza el arte como herramienta de rehabilitación, conectando a las personas consigo mismas y con sus pacientes.
+                    </p>
+
+                    {/* MAGNETIC ACTION BUTTONS - Updated Palette */}
+                    <div className="flex flex-col sm:flex-row gap-6 items-center justify-center w-full">
+                        <button
+                            onClick={() => onOpenModal('clinic')}
+                            className="group relative h-16 sm:h-20 px-12 rounded-full bg-gradient-to-r from-[#EC008C] to-purple-600 text-white text-xl font-['Outfit'] font-bold tracking-wide shadow-[0_0_50px_-10px_rgba(236,0,140,0.5)] hover:shadow-[0_0_80px_-5px_rgba(236,0,140,0.7)] transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-4 overflow-hidden border border-white/10"
+                        >
+                            <span className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-in-out"></span>
+                            <span className="relative z-10">Soy Paciente</span>
+                            <HeartPulse className="w-6 h-6 relative z-10 group-hover:animate-pulse" />
+                        </button>
+
+                        <button
+                            onClick={() => onOpenModal('course')}
+                            className="group relative h-16 sm:h-20 px-12 rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-white text-xl font-['Outfit'] font-bold tracking-wide shadow-2xl hover:bg-white/10 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-4"
+                        >
+                            <span>Soy Profesional</span>
+                            <Stethoscope className="w-6 h-6 text-cyan-400 group-hover:rotate-12 transition-transform" />
+                        </button>
+                    </div>
+
                 </RevealSection>
             </div>
         </div>

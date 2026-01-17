@@ -33,7 +33,7 @@ export const generatePDFTemplate = (fileName: string) => {
         doc.setFontSize(10);
         doc.setTextColor(150, 150, 150);
         doc.text(
-            'Documento Oficial - Método Activa © 2024',
+            'Documento Oficial - Activa Musicoterapia © 2024',
             pageWidth / 2,
             pageHeight - 10,
             { align: 'center' }

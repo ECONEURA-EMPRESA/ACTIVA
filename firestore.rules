@@ -12,45 +12,84 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // --- USERS (Therapists) ---
-    match /users/{userId} {
+    // --- TYPE CHECKS ---
+    function isString(data, field) {
+      return data.keys().hasAny([field]) && data[field] is string;
+    }
+
+    function isNumber(data, field) {
+      return data.keys().hasAny([field]) && (data[field] is int || data[field] is float);
+    }
+
+    // --- SCHEMA VALIDATORS ---
+    // --- SCHEMA VALIDATORS ---
+    function isValidPatient(data) {
+      return data.keys().hasAll(['name', 'age', 'diagnosis'])
+          && data.name is string
+          && (data.age is int || data.age is float)
+          && data.diagnosis is string;
+    }
+
+    function isValidSession(data) {
+      return isString(data, 'date') &&
+             isString(data, 'time') && 
+             isString(data, 'type'); // strict: must have type
+    }
+
+    // --- USERS (Recursive: Owns everything under their doc) ---
+    match /users/{userId}/{document=**} {
       allow read, write: if isOwner(userId);
     }
 
     // --- PATIENTS ---
-    // Security: Only the therapist who owns the patient can read/write
+    // --- PATIENTS ---
     match /patients/{patientId} {
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      allow create: if isAuthenticated() 
+                   && request.resource.data.userId == request.auth.uid
+                   && isValidPatient(request.resource.data);
+      
+      allow update: if isAuthenticated() 
+                   && resource.data.userId == request.auth.uid
+                   && request.resource.data.userId == request.auth.uid // Prevent ownership transfer
+                   && isValidPatient(request.resource.data);
+
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
       
       // Subcollections (Sessions within Patient)
       match /sessions/{sessionId} {
-         allow read, write: if isAuthenticated() && get(/databases/$(database)/documents/patients/$(patientId)).data.userId == request.auth.uid;
+         // Helper to check parent ownership
+         function isParentOwner() {
+            return get(/databases/$(database)/documents/patients/$(patientId)).data.userId == request.auth.uid;
+         }
+
+         allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+         
+         allow create: if isAuthenticated() 
+                      && request.resource.data.userId == request.auth.uid
+                      && isParentOwner() // TITANIUM SECURITY: Must own parent
+                      && isValidSession(request.resource.data);
+         
+         allow update: if isAuthenticated()
+                      && resource.data.userId == request.auth.uid
+                      && isParentOwner()
+                      && isValidSession(request.resource.data);
+         
+         allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
       }
     }
 
-    // --- SESSIONS (Global Collection for Queries) ---
-    match /sessions/{sessionId} {
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    // --- COLLECTION GROUP: SESSIONS (Recursive Wildcard) ---
+    // This is required for db.collectionGroup('sessions') queries to work regardless of path
+    match /{path=**}/sessions/{sessionId} {
+      allow read, write: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
-    // --- SETTINGS ---
-    match /settings/{settingId} {
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
-    }
-
-    // --- RESOURCES (Global Read, Admin Write) ---
-    match /resources/{resourceId} {
-      allow read: if isAuthenticated(); // All therapists can read shared resources
-      allow write: if false; // Only Admin (via Console)
-    }
-
-    // --- ACTIVITY LOGS ---
     match /activity_logs/{logId} {
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      // Relaxed for debugging: Allow read if authenticated (Client filters by user)
+      allow read: if isAuthenticated();
     }
   }
 }

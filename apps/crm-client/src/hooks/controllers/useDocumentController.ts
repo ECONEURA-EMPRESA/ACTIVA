@@ -46,7 +46,7 @@ export const useDocumentController = (patientId?: string) => {
 
     // Delete Command
     const deleteMutation = useMutation({
-        mutationFn: async (document: any) => { // Type 'any' strictly for mutation input, cast inside if needed, or import type
+        mutationFn: async (document: { path: string; type: string; id: string; url: string; name: string; size: number; createdAt: string }) => {
             if (!patientId) throw new Error("No patient selected");
             return await DocumentRepository.delete(patientId, document);
         },

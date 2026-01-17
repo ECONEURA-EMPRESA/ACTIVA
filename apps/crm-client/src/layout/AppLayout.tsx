@@ -1,16 +1,18 @@
+
 import React, { ReactNode, useState } from 'react';
 import { Sidebar } from './Sidebar';
 import dashboardBg from '../assets/dashboard-bg-metallic.png';
 
 import logoCircular from '../assets/logo-circular.png';
+import { CalendarEvent } from '../lib/types';
 
 interface AppLayoutProps {
   children: ReactNode;
+  userEmail: string;
   currentView: string;
   onNavigate: (view: string) => void;
-  userEmail?: string;
   onLogout: () => void;
-  events?: any[];
+  events?: CalendarEvent[];
 }
 
 // Unused imports removed

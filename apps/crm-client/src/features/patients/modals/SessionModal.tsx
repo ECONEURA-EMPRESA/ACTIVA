@@ -9,13 +9,44 @@ import {
   EVALUATION_AREAS,
   ClinicalGuideKey,
 } from '../../../lib/clinicalUtils';
-import { formatDateForInput, formatDateForDisplay } from '../../../lib/patientUtils';
+import { formatDateForInput } from '../../../lib/patientUtils';
+
+import { Session } from '../../../lib/types';
+
+export interface QualitativeAssessment {
+  musical: string;
+  emotional: string;
+  cognitive: string;
+  physical: string;
+}
+
+// Extended Session for UI fields not yet in Shared Schema
+export interface ExtendedSession extends Partial<Session> {
+  mood?: string;
+  engagement?: number;
+  phase?: number;
+  activityDetails?: Record<string, string>;
+  scores?: number[];
+  groupAnalysis?: string | null;
+  qualitative?: Partial<QualitativeAssessment>;
+  price?: number;
+  paid?: boolean;
+  isAbsent?: boolean;
+  [key: string]: unknown;
+}
 
 interface SessionModalProps {
+  isOpen?: boolean; // Kept optional for compat or remove if unused entirely.
+  // actually PatientDetail passes isOpen={boolean} so we should keep it OR remove from usage.
+  // PatientDetail uses isOpen={showSessionModal}.
+  // So we MUST keep isOpen in interface? Or remove usage in PatientDetail?
+  // Previous error said "missing properties ... isOpen".
+  // So I should keep isOpen in interface.
+  // But patientId?
   onClose: () => void;
-  onSave: (data: any) => void;
-  onDelete?: (id: string | number) => void; // New prop
-  initialData?: any;
+  onSave: (data: ExtendedSession) => void;
+  onDelete?: (id: string | number) => void;
+  initialData?: ExtendedSession;
   patientType: string;
 }
 
@@ -92,22 +123,26 @@ export const SessionModal: React.FC<SessionModalProps> = ({
           onSubmit={(e) => {
             e.preventDefault();
             const formData = new FormData(e.target as HTMLFormElement);
-            const notes = formData.get('notes');
-            const groupAnalysis = formData.get('groupAnalysis');
-            const qual_mus = formData.get('qual_mus');
-            const qual_emo = formData.get('qual_emo');
-            const qual_cog = formData.get('qual_cog');
-            const qual_fis = formData.get('qual_fis');
 
-            onSave({
-              id: initialData?.id || Date.now(),
-              date: formatDateForDisplay(date),
-              time,
+            const qual_mus = (formData.get('qual_mus') as string) || '';
+            const qual_emo = (formData.get('qual_emo') as string) || '';
+            const qual_cog = (formData.get('qual_cog') as string) || '';
+            const qual_fis = (formData.get('qual_fis') as string) || '';
+            const groupAnalysis = (formData.get('groupAnalysis') as string) || '';
+
+            const newSession: ExtendedSession = {
+              id: initialData?.id || Date.now().toString(),
+              // patientId not needed in Session object if handled by parent context
+              date: (formData.get('date') as string) || new Date().toISOString(),
+              time: (formData.get('time') as string) || '09:00',
+              type: sessionType as 'individual' | 'group', // Use state
+              notes: (formData.get('notes') as string) || '',
+              activities: [], // We use activityDetails for structured data, or this for simple list
+              activityDetails, // State
+              mood: (formData.get('mood') as string) || 'neutral',
+              engagement: Number(formData.get('engagement') || 5),
               phase: 2,
-              activityDetails,
-              notes,
-              scores,
-              type: sessionType,
+              scores, // State
               groupAnalysis,
               qualitative: {
                 musical: qual_mus,
@@ -115,11 +150,12 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                 cognitive: qual_cog,
                 physical: qual_fis,
               },
-              price,
-              paid: isPaid,
-              activities: [],
-              isAbsent,
-            });
+              price, // State
+              paid: isPaid, // State
+              isAbsent, // State
+            };
+
+            onSave(newSession);
           }}
         >
           <div className="flex justify-center mb-6 gap-6 items-end">
@@ -356,7 +392,7 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                 icon={Trash2}
                 onClick={() => {
                   if (window.confirm('¿Eliminar esta cita permanentemente?')) {
-                    onDelete(initialData.id);
+                    onDelete(initialData.id!);
                   }
                 }}
               >

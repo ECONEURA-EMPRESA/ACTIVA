@@ -52,7 +52,16 @@ export const SystemActivity: React.FC<SystemActivityProps> = ({ activities, isLo
                                     {item.message}
                                 </p>
                                 <p className="text-xs text-slate-400 mt-1">
-                                    {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true, locale: es })}
+                                    {(() => {
+                                        try {
+                                            const d = new Date(item.timestamp);
+                                            return !isNaN(d.getTime())
+                                                ? formatDistanceToNow(d, { addSuffix: true, locale: es })
+                                                : "Hace un momento";
+                                        } catch {
+                                            return "Hace un momento";
+                                        }
+                                    })()}
                                 </p>
                             </div>
                         </div>

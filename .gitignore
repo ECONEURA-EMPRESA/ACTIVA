@@ -9,6 +9,7 @@ coverage
 
 # Environment Variables (Security)
 .env
+.env.local
 .env.*.local
 .env.production
 .env.development
@@ -37,6 +38,8 @@ npm-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 firebase-debug.log
+playwright-report/
+test-results/
 
 # Terraform
 .terraform/

@@ -20,6 +20,18 @@
         "**/.*",
         "**/node_modules/**"
       ],
+      "redirects": [
+        {
+          "source": "/dashboard",
+          "destination": "https://app.activamusicoterapia.com/dashboard",
+          "type": 301
+        },
+        {
+          "source": "/auth/login",
+          "destination": "https://app.activamusicoterapia.com/auth/login",
+          "type": 301
+        }
+      ],
       "rewrites": [
         {
           "source": "**",

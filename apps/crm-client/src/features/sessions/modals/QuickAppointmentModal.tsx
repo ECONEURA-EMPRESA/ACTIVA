@@ -6,7 +6,7 @@ import { Patient } from '../../../lib/types';
 interface QuickAppointmentModalProps {
   onClose: () => void;
   patients: Patient[];
-  onSave: (data: any) => void;
+  onSave: (data: { date: string; time: string; name: string; mode: 'new' | 'existing'; patientId?: string | number }) => void;
   mode?: 'existing' | 'new';
 }
 

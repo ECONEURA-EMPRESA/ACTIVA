@@ -1,134 +1,164 @@
-import { ArrowUpRight, User, Users, Gamepad2, ArrowRight, FlaskConical } from 'lucide-react';
-import { RevealSection } from '../ui/RevealSection';
-import { SpotlightCard } from '../ui/SpotlightCard';
+import { ArrowRight, Video, Users, Heart, Baby, MonitorPlay, MapPin } from 'lucide-react';
+import individualImage from '../../assets/images/individual-session-child.png';
+import groupImage from '../../assets/images/group-session-aurora.jpg';
+import { NeonIcon } from '../ui/NeonIcon';
 
-interface ServicesProps {
-    onOpenModal: (modal: string) => void;
-}
-
-export const Services = ({ onOpenModal }: ServicesProps) => {
+const Services = ({ onOpenModal }: { onOpenModal: (type: string) => void }) => {
     return (
-        <section id="clinica" className="py-32 px-6 lg:px-12 bg-[#F8FAFC] relative border-y border-gray-100">
-            <div className="max-w-[1440px] mx-auto relative z-10">
-                <RevealSection>
-                    <div className="flex flex-col items-center justify-center text-center mb-24">
-                        <span className="text-[#EC008C] font-['Outfit'] font-bold tracking-[0.2em] uppercase text-xs mb-4 bg-white px-5 py-2 rounded-full shadow-sm border border-gray-100">Excelencia Clínica</span>
-                        <h2 className="text-[#0A0F1D] text-5xl md:text-6xl font-['Outfit'] font-black leading-tight tracking-tighter pb-6">Nuestros Servicios</h2>
-                        <p className="text-[#64748B] max-w-2xl text-xl font-['Inter'] leading-relaxed font-light">
-                            Terapias de rehabilitación personalizadas en formatos flexibles: Presencial, Online, Individual y Grupal.
-                        </p>
-                    </div>
-                </RevealSection>
+        <section className="relative py-32 bg-white overflow-hidden" id="clinic">
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
-                    {/* Card 1: Neuro-Geriatría */}
-                    <SpotlightCard
-                        onClick={() => onOpenModal('clinic')}
-                        className="group flex flex-col justify-end rounded-[2.5rem] bg-[#0A0F1D] shadow-2xl hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] transition-all duration-700 hover:scale-[1.01] lg:row-span-2 min-h-[520px] lg:min-h-full cursor-pointer ring-1 ring-white/10"
-                    >
-                        <div className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-110 opacity-70" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=1000")' }} role="img" aria-label="Terapia de estimulación cognitiva para adultos mayores"></div>
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#0A0F1D] via-[#0A0F1D]/80 to-transparent opacity-90"></div>
-                        <div className="relative z-10 p-10 flex flex-col h-full justify-end">
-                            <div className="mb-auto pt-2">
-                                <span className="inline-flex items-center rounded-lg bg-[#EC008C] px-4 py-2 text-[10px] font-['Outfit'] font-bold text-white shadow-xl shadow-[#EC008C]/30 uppercase tracking-widest">Alta Especialidad</span>
-                            </div>
-                            <h3 className="text-4xl font-['Outfit'] font-bold text-white mb-5 tracking-tight">Neuro-Geriatría</h3>
-                            <p className="text-gray-300 font-['Inter'] text-lg mb-10 leading-relaxed font-light border-l-2 border-[#EC008C] pl-5">
-                                Estimulación cognitiva para Alzheimer y Parkinson. Disponibles sesiones individuales a domicilio o talleres grupales de memoria.
-                            </p>
-                            <div className="flex items-center justify-between mt-2 border-t border-white/10 pt-8">
-                                <div className="flex flex-col gap-3">
-                                    <div className="flex items-center gap-3 text-white/90 text-sm font-['Inter'] font-medium"><User size={18} className="text-[#EC008C]" /> Individual: Reactivación</div>
-                                    <div className="flex items-center gap-3 text-white/90 text-sm font-['Inter'] font-medium"><Users size={18} className="text-[#EC008C]" /> Grupal: Coro Terapéutico</div>
+            {/* Background Nuance - Subtle Clinical Gradient */}
+            <div className="absolute top-1/2 left-0 w-full h-[500px] bg-gradient-to-r from-gray-50 via-gray-100 to-gray-50 blur-[100px] transform -translate-y-1/2 pointer-events-none opacity-50"></div>
+
+            <div className="max-w-7xl mx-auto px-6 relative z-10">
+
+                {/* Header */}
+                <div className="text-center mb-20 max-w-4xl mx-auto">
+                    <h2 className="text-sm font-['Outfit'] font-bold text-[#EC008C] tracking-[0.2em] uppercase mb-4">
+                        Servicios Clínicos
+                    </h2>
+                    <h3 className="text-4xl md:text-6xl font-['Outfit'] font-bold text-slate-900 mb-6 leading-tight">
+                        Intervención <br className="hidden md:block" />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-slate-700 to-slate-500">Personalizada y Grupal</span>
+                    </h3>
+                    <p className="text-lg text-slate-600 font-['Inter'] font-light leading-relaxed max-w-2xl mx-auto">
+                        Diseñamos el encuadre terapéutico ideal según las necesidades neurológicas y emocionales de cada paciente.
+                    </p>
+                </div>
+
+                <div className="space-y-32">
+
+                    {/* OPTION 1: INDIVIDUAL (Left Image, Right Text) */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-center group">
+
+                        {/* Image Container */}
+                        <div className="relative order-2 lg:order-1">
+                            {/* Subtle Shadow instead of glow */}
+                            <div className="absolute inset-0 bg-gray-200 rounded-[2rem] blur-2xl opacity-40 transform translate-y-4"></div>
+
+                            <div className="relative rounded-[2rem] overflow-hidden border border-gray-100 shadow-2xl">
+                                <img
+                                    src={individualImage}
+                                    alt="Niño en sesión de musicoterapia individual"
+                                    className="w-full h-[500px] object-cover transform transition-transform duration-1000 group-hover:scale-105"
+                                />
+
+                                {/* Floating Badge - Clinical White */}
+                                <div className="absolute bottom-6 left-6 z-20 flex items-center gap-3 px-6 py-3 bg-white/90 backdrop-blur-xl border border-gray-200 rounded-full shadow-lg">
+                                    <Heart className="w-5 h-5 text-[#EC008C]" />
+                                    <span className="text-sm font-['Outfit'] font-bold text-slate-900 tracking-wide">ATENCIÓN 1:1</span>
                                 </div>
-                                <button className="h-14 w-14 flex items-center justify-center rounded-full bg-white text-[#0A0F1D] hover:bg-[#EC008C] hover:text-white transition-all duration-300 shadow-xl transform hover:rotate-45 active:scale-90">
-                                    <ArrowUpRight size={28} />
-                                </button>
                             </div>
                         </div>
-                    </SpotlightCard>
 
-                    {/* Card 2: Atención Temprana */}
-                    <SpotlightCard
-                        onClick={() => onOpenModal('clinic')}
-                        className="group flex flex-col justify-between rounded-[2.5rem] bg-white p-10 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-gray-100 cursor-pointer ring-1 ring-black/5"
-                    >
-                        <div className="absolute top-0 right-0 p-6 opacity-[0.03] pointer-events-none text-[#0A0F1D]"><Gamepad2 size={200} /></div>
-                        <div className="flex flex-col items-start gap-8 z-10 w-full">
-                            <div className="h-16 w-16 flex items-center justify-center rounded-3xl bg-[#FDF2F8] text-[#EC008C] ring-1 ring-[#EC008C]/20">
-                                <Gamepad2 size={32} strokeWidth={1.5} />
-                            </div>
+                        {/* Content */}
+                        <div className="order-1 lg:order-2 space-y-8">
                             <div>
-                                <h3 className="text-3xl font-['Outfit'] font-bold text-[#0A0F1D] mb-4 tracking-tight">Atención Temprana</h3>
-                                <p className="text-[#64748B] font-['Inter'] text-base leading-relaxed">
-                                    Intervención infantil para autismo y TDAH. Sesiones familiares y grupos de habilidades sociales.
+                                <h4 className="text-3xl font-['Outfit'] font-bold text-slate-900 mb-4 flex items-center gap-3">
+                                    Sesiones <span className="text-[#EC008C]">Individuales</span>
+                                </h4>
+                                <p className="text-slate-600 text-lg leading-relaxed mb-6">
+                                    Un espacio exclusivo centrado en el paciente. Diseñamos un plan de tratamiento a medida para abordar objetivos específicos de rehabilitación, desarrollo o bienestar emocional.
                                 </p>
                             </div>
-                        </div>
-                        <div className="mt-8 relative z-10">
-                            <button className="flex items-center gap-3 text-sm font-['Outfit'] font-bold text-[#EC008C] hover:text-[#D6007E] transition-colors group/btn uppercase tracking-wide">
-                                Saber más <ArrowRight size={18} className="transition-transform group-hover/btn:translate-x-2" />
+
+                            <div className="space-y-4">
+                                {/* Feature Cards - Light Mode */}
+                                <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-gray-100 hover:border-[#EC008C]/30 hover:bg-white hover:shadow-lg transition-all">
+                                    <NeonIcon icon={MonitorPlay} color="text-[#EC008C]" glowColor="#EC008C" size="sm" />
+                                    <div>
+                                        <h5 className="text-slate-900 font-['Outfit'] font-bold mb-1">Modalidad Online</h5>
+                                        <p className="text-sm text-slate-500">Terapia efectiva desde la comodidad del hogar, ideal para seguimiento continuo.</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-gray-100 hover:border-[#EC008C]/30 hover:bg-white hover:shadow-lg transition-all">
+                                    <NeonIcon icon={MapPin} color="text-[#EC008C]" glowColor="#EC008C" size="sm" />
+                                    <div>
+                                        <h5 className="text-slate-900 font-['Outfit'] font-bold mb-1">Modalidad Presencial</h5>
+                                        <p className="text-sm text-slate-500">Interacción directa con instrumentación clínica completa en nuestros centros.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => onOpenModal('individual')}
+                                className="group flex items-center gap-3 px-8 py-4 bg-[#0A0F1D] text-white rounded-full font-['Outfit'] font-bold tracking-widest hover:bg-[#EC008C] hover:shadow-lg transition-all duration-300"
+                            >
+                                SOLICITAR EVALUACIÓN
+                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </button>
                         </div>
-                    </SpotlightCard>
+                    </div>
 
-                    {/* Card 3: Modalidades */}
-                    <SpotlightCard
-                        onClick={() => onOpenModal('clinic')}
-                        className="group flex flex-col justify-center items-center text-center rounded-[2.5rem] bg-[#0A0F1D] text-white p-10 shadow-2xl transition-all duration-500 hover:scale-[1.02] cursor-pointer ring-1 ring-white/10"
-                    >
-                        {/* Abstract Tech Shapes */}
-                        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 pointer-events-none"></div>
-                        <div className="absolute top-[-20%] left-[-20%] w-60 h-60 bg-[#3B82F6] rounded-full blur-[80px] opacity-30 animate-pulse pointer-events-none"></div>
-                        <div className="absolute bottom-[-20%] right-[-20%] w-60 h-60 bg-[#EC008C] rounded-full blur-[80px] opacity-30 animate-pulse delay-700 pointer-events-none"></div>
 
-                        <div className="relative z-10 flex flex-col gap-8 w-full">
-                            <h3 className="text-lg font-['Outfit'] font-bold pb-2 uppercase tracking-[0.2em] text-[#64748B]">Atención Flexible</h3>
+                    {/* OPTION 2: GROUP (Right Image, Left Text) */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-center group">
 
-                            <div className="flex items-center justify-between text-left gap-5 bg-white/5 p-5 rounded-3xl backdrop-blur-md border border-white/10 hover:bg-white/10 transition-colors cursor-default group/item">
-                                <div className="bg-[#EC008C] p-4 rounded-2xl text-white shadow-lg shadow-[#EC008C]/30 group-hover/item:scale-105 transition-transform"><User size={24} /></div>
-                                <div>
-                                    <p className="font-['Outfit'] font-bold text-xl">Individual</p>
-                                    <p className="text-gray-400 text-xs font-['Inter']">Enfoque clínico 1 a 1</p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center justify-between text-left gap-5 bg-white/5 p-5 rounded-3xl backdrop-blur-md border border-white/10 hover:bg-white/10 transition-colors cursor-default group/item">
-                                <div className="bg-[#3B82F6] p-4 rounded-2xl text-white shadow-lg shadow-[#3B82F6]/30 group-hover/item:scale-105 transition-transform"><Users size={24} /></div>
-                                <div>
-                                    <p className="font-['Outfit'] font-bold text-xl">Grupal</p>
-                                    <p className="text-gray-400 text-xs font-['Inter']">Socialización y Talleres</p>
-                                </div>
-                            </div>
-                        </div>
-                    </SpotlightCard>
-
-                    {/* Card 4: Método Científico */}
-                    <div className="lg:col-span-2 group relative flex flex-col md:flex-row overflow-hidden rounded-[2.5rem] bg-white shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-gray-100 ring-1 ring-black/5">
-                        <div className="flex-1 p-12 flex flex-col justify-center gap-8 z-10">
-                            <div className="flex flex-col gap-5">
-                                <div className="flex items-center gap-3 text-[#3B82F6] text-xs font-['Outfit'] font-bold uppercase tracking-widest">
-                                    <FlaskConical size={18} /> <span>Rigor Clínico</span>
-                                </div>
-                                <h3 className="text-4xl font-['Outfit'] font-bold text-[#0A0F1D] tracking-tight">Método Científico</h3>
-                                <p className="text-[#64748B] font-['Inter'] text-lg leading-relaxed font-light">
-                                    Nuestros protocolos no son improvisados; están basados en la evidencia más reciente de neurociencia.
+                        {/* Content */}
+                        <div className="space-y-8 order-1">
+                            <div>
+                                <h4 className="text-3xl font-['Outfit'] font-bold text-slate-900 mb-4 flex items-center gap-3">
+                                    Sesiones <span className="text-cyan-600">Grupales</span>
+                                </h4>
+                                <p className="text-slate-600 text-lg leading-relaxed mb-6">
+                                    El poder de la música como conector social. Grupos reducidos y homogéneos donde la interacción potencia los resultados terapéuticos.
                                 </p>
                             </div>
-                            <div>
-                                <button className="inline-flex items-center justify-center h-14 px-10 rounded-2xl bg-[#0A0F1D] text-white text-sm font-['Outfit'] font-bold hover:bg-[#3B82F6] transition-all duration-300 transform active:scale-95 shadow-xl uppercase tracking-wider">
-                                    Nuestra Metodología
-                                </button>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="p-6 rounded-2xl bg-slate-50 border border-gray-100 hover:border-cyan-400/50 hover:bg-white hover:shadow-lg transition-all group/card">
+                                    <div className="mb-6 flex justify-center">
+                                        <NeonIcon icon={Users} color="text-cyan-500" glowColor="#22d3ee" size="md" />
+                                    </div>
+                                    <h5 className="text-slate-900 font-['Outfit'] font-bold mb-2 text-center">Para Mayores</h5>
+                                    <p className="text-sm text-slate-500 text-center">Estimulación cognitiva y mantenimiento de la memoria a través de la música.</p>
+                                </div>
+
+                                <div className="p-6 rounded-2xl bg-slate-50 border border-gray-100 hover:border-cyan-400/50 hover:bg-white hover:shadow-lg transition-all group/card">
+                                    <div className="mb-6 flex justify-center">
+                                        <NeonIcon icon={Baby} color="text-cyan-500" glowColor="#22d3ee" size="md" />
+                                    </div>
+                                    <h5 className="text-slate-900 font-['Outfit'] font-bold mb-2 text-center">Para Niños</h5>
+                                    <p className="text-sm text-slate-500 text-center">Desarrollo de habilidades sociales y mejora de la comunicación en un entorno lúdico.</p>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => onOpenModal('grupal')}
+                                className="group flex items-center gap-3 px-8 py-4 bg-transparent border-2 border-slate-900 text-slate-900 rounded-full font-['Outfit'] font-bold tracking-widest hover:bg-slate-900 hover:text-white transition-all duration-300"
+                            >
+                                VER HORARIOS GRUPALES
+                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                            </button>
+                        </div>
+
+                        {/* Image Container */}
+                        <div className="relative order-2">
+                            {/* Subtle Shadow instead of glow */}
+                            <div className="absolute inset-0 bg-gray-200 rounded-[2rem] blur-2xl opacity-40 transform translate-y-4"></div>
+
+                            <div className="relative rounded-[2rem] overflow-hidden border border-gray-100 shadow-2xl">
+                                <img
+                                    src={groupImage}
+                                    alt="Aurora impartiendo sesión grupal"
+                                    className="w-full h-[500px] object-cover transform transition-transform duration-1000 group-hover:scale-105"
+                                />
+
+                                {/* Floating Badge */}
+                                <div className="absolute bottom-6 right-6 z-20 flex items-center gap-3 px-6 py-3 bg-white/90 backdrop-blur-xl border border-gray-200 rounded-full shadow-lg">
+                                    <Users className="w-5 h-5 text-cyan-600" />
+                                    <span className="text-sm font-['Outfit'] font-bold text-slate-900 tracking-wide">DINÁMICA SOCIAL</span>
+                                </div>
                             </div>
                         </div>
-                        <div className="relative w-full md:w-[45%] h-64 md:h-auto overflow-hidden">
-                            <div className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-105" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1576091160550-217358c7e618?auto=format&fit=crop&q=80&w=1000")' }} role="img" aria-label="Investigación científica y neurociencia aplicada a la musicoterapia"></div>
-                            <div className="hidden md:block absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-white"></div>
-                            <div className="md:hidden absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-white"></div>
-                        </div>
+
                     </div>
+
                 </div>
             </div>
         </section>
     );
 };
+
+export default Services;
