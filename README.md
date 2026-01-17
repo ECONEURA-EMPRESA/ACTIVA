@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/assets/logo.png" alt="Activa Logo" width="180" style="border-radius: 50%" />
+  <img src="docs/assets/logo-3d.png" alt="Activa 3D Core" width="220" />
   <h1>MÉTODO ACTIVA™</h1>
   <p><strong>SOVEREIGN CLINICAL OPERATING SYSTEM</strong></p>
 
