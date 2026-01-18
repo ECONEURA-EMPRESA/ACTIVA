@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { Menu, X, Briefcase, ChevronDown, UserPlus, BookOpen, Users, Activity, MonitorPlay, GraduationCap, LucideIcon } from 'lucide-react';
 import logoPremium from '../../assets/images/logo-premium.png';
 
-const CRM_URL = 'https://app.activamusicoterapia.com/auth/login';
-const REGISTER_URL = 'https://app.activamusicoterapia.com/auth/register';
+const CRM_URL = 'https://app-activamusicoterapia.web.app/auth/login';
+const REGISTER_URL = 'https://app-activamusicoterapia.web.app/auth/register';
 
 // Premium Spotlight Dropdown
 const NavDropdown = ({ title, items }: { title: string, items: { label: string, href: string, icon: LucideIcon }[] }) => {
