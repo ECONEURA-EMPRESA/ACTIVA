@@ -12,8 +12,8 @@
   </p>
 
   <p>
-    <a href="https://activamusicoterapia.com"><strong>OFFICIAL SITE</strong></a> •
-    <a href="https://webycrm-activa.web.app"><strong>LIVE PLATFORM</strong></a> •
+    <a href="https://webycrm-activa.web.app/login"><strong>CRM LOGIN</strong></a> •
+    <a href="https://webycrm-activa.web.app"><strong>OFFICIAL WEBSITE</strong></a> •
     <a href="mailto:info@activamusicoterapia.com"><strong>CONTACT</strong></a>
   </p>
 </div>

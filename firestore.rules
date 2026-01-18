@@ -88,8 +88,8 @@ service cloud.firestore {
 
     match /activity_logs/{logId} {
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      // Relaxed for debugging: Allow read if authenticated (Client filters by user)
-      allow read: if isAuthenticated();
+      // TITANIUM SECURITY: Strict ownership enforced. No public reads.
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
   }
 }
