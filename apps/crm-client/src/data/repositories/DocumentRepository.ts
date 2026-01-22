@@ -6,7 +6,8 @@ import {
     addDoc,
     deleteDoc,
     doc,
-    getDocs
+    getDocs,
+    limit
 } from 'firebase/firestore';
 import {
     ref,
@@ -24,7 +25,8 @@ export const DocumentRepository = {
     getByPatientId: async (patientId: string): Promise<ClinicalDocument[]> => {
         const q = query(
             collection(db, `patients/${patientId}/documents`),
-            orderBy('createdAt', 'desc')
+            orderBy('createdAt', 'desc'),
+            limit(50)
         );
         const snapshot = await getDocs(q);
         return snapshot.docs.map(d => {

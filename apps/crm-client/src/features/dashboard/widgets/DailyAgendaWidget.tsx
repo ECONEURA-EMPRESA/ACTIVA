@@ -8,6 +8,7 @@ import {
 
 import { Session, Patient } from '../../../lib/types';
 import { Card } from '../../../components/ui/Card';
+import { EmptyState } from '../../../components/ui/EmptyState';
 
 
 type ExtendedSession = Session & { patientId?: string | number; time?: string };
@@ -163,11 +164,17 @@ export const DailyAgendaWidget: React.FC<DailyAgendaWidgetProps> = ({
                         return acc;
                     }, {} as Record<string, typeof sessions>)
                 ).length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center opacity-60">
-                        <div className="w-24 h-24 rounded-full bg-slate-50 flex items-center justify-center mb-4">
-                            <Calendar size={40} className="text-slate-200" strokeWidth={1} />
-                        </div>
-                        <p className="text-slate-400 font-medium">Sin citas programadas</p>
+                    <div className="h-full flex items-center justify-center">
+                        <EmptyState
+                            icon={Calendar}
+                            title="Agenda Libre"
+                            description="No hay citas programadas para este día."
+                            action={onNewAppointment ? {
+                                label: "Nueva Cita",
+                                onClick: onNewAppointment,
+                                icon: Plus
+                            } : undefined}
+                        />
                     </div>
                 ) : (
                     Object.entries(

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search } from 'lucide-react';
 // Button removed (unused)
 import { Card } from '../../components/ui/Card';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { Patient, Session, GroupSession } from '../../lib/types';
 import { SessionModal, ExtendedSession } from '../../features/patients/modals/SessionModal';
 import { GroupSessionModal } from './modals/GroupSessionModal';
@@ -191,9 +192,15 @@ export const SessionsManager: React.FC<SessionsManagerProps> = ({
           </Card>
         ))}
         {filteredSessions.length === 0 && (
-          <div className="text-center py-12 text-slate-400 font-medium">
-            No se encontraron sesiones.
-          </div>
+          <EmptyState
+            icon={Search}
+            title="Sin resultados en la búsqueda"
+            description="No se han encontrado sesiones que coincidan con los criterios de búsqueda actuales. Intenta modificar los filtros."
+            action={{
+              label: "Limpiar búsqueda",
+              onClick: () => setSearch('')
+            }}
+          />
         )}
       </div>
 

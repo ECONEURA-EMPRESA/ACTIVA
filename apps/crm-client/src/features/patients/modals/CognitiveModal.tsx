@@ -13,7 +13,6 @@ import {
 } from '../../../lib/constants';
 // import { EVALUATION_AREAS } from '../../../lib/clinicalUtils';
 import { CognitiveScores } from '../../../lib/types';
-// import { CognitiveRadar } from '../components/CustomerRadar';
 import { formatDateForDisplay } from '../../../lib/patientUtils';
 import { formatDateForInput } from '../../../lib/utils';
 

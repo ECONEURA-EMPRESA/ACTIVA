@@ -194,7 +194,11 @@ export const BillingView = () => {
                                         </button>
 
                                         <button
-                                            onClick={() => deleteInvoice(inv.id)}
+                                            onClick={() => {
+                                                if (confirm('🛑 ¿ELIMINAR FACTURA DEFINITIVAMENTE?\n\nEsta acción no se puede deshacer.')) {
+                                                    deleteInvoice(inv.id);
+                                                }
+                                            }}
                                             className="flex flex-col items-center justify-center gap-1.5 py-2 rounded-lg bg-red-50 text-red-700 active:bg-red-100"
                                         >
                                             <Trash2 size={18} />
@@ -258,7 +262,11 @@ export const BillingView = () => {
                                                 <FileText size={16} />
                                             </button>
                                             <button
-                                                onClick={() => deleteInvoice(inv.id)}
+                                                onClick={() => {
+                                                    if (confirm('🛑 ¿ELIMINAR FACTURA DEFINITIVAMENTE?\n\nEsta acción no se puede deshacer.')) {
+                                                        deleteInvoice(inv.id);
+                                                    }
+                                                }}
                                                 className="p-1.5 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
                                                 title="Eliminar"
                                             >

@@ -2,12 +2,14 @@ import React, { useState, useMemo } from 'react';
 import { Search, Plus, Users, User } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { PatientAvatar } from '../../components/ui/PatientAvatar';
 import { Patient, GroupSession } from '../../lib/types'; // Updated import
 import { PATHOLOGY_MAP } from '../../lib/patientUtils';
 import { EditProfileModal } from './modals/EditProfileModal';
 import { useFirebaseAuthState as useAuth } from '../../auth/useAuth';
 import { PaywallModal } from '../../components/ui/PaywallModal';
+// import { BirthdayRadar } from '../../components/ui/BirthdayRadar';
 
 interface PatientsDirectoryProps {
   patients: Patient[];
@@ -43,20 +45,22 @@ export const PatientsDirectory: React.FC<PatientsDirectoryProps> = ({
     }
   };
 
-  const filteredPatients = patients.filter((p) => {
-    const matchesSearch =
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.diagnosis.toLowerCase().includes(search.toLowerCase());
+  const filteredPatients = useMemo(() => {
+    return patients.filter((p) => {
+      const matchesSearch =
+        p.name.toLowerCase().includes(search.toLowerCase()) ||
+        p.diagnosis.toLowerCase().includes(search.toLowerCase());
 
-    const matchesPathology = filterPathology === 'all' || p.pathologyType === filterPathology;
+      const matchesPathology = filterPathology === 'all' || p.pathologyType === filterPathology;
 
-    let matchesAge = true;
-    if (initialFilter === 'adults') matchesAge = (p.age as number) >= 15;
-    // Teens removed. Children is strictly < 15
-    if (initialFilter === 'kids') matchesAge = (p.age as number) < 15;
+      let matchesAge = true;
+      if (initialFilter === 'adults') matchesAge = (p.age as number) >= 15;
+      // Teens removed. Children is strictly < 15
+      if (initialFilter === 'kids') matchesAge = (p.age as number) < 15;
 
-    return matchesSearch && matchesPathology && matchesAge;
-  });
+      return matchesSearch && matchesPathology && matchesAge;
+    });
+  }, [patients, search, filterPathology, initialFilter]);
 
   // Unique Groups Calculation
   const uniqueGroups = useMemo(() => {
@@ -79,8 +83,14 @@ export const PatientsDirectory: React.FC<PatientsDirectoryProps> = ({
   }, [groupSessions, search]);
 
 
+
+
+  // ... inside component render, before header or tabs
   return (
     <div className="space-y-6 animate-in fade-in max-w-7xl mx-auto">
+      {/* RADAR DE CUMPLEAÑOS (TITANIUM FEATURE) */}
+      {/* <BirthdayRadar patients={patients} /> */}
+
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">
@@ -231,10 +241,12 @@ export const PatientsDirectory: React.FC<PatientsDirectoryProps> = ({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {uniqueGroups.length === 0 && (
-            <div className="col-span-full text-center py-20 text-slate-400">
-              <Users size={48} className="mx-auto mb-4 opacity-20" />
-              <p>No se encontraron grupos activos</p>
-            </div>
+            <EmptyState
+              icon={Users}
+              title="No hay grupos creados"
+              description="Crea tu primer grupo terapéutico para gestionar sesiones colectivas."
+              className="col-span-full"
+            />
           )}
           {uniqueGroups.map((g) => (
             <Card

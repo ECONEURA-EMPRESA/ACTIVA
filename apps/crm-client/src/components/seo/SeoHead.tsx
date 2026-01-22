@@ -9,7 +9,7 @@ interface SeoHeadProps {
 export const SeoHead: React.FC<SeoHeadProps> = ({
     title,
     description = 'Plataforma Clínica de Neuro-Rehabilitación Método Activa.',
-    image = '/icon.svg'
+    image = '/favicon.png'
 }) => {
     useEffect(() => {
         // Basic Title

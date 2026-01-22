@@ -2,11 +2,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DocumentRepository } from '../../data/repositories/DocumentRepository';
 import { queryKeys } from '../../api/queryKeys';
 import { useActivityLog } from '../useActivityLog';
-// import { toast } from 'react-hot-toast'; // Titanium Standard Feedback - TODO: Install/Configure
+import { useToast } from '../../context/ToastContext';
+// Titanium Standard Feedback
 
 export const useDocumentController = (patientId?: string) => {
     const queryClient = useQueryClient();
     const { logActivity } = useActivityLog();
+    const { error: toastError, success: toastSuccess } = useToast();
 
     // --- READS ---
     const {
@@ -36,11 +38,12 @@ export const useDocumentController = (patientId?: string) => {
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: queryKeys.patients.documents(patientId!) });
             logActivity('report', `Documento subido: ${data.name} `);
-
+            toastSuccess(`Documento subido: ${data.name}`);
         },
         onError: (err) => {
             console.error('Upload Failed:', err);
-            console.error(err instanceof Error ? err.message : 'Error al subir archivo');
+            const msg = err instanceof Error ? err.message : 'Error al subir archivo';
+            toastError(msg);
         }
     });
 
@@ -53,11 +56,11 @@ export const useDocumentController = (patientId?: string) => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: queryKeys.patients.documents(patientId!) });
             logActivity('delete', 'Documento eliminado');
-
+            toastSuccess('Documento eliminado correctamente');
         },
         onError: (err) => {
             console.error('Delete Failed:', err);
-            console.error('Error al eliminar archivo');
+            toastError('Error al eliminar archivo');
         }
     });
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, Briefcase, ChevronDown, UserPlus, BookOpen, Users, Activity, MonitorPlay, GraduationCap, LucideIcon } from 'lucide-react';
-import logoPremium from '../../assets/images/logo-premium.png';
+import logoPremium from '../../assets/images/logo-alpha.png';
 
 const CRM_URL = 'https://app-activamusicoterapia.web.app/auth/login';
 const REGISTER_URL = 'https://app-activamusicoterapia.web.app/auth/register';

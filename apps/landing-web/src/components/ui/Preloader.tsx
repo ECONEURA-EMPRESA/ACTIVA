@@ -66,7 +66,7 @@ export const Preloader = ({ onComplete }: PreloaderProps) => {
         if (!ctx) return;
 
         let animationFrameId: number;
-        let particles: NeuralParticle[] = [];
+        const particles: NeuralParticle[] = [];
 
         const resize = () => {
             canvas.width = window.innerWidth;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Activity } from 'lucide-react';
-import logoCircular from '../../assets/logo-circular.png';
+import logoCircular from '../../assets/logo-alpha.png';
 
 export const PremiumSplash = () => {
     const [progress, setProgress] = useState(0);

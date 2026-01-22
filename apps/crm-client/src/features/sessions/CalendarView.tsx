@@ -23,7 +23,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   onOpenGroupModal,
   onOpenQuickAppointment,
 }) => {
-  // const { user } = useAuth();
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(new Date());
 

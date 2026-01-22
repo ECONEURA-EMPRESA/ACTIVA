@@ -3,39 +3,31 @@ import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { ToastProvider } from './context/ToastContext';
 import './i18n';
 import './index.css';
-// import { registerSW } from 'virtual:pwa-register';
+
 import { ReloadPrompt } from './ReloadPrompt';
 
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { BrowserRouter } from 'react-router-dom';
 import { queryClient, persister } from '@/lib/react-query';
 
-// Auto-update PWA
-// TITANIUM: KILL SWITCH FOR SERVICE WORKERS
-// This ensures the aggressive 365-day cache is nuked immediately.
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js', {}).then(() => {
-    // Registered
-  });
-  navigator.serviceWorker.getRegistrations().then(function (registrations) {
-    for (const registration of registrations) {
-      registration.unregister();
-    }
-  });
-}
+// Auto-update PWA - Managed by ReloadPrompt & VitePWA
+// TITANIUM: KILL SWITCH REMOVED. MOBILE APP ENABLED.
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <PersistQueryClientProvider
       client={queryClient}
-      persistOptions={{ persister, maxAge: 1000 * 60 * 60 * 24 }} // 24 Hours Persistence
+      persistOptions={{ persister, maxAge: 1000 * 60 * 60 * 24 * 7 }} // 7 Days Persistence (Mobile App Standard)
     >
       <BrowserRouter>
         <AuthProvider>
           <ThemeProvider>
-            <App />
+            <ToastProvider>
+              <App />
+            </ToastProvider>
           </ThemeProvider>
         </AuthProvider>
       </BrowserRouter>

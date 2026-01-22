@@ -13,12 +13,15 @@ import {
   Fingerprint,
   Download,
   Receipt,
+  User,
+  Baby,
+  Contact,
 } from 'lucide-react';
 import { useFirebaseAuthState as useAuth } from '../auth/useAuth';
 import { useTranslation } from 'react-i18next';
 
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
-import logoCircular from '../assets/logo-circular.png';
+import logoCircular from '../assets/logo-alpha.png'; // RENAMED TO ALPHA, KEPT VAR NAME FOR MINIMAL DIFF
 import { SidebarAgenda } from './SidebarAgenda';
 
 interface SidebarProps {
@@ -41,7 +44,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   userEmail,
   isOpen = false,
   onClose,
-  events,
 }) => {
   const { signOut } = useAuth();
   const { t } = useTranslation();
@@ -79,24 +81,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div
           className={`p-6 flex items-center ${collapsed ? 'justify-center' : 'justify-between'} border-b border-slate-200/60 relative z-10`}
         >
-          <div
-            className={`flex items-center gap-3 transition-all duration-300 ${collapsed ? 'scale-90' : ''}`}
-          >
-            <div className="w-12 h-12 rounded-full p-0.5 bg-gradient-to-br from-pink-500/20 to-transparent flex items-center justify-center shadow-md shadow-pink-500/10 ring-1 ring-white overflow-hidden">
-              <img
-                src={logoCircular}
-                alt="Activa Logo"
-                className="w-full h-full object-cover rounded-full"
-              />
+          <div className={`flex items-center gap-3 transition-all duration-300 ${collapsed ? 'scale-90' : ''} group cursor-pointer`}>
+            <div className="relative">
+              <div className="w-12 h-12 rounded-full p-0.5 bg-gradient-to-br from-pink-500/20 to-transparent flex items-center justify-center shadow-md shadow-pink-500/10 ring-1 ring-white overflow-hidden bg-white">
+                <img
+                  src={logoCircular}
+                  alt="Activa Logo"
+                  className="w-full h-full object-cover rounded-full"
+                  width="48"
+                  height="48"
+                />
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center shadow-sm">
+                <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></div>
+              </div>
             </div>
 
             {!collapsed && (
               <div className="flex flex-col justify-center animate-in fade-in slide-in-from-left-2 duration-500">
-                <span className="text-sm font-black tracking-widest text-slate-800 leading-none">
+                <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-0.5 flex items-center gap-1">
+                  Clínica <ChevronRight size={10} className="rotate-90" />
+                </span>
+                <span className="text-sm font-black tracking-tight text-slate-800 leading-none group-hover:text-pink-600 transition-colors">
                   ACTIVA
                 </span>
-                <span className="text-[0.45rem] font-bold text-[#EC008C] uppercase tracking-[0.1em]">
-                  MUSICOTERAPIA
+                <span className="text-[0.55rem] font-bold text-[#EC008C] uppercase tracking-[0.1em] mt-0.5">
+                  Enterprise Edition
                 </span>
               </div>
             )}
@@ -211,9 +221,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </p>
             )}
             {[
-              { id: 'patients', icon: Users, label: t('sidebar.nav.patients.all') },
-              { id: 'patients-adults', icon: Users, label: t('sidebar.nav.patients.adults') },
-              { id: 'patients-kids', icon: Users, label: t('sidebar.nav.patients.kids') },
+              { id: 'patients', icon: Contact, label: t('sidebar.nav.patients.all') },
+              { id: 'patients-adults', icon: User, label: t('sidebar.nav.patients.adults') },
+              { id: 'patients-kids', icon: Baby, label: t('sidebar.nav.patients.kids') },
               { id: 'groups', icon: Users, label: 'Grupos' },
             ].map((item) => (
               <button
@@ -324,7 +334,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Agenda Widget */}
         <div className={`md:${collapsed ? 'hidden' : 'block'}`}>
-          <SidebarAgenda events={events || []} />
+          <SidebarAgenda />
         </div>
 
         {/* User Footer */}

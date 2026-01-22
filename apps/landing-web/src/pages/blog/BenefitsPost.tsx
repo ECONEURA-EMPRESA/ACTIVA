@@ -2,7 +2,7 @@ import { Helmet } from 'react-helmet-async';
 import { Navigation } from '../../components/layout/Navigation';
 import { Footer } from '../../components/landing/Footer';
 import { RevealSection } from '../../components/ui/RevealSection';
-import { User, Calendar, MessageCircle, Share2, ArrowLeft } from 'lucide-react';
+import { Calendar, MessageCircle, ArrowLeft } from 'lucide-react';
 import blogHeader from '../../assets/images/blog_header.png';
 import { Link } from 'react-router-dom';
 

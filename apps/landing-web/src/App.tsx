@@ -1,8 +1,9 @@
 import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import { Privacy } from './pages/legal/Privacy';
-import { Terms } from './pages/legal/Terms';
+import { PrivacyPolicy } from './pages/legal/PrivacyPolicy';
+import { TermsOfService } from './pages/legal/TermsOfService';
+import { DataDeletion } from './pages/legal/DataDeletion';
 import { NotFound } from './pages/NotFound';
 
 const Home = lazy(() => import('./pages/Home'));
@@ -21,8 +22,9 @@ function App() {
                             </Suspense>
                         }
                     />
-                    <Route path="/legal/privacy" element={<Privacy />} />
-                    <Route path="/legal/terms" element={<Terms />} />
+                    <Route path="/legal/privacy" element={<PrivacyPolicy />} />
+                    <Route path="/legal/terms" element={<TermsOfService />} />
+                    <Route path="/legal/data-deletion" element={<DataDeletion />} />
 
                     {/* Blog Routes */}
                     <Route

@@ -27,7 +27,7 @@ export const FormulationTab: React.FC<FormulationTabProps> = ({ data, isEditing,
 
   const renderSection = (title: string, field: keyof typeof FORMULATION_DATA, color: string) => {
     const options = (FORMULATION_DATA as Record<string, string[]>)[field] || [];
-    // const currentText = getText(title.toLowerCase()); // Simplificacion: usar el key correcto
+
     // Mejor usar un mapeo explícito
     const fieldKeyMap: Record<string, string> = {
       'Hipótesis de Trabajo': 'hypothesis',

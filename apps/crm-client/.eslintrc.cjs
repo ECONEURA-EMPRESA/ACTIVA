@@ -10,9 +10,9 @@ module.exports = {
     parser: '@typescript-eslint/parser',
     plugins: ['react-refresh'],
     rules: {
-        'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+        'react-refresh/only-export-components': ['error', { allowConstantExport: true }],
         '@typescript-eslint/no-explicit-any': 'error', // TITANIUM STANDARD: ZERO TOLERANCE
-        'react-hooks/exhaustive-deps': 'warn',
+        'react-hooks/exhaustive-deps': 'error',
         'prefer-const': 'error',
         '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }]
     },

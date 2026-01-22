@@ -61,6 +61,7 @@ export const SessionSchema = z.object({
   selfReflection: SessionSelfReflectionSchema.optional(),
   qualitative: QualitativeEvalSchema.optional(),
   scores: z.array(z.number().min(0).max(3)).optional(), // 0-3 Scale
+  deletedAt: z.string().optional(), // TITANIUM: Soft Delete
 });
 
 // --- CLINICAL MODULES ---
@@ -148,6 +149,7 @@ export const PatientSchema = z.object({
 
   // Contact
   contact: z.string().optional(),
+  email: z.string().email().optional().or(z.literal('')),
   reference: z.string().optional(),
 
   // Metrics

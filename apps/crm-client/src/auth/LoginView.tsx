@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useFirebaseAuthState } from './useAuth';
 import { Loader2, Activity, ShieldCheck, ArrowRight, Lock, Fingerprint } from 'lucide-react';
 import loginBg from '../assets/login-bg-metallic.png';
-import logoCircular from '../assets/logo-circular.png';
+import logoCircular from '../assets/logo-alpha.png';
 
 interface LoginViewProps {
   onDemoLogin?: () => void;

@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Activa Musicoterapia | Plataforma Clínica</title>
     <style>
@@ -17,16 +17,66 @@
             width: 100%;
         }
     </style>
+    <link rel="preload" as="image" href="/activa-logo-new.png" />
+    <style>
+        #splash-screen {
+            position: fixed;
+            inset: 0;
+            background: #0A0F1D;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .splash-logo {
+            width: 100px;
+            height: 100px;
+            animation: pulse 2s infinite;
+            border-radius: 50%;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.6;
+                transform: scale(0.95);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+
+            100% {
+                opacity: 0.6;
+                transform: scale(0.95);
+            }
+        }
+    </style>
 </head>
 
 <body>
+    <div id="splash-screen">
+        <img src="/activa-logo-new.png" class="splash-logo" alt="Loading..." />
+    </div>
     <div id="root"></div>
+    <script>
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => splash.remove(), 500);
+                }
+            }, 500);
+        });
+    </script>
     <!-- ZOMBIE SERVICE WORKER KILLER: Purges any old CRM SW that might be stuck on this domain -->
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function (registrations) {
                 for (let registration of registrations) {
-                    console.log('💀 Killing Zombie SW:', registration);
                     registration.unregister();
                 }
             });

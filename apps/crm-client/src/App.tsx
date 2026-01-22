@@ -31,10 +31,11 @@ import { Patient, GroupSession, CalendarEvent, NavigationPayload, Session } from
 
 // Loading Spinner for Code Splitting Suspense
 import { OfflineIndicator } from './components/ui/OfflineIndicator';
-import { PremiumSplash } from './components/ui/PremiumSplash';
+// PremiumSplash removed per user request
 import { ReloadPrompt } from './components/ui/ReloadPrompt';
+import { PWAInstallPrompt } from './features/pwa/PWAInstallPrompt';
 
-const PageLoader = () => <PremiumSplash />;
+const PageLoader = () => <div className="h-screen w-full flex items-center justify-center bg-slate-50"><div className="w-8 h-8 rounded-full border-4 border-slate-200 border-t-pink-500 animate-spin" /></div>;
 
 // Main App Component
 import { usePatients, useCreatePatient, useUpdatePatient } from './api/queries';
@@ -72,13 +73,13 @@ const DEFAULT_SOCIAL_CONTEXT = {
 };
 
 function App() {
-  const { user, loading: authLoading, demoMode, enterDemoMode } = useAuth();
+  const { user, demoMode, enterDemoMode } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
 
   // GLOBAL STATE (Server State via React Query)
-  const { data: patients = [], isLoading: isLoadingPatients } = usePatients(demoMode || !user);
+  const { data: patients = [] } = usePatients(demoMode || !user);
 
   // MUTATIONS
   const createPatient = useCreatePatient(demoMode);
@@ -90,7 +91,7 @@ function App() {
   const quickAppointment = useUIStore((state) => state.quickAppointment);
   const groupSession = useUIStore((state) => state.groupSession);
 
-  const isLoadingData = isLoadingPatients;
+  // isLoadingData removed (unused)
 
   // MODAL STATES
   const [groupSessions, setGroupSessions] = useState<GroupSession[]>([]);
@@ -359,11 +360,7 @@ function App() {
     return [...individualEvents, ...groupEventsList];
   }, [patients, groupSessions]);
 
-  // UNIFIED LOADING STATE (To prevent Splash flicker/restart)
-  const isInitializing = authLoading || (user && isLoadingData);
-
-  if (isInitializing) return <PremiumSplash />;
-
+  // UNIFIED LOADING STATE REMOVED - INSTANT ACCESS
   if (!user && !demoMode) {
     return (
       <>
@@ -435,6 +432,7 @@ function App() {
       )}
       <CommandMenu />
       <OfflineIndicator />
+      <PWAInstallPrompt />
     </ErrorBoundary>
   );
 }

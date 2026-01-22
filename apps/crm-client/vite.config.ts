@@ -21,7 +21,8 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'prompt', // TITANIUM: User controls updates (Safe Mode)
-      includeAssets: ['favicon.png', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
+      manifestFilename: 'manifest-nuclear.webmanifest',
+      includeAssets: ['favicon.png', 'mobile-assets/icon.png', 'pwa-v11-192.png', 'pwa-v11-512.png', 'apple-icon-v11.png'],
       manifest: {
         name: 'ACTIVA MUSICOTERAPIA',
         short_name: 'ACTIVA',
@@ -36,13 +37,13 @@ export default defineConfig({
         id: '/',
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: 'pwa-v11-192.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any maskable'
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'pwa-v11-512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
@@ -82,12 +83,12 @@ export default defineConfig({
           {
             name: "Nuevo Paciente",
             url: "/patients?action=new",
-            icons: [{ src: "pwa-192x192.png", sizes: "192x192" }]
+            icons: [{ src: "pwa-v11-192.png", sizes: "192x192" }]
           },
           {
             name: "Agenda",
             url: "/calendar",
-            icons: [{ src: "pwa-192x192.png", sizes: "192x192" }]
+            icons: [{ src: "pwa-v11-192.png", sizes: "192x192" }]
           }
         ]
       },

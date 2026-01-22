@@ -6,6 +6,7 @@ import { ClinicSettings } from '../../lib/types';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useSettingsController } from '../../hooks/controllers/useSettingsController';
+import { useToast } from '../../context/ToastContext';
 
 export const SettingsView: React.FC = () => {
   const { role, login } = useAuth();
@@ -13,6 +14,7 @@ export const SettingsView: React.FC = () => {
 
   // TITANIUM CONTROLLER
   const { settings, isLoading, isUpdating, updateSettings } = useSettingsController();
+  const { success: toastSuccess, error: toastError } = useToast();
 
   // Local form state initialized from fetched settings
   const [formData, setFormData] = useState<Partial<ClinicSettings>>({});
@@ -30,12 +32,10 @@ export const SettingsView: React.FC = () => {
     e.preventDefault();
     try {
       await updateSettings(formData);
-      // Toast handled globally or locally if we added it back.
-      // For now, simple alert or relying on optimistic/log
-      // alert('Guardado Titanium!'); 
+      toastSuccess('Configuración guardada correctamente');
     } catch (err) {
       console.error("Failed to save", err);
-      alert("Error al guardar configuración.");
+      toastError("Error al guardar configuración.");
     }
   };
 
@@ -106,25 +106,60 @@ export const SettingsView: React.FC = () => {
                 type="button"
                 variant="secondary"
                 className="w-full"
-                onClick={() => {
-                  alert('Iniciando exportación masiva...');
-                  const dummyData = 'Nombre,Edad,Diagnóstico\nJuan,30,Stress\nAna,25,Ansiedad';
-                  const bom = '\uFEFF';
-                  const blob = new Blob([bom + dummyData], { type: 'text/csv;charset=utf-8;' });
-                  const url = URL.createObjectURL(blob);
-                  const link = document.createElement('a');
-                  link.href = url;
-                  link.setAttribute(
-                    'download',
-                    `Pacientes_Activa_${new Date().toISOString().slice(0, 10)}.csv`,
-                  );
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
+                onClick={async () => {
+                  if (!confirm('¿Descargar copia de seguridad de todos los pacientes? Esto puede tardar unos segundos.')) return;
+
+                  try {
+                    // TITANIUM REAL EXPORT
+                    const { PatientRepository } = await import('../../data/repositories/PatientRepository');
+                    const realPatients = await PatientRepository.getAll();
+
+                    if (realPatients.length === 0) {
+                      alert('No hay pacientes para exportar.');
+                      return;
+                    }
+
+                    // Generate Header
+                    const headers = ['ID', 'Nombre', 'Edad', 'Diagnostico', 'Telefono', 'Email', 'Fecha_Alta'];
+                    const csvRows = [headers.join(',')];
+
+                    // Generate Rows
+                    for (const p of realPatients) {
+                      const row = [
+                        p.id,
+                        `"${p.name}"`, // Quote to handle commas in names
+                        p.age,
+                        `"${p.diagnosis}"`,
+                        p.contact || '',
+                        p.email || '',
+                        p.joinedDate
+                      ];
+                      csvRows.push(row.join(','));
+                    }
+
+                    const csvString = csvRows.join('\n');
+                    const bom = '\uFEFF';
+                    const blob = new Blob([bom + csvString], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute(
+                      'download',
+                      `BACKUP_PACIENTES_${new Date().toISOString().slice(0, 10)}.csv`,
+                    );
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                  } catch (err) {
+                    console.error("Export Failed", err);
+                    toastError("Error al generar el backup. Inténtelo de nuevo.");
+                  }
                 }}
                 icon={Save}
               >
-                Exportar Base de Datos (CSV)
+                Exportar Base de Datos (CSV REAL)
               </Button>
             </div>
           </Card>
@@ -177,7 +212,7 @@ export const SettingsView: React.FC = () => {
                           const file = e.target.files?.[0];
                           if (file) {
                             if (file.size > 10 * 1024 * 1024) { // 10MB Limit
-                              alert("El archivo es demasiado pesado (Máx 10MB). Por favor reduce su tamaño.");
+                              toastError("El archivo es demasiado pesado (Máx 10MB).");
                               return;
                             }
 
@@ -297,9 +332,9 @@ export const SettingsView: React.FC = () => {
                   onClick={async () => {
                     try {
                       await updateSettings(formData);
-                      alert("Datos de Facturación y Logo guardados correctamente.");
+                      toastSuccess("Datos de Facturación y Logo guardados correctamente.");
                     } catch {
-                      alert("Error al guardar.");
+                      toastError("Error al guardar.");
                     }
                   }}
                   isLoading={isUpdating}
@@ -399,10 +434,10 @@ export const SettingsView: React.FC = () => {
             Guardar Cambios
           </Button>
         </div>
-      </form>
+      </form >
 
       {/* DANGER ZONE (GDPR - Delete Account) */}
-      <Card className="p-8 border-red-200 bg-red-50 mt-8">
+      < Card className="p-8 border-red-200 bg-red-50 mt-8" >
         <h3 className="font-bold text-red-700 flex items-center gap-2 mb-4">
           <Shield size={20} /> Zona de Peligro
         </h3>
@@ -427,14 +462,14 @@ export const SettingsView: React.FC = () => {
             Eliminar Cuenta
           </Button>
         </div>
-      </Card>
+      </Card >
 
       {/* LEGAL FOOTER */}
-      <div className="text-center text-xs text-slate-400 py-8 flex justify-center gap-6">
+      < div className="text-center text-xs text-slate-400 py-8 flex justify-center gap-6" >
         <a href="https://activamusicoterapia.com/legal/terms" target="_blank" rel="noreferrer" className="hover:text-slate-600 transition-colors">Términos de Servicio</a>
         <a href="https://activamusicoterapia.com/legal/privacy" target="_blank" rel="noreferrer" className="hover:text-slate-600 transition-colors">Política de Privacidad</a>
         <span>© 2026 Activa Musicoterapia</span>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };

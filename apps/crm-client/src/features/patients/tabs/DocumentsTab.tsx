@@ -146,8 +146,8 @@ export const DocumentsTab: React.FC = () => {
                             </a>
                             <button
                                 onClick={() => {
-                                    // TODO: Replace with Titanium Modal
-                                    if (confirm('⚠️ [PROTECTED] ¿Eliminar permanentemente este registro clínico?')) deleteDocument(doc);
+                                    {/* Titanium Modal Placeholder */ }
+                                    if (confirm('🛑 ¿ELIMINAR DOCUMENTO DEFINITIVAMENTE?\n\nEsta acción no se puede deshacer.')) deleteDocument(doc);
                                 }}
                                 className="p-2 hover:bg-red-50 rounded text-red-500 transition-colors"
                                 disabled={isDeleting}

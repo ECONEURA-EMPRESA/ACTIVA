@@ -1,5 +1,5 @@
 import React from 'react';
-import { Patient, ClinicSettings } from '../../lib/types';
+import { Patient, ClinicSettings, Session } from '../../lib/types';
 import { usePatientController } from './hooks/usePatientController';
 import { PatientHeader } from './components/PatientHeader';
 import { Toast } from '../../components/ui/Toast';
@@ -31,8 +31,31 @@ interface PatientDetailProps {
     onUpdate: (updated: Patient) => void;
 }
 
+import { SignatureModal } from './modals/SignatureModal';
+import { useDocumentController } from '../../hooks/controllers/useDocumentController';
+import { useClinicalReport } from './hooks/useClinicalReport';
+
+import { RecycleBinModal } from './modals/RecycleBinModal';
+
 export const PatientDetail: React.FC<PatientDetailProps> = ({ patient, onBack, onUpdate }) => {
+    const { generateReport } = useClinicalReport();
     const { settings: clinicSettings } = useSettingsController(); // Need settings for Reports/Billing
+    const { uploadDocument } = useDocumentController(String(patient.id)); // Signature Upload
+    const [showSignatureModal, setShowSignatureModal] = React.useState(false); // Signature State
+    const [showRecycleBin, setShowRecycleBin] = React.useState(false); // Recycle Bin State
+
+    const handleSaveSignature = async (signatureDataUrl: string) => {
+        try {
+            const res = await fetch(signatureDataUrl);
+            const blob = await res.blob();
+            const file = new File([blob], `Consentimiento_Firmado_${new Date().toISOString().split('T')[0]}.png`, { type: 'image/png' });
+            await uploadDocument(file);
+            // Toast handled by controller usually, or add manual
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
     const {
         activeTab, setActiveTab,
         tabs,
@@ -49,9 +72,11 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({ patient, onBack, o
         canDelete,
         isPremium,
         activeSessions,
+        deletedSessions,
         notification,
         handleDeletePatient,
         handleDeleteSession,
+        handleRestoreSession,
         handleSaveSession,
         handleUpdateCognitive,
         showToast
@@ -100,8 +125,27 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({ patient, onBack, o
                 onNewSession={() => { setSelectedSession(undefined); setShowSessionModal(true); }}
                 onShowReport={() => setShowReportModal(true)}
                 onShowGuide={() => setShowGuideModal(true)}
+                onExport={() => generateReport(patient)}
+                onSign={() => setShowSignatureModal(true)}
+                onShowRecycleBin={() => setShowRecycleBin(true)}
+                recycleBinCount={deletedSessions?.length || 0}
             />
 
+
+            {showSignatureModal && (
+                <SignatureModal
+                    isOpen={showSignatureModal}
+                    onClose={() => setShowSignatureModal(false)}
+                    onSave={handleSaveSignature}
+                />
+            )}
+
+            <RecycleBinModal
+                isOpen={showRecycleBin}
+                onClose={() => setShowRecycleBin(false)}
+                deletedSessions={deletedSessions}
+                onRestore={handleRestoreSession}
+            />
             {/* --- TABS NAV --- */}
             <div className="border-b border-slate-200 sticky top-0 bg-[#F8FAFC]/95 backdrop-blur-sm z-10 pt-2 md:pt-4">
                 <div className="flex gap-4 md:gap-8 overflow-x-auto no-scrollbar px-4 md:px-0">
@@ -136,6 +180,12 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({ patient, onBack, o
                         onNewSession={() => { setSelectedSession(undefined); setShowSessionModal(true); }}
                         onEditSession={(s) => { setSelectedSession(s); setShowSessionModal(true); }}
                         onDeleteSession={handleDeleteSession}
+                        onCloneSession={(s) => {
+                            const cloned = { ...s, id: 'new_clone', date: new Date().toISOString(), paid: false, isAbsent: false };
+                            setSelectedSession(cloned as unknown as Session);
+                            setShowSessionModal(true);
+                            showToast('Sesión duplicada (modo edición)', 'success');
+                        }}
                     />
                 )}
                 {activeTab === 'documents' && <DocumentsTab />}
@@ -158,55 +208,75 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({ patient, onBack, o
             </div>
 
             {/* --- MODALS --- */}
-            {showSessionModal && (
-                <SessionModal
-                    initialData={selectedSession}
-                    patientType={patient.pathologyType || 'other'}
-                    onClose={() => setShowSessionModal(false)}
-                    onSave={handleSaveSession}
-                    onDelete={handleDeleteSession}
-                />
-            )}
-            {showCognitiveModal && (
-                <CognitiveModal
-                    onClose={() => { setShowCognitiveModal(false); setCognitiveInitialTab('general'); }}
-                    onSave={handleUpdateCognitive}
-                    initialData={patient.cognitiveScores}
-                    initialScores={patient.currentEval}
-                    initialTab={cognitiveInitialTab}
-                    isChild={patient.age < 15}
-                    isGeriatric={patient.age >= 60}
-                />
-            )}
+            {
+                showSessionModal && (
+                    <SessionModal
+                        initialData={selectedSession}
+                        patientType={patient.pathologyType || 'other'}
+                        onClose={() => setShowSessionModal(false)}
+                        onSave={handleSaveSession}
+                        onDelete={handleDeleteSession}
+                    />
+                )
+            }
+            {
+                showCognitiveModal && (
+                    <CognitiveModal
+                        onClose={() => { setShowCognitiveModal(false); setCognitiveInitialTab('general'); }}
+                        onSave={handleUpdateCognitive}
+                        initialData={patient.cognitiveScores}
+                        initialScores={patient.currentEval}
+                        initialTab={cognitiveInitialTab}
+                        isChild={patient.age < 15}
+                        isGeriatric={patient.age >= 60}
+                    />
+                )
+            }
             {showGuideModal && <ClinicalGuideModal onClose={() => setShowGuideModal(false)} />}
-            {showEditProfile && (
-                <EditProfileModal
-                    onClose={() => setShowEditProfile(false)}
-                    onSave={(data) => { onUpdate({ ...patient, ...data }); setShowEditProfile(false); showToast('Perfil actualizado', 'success'); }}
-                    initialData={patient}
-                />
-            )}
-            {showReportModal && (
-                <ReportModal
-                    isOpen={showReportModal}
-                    onClose={() => setShowReportModal(false)}
-                    patient={patient}
-                    clinicSettings={clinicSettings || {}}
-                />
-            )}
-            {showAdmissionChecklist && (
-                <AdmissionChecklistModal
-                    onClose={() => setShowAdmissionChecklist(false)}
-                    onSave={(data) => {
-                        onUpdate({ ...patient, cognitiveScores: { ...patient.cognitiveScores, admissionChecks: data } });
-                        setShowAdmissionChecklist(false);
-                        showToast('Checklist guardado', 'success');
-                    }}
-                    initialData={patient.cognitiveScores?.admissionChecks}
-                    isChild={patient.age < 15}
-                />
-            )}
+            {
+                showEditProfile && (
+                    <EditProfileModal
+                        onClose={() => setShowEditProfile(false)}
+                        onSave={(data) => { onUpdate({ ...patient, ...data }); setShowEditProfile(false); showToast('Perfil actualizado', 'success'); }}
+                        initialData={patient}
+                    />
+                )
+            }
+            {
+                showReportModal && (
+                    <ReportModal
+                        isOpen={showReportModal}
+                        onClose={() => setShowReportModal(false)}
+                        patient={patient}
+                        clinicSettings={clinicSettings || {}}
+                    />
+                )
+            }
+            {
+                showAdmissionChecklist && (
+                    <AdmissionChecklistModal
+                        onClose={() => setShowAdmissionChecklist(false)}
+                        onSave={(data) => {
+                            onUpdate({ ...patient, cognitiveScores: { ...patient.cognitiveScores, admissionChecks: data } });
+                            setShowAdmissionChecklist(false);
+                            showToast('Checklist guardado', 'success');
+                        }}
+                        initialData={patient.cognitiveScores?.admissionChecks}
+                        isChild={patient.age < 15}
+                    />
+                )
+            }
             <PaywallModal isOpen={showPaywall} onClose={() => setShowPaywall(false)} limitType="session" />
-        </div>
+
+            {
+                showSignatureModal && (
+                    <SignatureModal
+                        isOpen={showSignatureModal}
+                        onClose={() => setShowSignatureModal(false)}
+                        onSave={handleSaveSignature}
+                    />
+                )
+            }
+        </div >
     );
 };

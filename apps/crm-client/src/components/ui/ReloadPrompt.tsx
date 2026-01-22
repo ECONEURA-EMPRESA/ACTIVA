@@ -8,16 +8,19 @@ export const ReloadPrompt = () => {
         updateServiceWorker,
     } = useRegisterSW({
         onRegistered(r) {
-            console.log('SW Registered: ' + r);
             // TITANIUM UPDATE: Check for updates every 15s to force detection on mobile
             if (r) {
+                // TITANIUM NUCLEAR UPDATE: Force update immediately to clear old logo cache
+                r.update().then(() => {
+                    console.log('Titanium Update Checked');
+                });
                 setInterval(() => {
                     r.update().catch(() => { });
-                }, 15 * 1000);
+                }, 5 * 1000); // Keep checking
             }
         },
-        onRegisterError(error) {
-            console.error('SW registration error', error);
+        onRegisterError(_error) {
+            // Sentry capture could go here
         },
     });
 
@@ -45,10 +48,10 @@ export const ReloadPrompt = () => {
                 {needRefresh && (
                     <button
                         onClick={() => updateServiceWorker(true)}
-                        className="bg-[#EC008C] hover:bg-[#D90082] text-white px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-pink-900/20"
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl text-sm font-black transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-emerald-900/20 animate-pulse"
                     >
-                        <RefreshCw size={14} className="animate-spin-slow" />
-                        ACTUALIZAR
+                        <RefreshCw size={18} className="animate-spin" />
+                        ACTUALIZAR AHORA (VERSIÓN 5.1.1)
                     </button>
                 )}
 

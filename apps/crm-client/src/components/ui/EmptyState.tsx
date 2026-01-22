@@ -1,38 +1,47 @@
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
+import { Button } from './Button';
 
 interface EmptyStateProps {
-    icon?: LucideIcon;
+    icon: LucideIcon;
     title: string;
     description: string;
-    action?: React.ReactNode;
+    action?: {
+        label: string;
+        onClick: () => void;
+        icon?: LucideIcon;
+    };
+    className?: string; // Allow custom margins/padding
 }
 
-export const EmptyState: React.FC<EmptyStateProps> = ({ icon: Icon, title, description, action }) => {
+export const EmptyState: React.FC<EmptyStateProps> = ({
+    icon: Icon,
+    title,
+    description,
+    action,
+    className = '',
+}) => {
     return (
-        <div className="flex flex-col items-center justify-center p-8 text-center animate-in fade-in fill-mode-both duration-500">
-            <div className="w-32 h-32 bg-slate-50 rounded-full flex items-center justify-center mb-6 relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-tr from-pink-100 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                {Icon ? (
-                    <Icon size={48} className="text-slate-300 group-hover:text-pink-400 group-hover:scale-110 transition-all duration-300" />
-                ) : (
-                    <svg
-                        className="w-16 h-16 text-slate-200"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={1}
-                    >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                )}
-            </div>
-            <h3 className="text-xl font-bold text-slate-800 mb-2">{title}</h3>
-            <p className="text-slate-500 max-w-sm mb-6 leading-relaxed">{description}</p>
-            {action && (
-                <div className="mt-2">
-                    {action}
+        <div className={`col-span-full flex flex-col items-center justify-center text-center py-20 px-4 animate-in fade-in zoom-in-95 duration-500 ${className}`}>
+            <div className="relative mb-6 group cursor-default">
+                <div className="absolute inset-0 bg-gradient-to-tr from-slate-200/50 to-slate-100/50 rounded-full blur-2xl transform scale-150 group-hover:scale-175 transition-transform duration-700"></div>
+                <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center shadow-inner ring-1 ring-slate-100 relative z-10">
+                    <Icon size={32} className="text-slate-300 group-hover:text-pink-400 transition-colors duration-500" strokeWidth={1.5} />
                 </div>
+            </div>
+
+            <h3 className="text-lg font-bold text-slate-800 mb-2 max-w-sm">
+                {title}
+            </h3>
+
+            <p className="text-sm text-slate-500 max-w-md mx-auto leading-relaxed mb-8">
+                {description}
+            </p>
+
+            {action && (
+                <Button onClick={action.onClick} icon={action.icon} variant="primary">
+                    {action.label}
+                </Button>
             )}
         </div>
     );

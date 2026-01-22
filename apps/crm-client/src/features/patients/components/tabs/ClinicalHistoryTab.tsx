@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Button } from '../../../../components/ui/Button';
 import { Badge } from '../../../../components/ui/Badge';
-import { PlusCircle, Edit, Trash2 } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, Copy } from 'lucide-react';
 import { PhaseProgress } from '../PhaseProgress';
 import { Patient, Session } from '../../../../lib/types';
 import { getPhaseForSessionIndex } from '../../../../lib/clinicalUtils';
@@ -12,6 +12,7 @@ interface ClinicalHistoryTabProps {
     onNewSession: () => void;
     onEditSession: (session: Session) => void;
     onDeleteSession: (sessionId: string | number) => void;
+    onCloneSession?: (session: Session) => void; // TITANIUM: Cloning
     isPremium: boolean;
     onShowPaywall: () => void;
 }
@@ -22,6 +23,7 @@ export const ClinicalHistoryTab: React.FC<ClinicalHistoryTabProps> = ({
     onNewSession,
     onEditSession,
     onDeleteSession,
+    onCloneSession,
     isPremium,
     onShowPaywall
 }) => {
@@ -94,6 +96,18 @@ export const ClinicalHistoryTab: React.FC<ClinicalHistoryTabProps> = ({
                                 )}
                             </div>
                             <div className="flex gap-1">
+                                {onCloneSession && (
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="text-indigo-400 hover:bg-indigo-50 hover:text-indigo-600"
+                                        icon={Copy}
+                                        onClick={() => onCloneSession(s)}
+                                        title="Clonar Sesión"
+                                    >
+                                        {null}
+                                    </Button>
+                                )}
                                 <Button
                                     size="sm"
                                     variant="ghost"

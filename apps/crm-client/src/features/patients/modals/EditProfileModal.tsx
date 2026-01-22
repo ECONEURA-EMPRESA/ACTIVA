@@ -51,7 +51,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({ onClose, onS
 
 
   // Use memo for age
-  // const calculatedAge = useMemo(...)
+
 
   // TITANIUM UPLOAD HOOK
   const { uploadImage, uploading } = useImageUpload();

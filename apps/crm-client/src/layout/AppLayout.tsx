@@ -3,7 +3,7 @@ import React, { ReactNode, useState } from 'react';
 import { Sidebar } from './Sidebar';
 import dashboardBg from '../assets/dashboard-bg-metallic.png';
 
-import logoCircular from '../assets/logo-circular.png';
+import logoCircular from '../assets/logo-alpha.png'; // Updated to alpha
 import { CalendarEvent } from '../lib/types';
 
 interface AppLayoutProps {

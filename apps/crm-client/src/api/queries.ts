@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { PatientsService } from './services';
 import { PatientRepository } from '../data/repositories/PatientRepository';
 import { SettingsRepository } from '../data/repositories/SettingsRepository';
 import { auth } from '../lib/firebase';
@@ -16,7 +15,7 @@ export function usePatients(demoMode: boolean) {
         queryKey: [...queryKeys.patients.all, { demoMode, uid }],
         queryFn: async () => {
             if (demoMode) return INITIAL_PATIENTS;
-            const rawData = await PatientsService.getAll();
+            const rawData = await PatientRepository.getAll();
 
             // ZOD "IRON SHIELD" VALIDATION
             const validPatients = rawData.reduce((acc, item) => {
@@ -24,9 +23,7 @@ export function usePatients(demoMode: boolean) {
                 if (result.success) {
                     acc.push(result.data as Patient);
                 } else {
-                    console.error("🛡️ Titanium Warning: Patient schema mismatch detected.", item.id, result.error);
-                    // RESCUE PROTOCOL: Allow legacy data to pass, but log it.
-                    // We cast to Patient because we know it's coming from DB, logic will handle missing fields gracefully
+                    // SILENT RESCUE: Do not log schema errors in production loop to prevent FPS drop.
                     acc.push(item as Patient);
                 }
                 return acc;
@@ -96,7 +93,9 @@ export function useUpdatePatient(demoMode: boolean) {
         mutationFn: async (patient: Patient) => {
             if (demoMode) return patient;
             if (!patient.id) throw new Error("ID de paciente requerido");
-            return await PatientsService.update(String(patient.id), patient);
+            // PatientRepository.update returns void, so we just await it and return the input patient
+            await PatientRepository.update(String(patient.id), patient);
+            return patient;
         },
         // ⚡ TITANIUM OPTIMISTIC UI ⚡
         onMutate: async (newPatient) => {
@@ -151,7 +150,8 @@ export function useDeletePatient(demoMode: boolean) {
     return useMutation({
         mutationFn: async (id: string) => {
             if (demoMode) return { success: true };
-            return await PatientsService.delete(id);
+            await PatientRepository.delete(id);
+            return { success: true };
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: queryKeys.patients.all });

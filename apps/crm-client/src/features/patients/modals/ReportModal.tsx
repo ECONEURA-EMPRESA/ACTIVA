@@ -1,13 +1,16 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { X, FileText, Printer, Wand2 } from 'lucide-react';
+import { X, FileText, Printer, Wand2, Cloud } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Patient, ClinicSettings } from '../../../lib/types';
-import logoCircular from '../../../assets/logo-circular.png';
+import logoCircular from '../../../assets/logo-alpha.png';
 import { useActivityLog } from '../../../hooks/useActivityLog';
+import { useReportController } from '../../../hooks/controllers/useReportController'; // TITANIUM
 import { PATHOLOGY_MAP } from '../../../lib/patientUtils';
 import { EVALUATION_AREAS_CHILD, EVALUATION_AREAS_ADULT } from '../../../lib/constants';
 import { useReactToPrint, UseReactToPrintOptions } from 'react-to-print';
+import { useAuth } from '../../../context/AuthContext';
+import { Toast } from '../../../components/ui/Toast';
 
 interface ReportModalProps {
   isOpen: boolean;
@@ -22,9 +25,13 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   patient,
   clinicSettings,
 }) => {
+  const { user } = useAuth();
   const [reportText, setReportText] = useState('');
   const [isGenerating, setIsGenerating] = useState(true);
+  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+
   const { logActivity } = useActivityLog();
+  const { createReport, isCreating } = useReportController(patient.id ? String(patient.id) : undefined);
 
   // PRINT REF
   const reportRef = useRef<HTMLDivElement>(null);
@@ -33,9 +40,29 @@ export const ReportModal: React.FC<ReportModalProps> = ({
     content: () => reportRef.current,
     documentTitle: `Informe_Clinico_${patient.name.replace(/\s+/g, '_')}`,
     removeAfterPrint: true,
-    onAfterPrint: () => logActivity('report', `Informe clínico generado para: ${patient.name}`),
+    onAfterPrint: () => logActivity('report', `Informe clínico impreso para: ${patient.name}`),
   } as UseReactToPrintOptions);
 
+  const handleSave = async () => {
+    try {
+      await createReport({
+        patientId: String(patient.id),
+        patientName: patient.name,
+        type: 'evolution', // Default type, could be selectable
+        date: new Date().toISOString(),
+        content: reportText,
+        status: 'final',
+        generatedBy: user?.email || 'Sistema'
+      });
+      setToast({ msg: 'Informe guardado correctamente en la Historia Clínica', type: 'success' });
+      logActivity('report', `Informe guardado: ${patient.name}`);
+      // Close after delay or just let user chose
+      setTimeout(onClose, 1500);
+    } catch (error) {
+      console.error(error);
+      setToast({ msg: 'Error al guardar el informe', type: 'error' });
+    }
+  };
 
   // Smart Template Logic (Refactored: Robust & Instant)
   useEffect(() => {
@@ -126,13 +153,14 @@ Se recomienda la continuidad del tratamiento con una frecuencia de...`;
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
       <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl h-[85vh] flex flex-col animate-in fade-in zoom-in-95">
         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
           <div>
             <h2 className="text-xl font-black text-slate-800 flex items-center gap-3">
               <FileText className="text-pink-600" /> Generador de Informe Clínico
             </h2>
-            <p className="text-sm text-slate-500">Asistente de redacción inteligente v5.0</p>
+            <p className="text-sm text-slate-500">Generador de Plantillas Clínicas v5.0</p>
           </div>
           <button
             onClick={onClose}
@@ -199,8 +227,16 @@ Se recomienda la continuidad del tratamiento con una frecuencia de...`;
           <Button variant="secondary" onClick={onClose}>
             Cancelar
           </Button>
-          <Button onClick={handlePrint} icon={Printer}>
-            Imprimir / Guardar PDF
+          <Button
+            onClick={handleSave}
+            icon={Cloud}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-700"
+            disabled={isCreating}
+          >
+            {isCreating ? 'Guardando...' : 'Guardar en Historial'}
+          </Button>
+          <Button onClick={handlePrint} icon={Printer} variant="secondary">
+            Solo Imprimir
           </Button>
         </div>
       </div>

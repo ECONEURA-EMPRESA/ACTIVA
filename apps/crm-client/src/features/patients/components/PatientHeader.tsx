@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, CalendarPlus, FileText, Lightbulb, Phone, Trash2, Edit } from 'lucide-react';
+import { ArrowLeft, CalendarPlus, FileText, Lightbulb, Phone, Trash2, Edit, FileDown } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Card } from '../../../components/ui/Card';
 import { PatientAvatar } from '../../../components/ui/PatientAvatar';
@@ -19,6 +19,10 @@ interface PatientHeaderProps {
     onNewSession: () => void;
     onShowReport: () => void;
     onShowGuide: () => void;
+    onExport?: () => void; // TITANIUM: New Feature
+    onSign?: () => void;   // TITANIUM: New Feature (Signature)
+    onShowRecycleBin?: () => void; // TITANIUM: Recycle Bin
+    recycleBinCount?: number;
 }
 
 export const PatientHeader: React.FC<PatientHeaderProps> = ({
@@ -30,7 +34,11 @@ export const PatientHeader: React.FC<PatientHeaderProps> = ({
     canDelete,
     onNewSession,
     onShowReport,
-    onShowGuide
+    onShowGuide,
+    onExport,
+    onSign,
+    onShowRecycleBin,
+    recycleBinCount = 0
 }) => {
     const { logActivity } = useActivityLog();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -62,6 +70,30 @@ export const PatientHeader: React.FC<PatientHeaderProps> = ({
                     >
                         AGENDAR CITA
                     </Button>
+
+                    {onExport && (
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            icon={FileDown}
+                            onClick={onExport}
+                            className="border-pink-200 text-pink-700 hover:bg-pink-50"
+                        >
+                            Exportar
+                        </Button>
+                    )}
+
+                    {onSign && (
+                        <Button
+                            variant="primary"
+                            size="sm"
+                            icon={Edit}
+                            onClick={onSign}
+                            className="bg-slate-800 text-white hover:bg-slate-700"
+                        >
+                            Firmar
+                        </Button>
+                    )}
 
                     <Button
                         variant="secondary"
@@ -105,6 +137,18 @@ export const PatientHeader: React.FC<PatientHeaderProps> = ({
                             disabled={isDeleting}
                         >
                             Eliminar Paciente
+                        </Button>
+                    )}
+                    {recycleBinCount > 0 && onShowRecycleBin && (
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            icon={Trash2}
+                            onClick={onShowRecycleBin}
+                            className="bg-slate-100 text-slate-500 border-slate-200 hover:bg-red-50 hover:text-red-500 hover:border-red-200"
+                            title={`Papelera (${recycleBinCount})`}
+                        >
+                            {recycleBinCount}
                         </Button>
                     )}
                 </div>

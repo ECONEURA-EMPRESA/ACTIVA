@@ -1,5 +1,6 @@
 import { Instagram, Facebook, Mail } from 'lucide-react';
-import logoPremium from '../../assets/images/logo-premium.png';
+import { Link } from 'react-router-dom';
+import logoPremium from '../../assets/images/logo-alpha.png';
 
 export const Footer = () => {
     return (
@@ -14,8 +15,9 @@ export const Footer = () => {
                 </div>
 
                 <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16 border-y border-gray-100 py-10">
-                    <a href="#" className="text-slate-500 hover:text-slate-900 transition-colors font-['Outfit'] font-medium text-sm tracking-wide hover:underline">Aviso de Privacidad</a>
-                    <a href="#" className="text-slate-500 hover:text-slate-900 transition-colors font-['Outfit'] font-medium text-sm tracking-wide hover:underline">Términos y Condiciones</a>
+                    <Link to="/legal/privacy" className="text-slate-500 hover:text-slate-900 transition-colors font-['Outfit'] font-medium text-sm tracking-wide hover:underline">Aviso de Privacidad</Link>
+                    <Link to="/legal/terms" className="text-slate-500 hover:text-slate-900 transition-colors font-['Outfit'] font-medium text-sm tracking-wide hover:underline">Términos y Condiciones</Link>
+                    <Link to="/legal/data-deletion" className="text-slate-500 hover:text-slate-900 transition-colors font-['Outfit'] font-medium text-sm tracking-wide hover:underline">Eliminación de Datos</Link>
                     <a href="#" className="text-slate-500 hover:text-slate-900 transition-colors font-['Outfit'] font-medium text-sm tracking-wide hover:underline">Mapa del Sitio</a>
                 </div>
                 <div className="flex justify-center gap-8">

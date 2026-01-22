@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, ClipboardCheck, Lightbulb, CheckSquare, Save, ClipboardList, Trash2 } from 'lucide-react';
+import { SessionTimer } from '../../../components/ui/SessionTimer';
+import { X, ClipboardCheck, Lightbulb, CheckSquare, Save, ClipboardList, Trash2, AlarmClock, Repeat } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 import { Card } from '../../../components/ui/Card';
@@ -11,7 +12,7 @@ import {
 } from '../../../lib/clinicalUtils';
 import { formatDateForInput } from '../../../lib/patientUtils';
 
-import { Session } from '../../../lib/types';
+import { Session } from '../../../lib/types'; // Session has recurrence: RecurrenceRule
 
 export interface QualitativeAssessment {
   musical: string;
@@ -21,6 +22,8 @@ export interface QualitativeAssessment {
 }
 
 // Extended Session for UI fields not yet in Shared Schema
+// We override recurrence to match the strict type from Session if needed, or rely on Session's definition.
+// Since Session (from shared) has recurrence, we need to make sure we match it or extend compatibly.
 export interface ExtendedSession extends Partial<Session> {
   mood?: string;
   engagement?: number;
@@ -32,17 +35,14 @@ export interface ExtendedSession extends Partial<Session> {
   price?: number;
   paid?: boolean;
   isAbsent?: boolean;
+  // Recurrence is already in Session? If so, we don't need to redefine if we match it.
+  // But if we want to ensure it's there for onSave:
+  // We will cast it in usage.
   [key: string]: unknown;
 }
 
 interface SessionModalProps {
-  isOpen?: boolean; // Kept optional for compat or remove if unused entirely.
-  // actually PatientDetail passes isOpen={boolean} so we should keep it OR remove from usage.
-  // PatientDetail uses isOpen={showSessionModal}.
-  // So we MUST keep isOpen in interface? Or remove usage in PatientDetail?
-  // Previous error said "missing properties ... isOpen".
-  // So I should keep isOpen in interface.
-  // But patientId?
+  isOpen?: boolean;
   onClose: () => void;
   onSave: (data: ExtendedSession) => void;
   onDelete?: (id: string | number) => void;
@@ -67,6 +67,13 @@ export const SessionModal: React.FC<SessionModalProps> = ({
   const [isAbsent, setIsAbsent] = useState(initialData?.isAbsent || false);
   const [price, setPrice] = useState(initialData?.price || 50);
   const [isPaid, setIsPaid] = useState(initialData?.paid || false);
+  const [showTimer, setShowTimer] = useState(false);
+
+  // Recurrence State (New) matching RecurrenceRule
+  const [isRecurring, setIsRecurring] = useState(false);
+  // frequency must be uppercase
+  const [recurrenceFreq, setRecurrenceFreq] = useState<'WEEKLY' | 'BIWEEKLY'>('WEEKLY');
+  const [recurrenceCount, setRecurrenceCount] = useState(4); // Mapped to occurrences
 
   // Safe guide retrieval
   const guideKey = patientType in CLINICAL_GUIDES ? (patientType as ClinicalGuideKey) : 'other';
@@ -130,19 +137,23 @@ export const SessionModal: React.FC<SessionModalProps> = ({
             const qual_fis = (formData.get('qual_fis') as string) || '';
             const groupAnalysis = (formData.get('groupAnalysis') as string) || '';
 
+            // Calculate Day of Week from Date
+            const selectedDate = new Date((formData.get('date') as string) || new Date());
+            // Shared type comment says 1=Monday, 7=Sunday. JS getDay() returns 0 for Sunday.
+            const adjustedDay = selectedDate.getDay() === 0 ? 7 : selectedDate.getDay();
+
             const newSession: ExtendedSession = {
               id: initialData?.id || Date.now().toString(),
-              // patientId not needed in Session object if handled by parent context
               date: (formData.get('date') as string) || new Date().toISOString(),
               time: (formData.get('time') as string) || '09:00',
-              type: sessionType as 'individual' | 'group', // Use state
+              type: sessionType as 'individual' | 'group',
               notes: (formData.get('notes') as string) || '',
-              activities: [], // We use activityDetails for structured data, or this for simple list
-              activityDetails, // State
+              activities: [],
+              activityDetails,
               mood: (formData.get('mood') as string) || 'neutral',
               engagement: Number(formData.get('engagement') || 5),
               phase: 2,
-              scores, // State
+              scores,
               groupAnalysis,
               qualitative: {
                 musical: qual_mus,
@@ -150,9 +161,14 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                 cognitive: qual_cog,
                 physical: qual_fis,
               },
-              price, // State
-              paid: isPaid, // State
-              isAbsent, // State
+              price,
+              paid: isPaid,
+              isAbsent,
+              recurrence: isRecurring ? {
+                frequency: recurrenceFreq,
+                occurrences: recurrenceCount,
+                daysOfWeek: [adjustedDay]
+              } : undefined
             };
 
             onSave(newSession);
@@ -177,6 +193,80 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                   required
                 />
               </div>
+              <div className="mt-2 text-center">
+                {!showTimer ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowTimer(true)}
+                    className="text-slate-400 hover:text-pink-600 w-full text-xs"
+                    icon={AlarmClock}
+                  >
+                    Activar Cronómetro
+                  </Button>
+                ) : (
+                  <div className="animate-in fade-in slide-in-from-top-2">
+                    <SessionTimer initialMinutes={45} onComplete={() => alert('Fin de Sesión')} />
+                    <button
+                      onClick={() => setShowTimer(false)}
+                      className="text-[10px] text-slate-300 hover:text-red-400 mt-1 w-full text-center"
+                    >
+                      Ocultar
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* RECURRENCE BLOCK */}
+              {!initialData?.id && (
+                <div className="flex flex-col w-full bg-indigo-50 p-3 rounded-xl border border-indigo-100 mt-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="flex items-center gap-2">
+                      <Repeat className="text-indigo-500" size={18} />
+                      <span className="text-xs font-bold text-indigo-900 uppercase tracking-wide">Repetir Sesión</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsRecurring(!isRecurring)}
+                      className={`w-10 h-5 rounded-full relative transition-colors ${isRecurring ? 'bg-indigo-500' : 'bg-slate-300'}`}
+                    >
+                      <div className={`w-3 h-3 bg-white rounded-full absolute top-1 transition-all ${isRecurring ? 'left-6' : 'left-1'}`} />
+                    </button>
+                  </div>
+
+                  {isRecurring && (
+                    <div className="flex gap-3 animate-in fade-in slide-in-from-top-2">
+                      <div className="flex-1">
+                        <label className="text-[10px] uppercase font-bold text-indigo-700 block mb-1">Frecuencia</label>
+                        <select
+                          value={recurrenceFreq}
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          onChange={e => setRecurrenceFreq(e.target.value as any)}
+                          className="w-full text-xs p-1.5 rounded-lg border border-indigo-200 bg-white text-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                          <option value="WEEKLY">Semanal (7 días)</option>
+                          <option value="BIWEEKLY">Quincenal (14 días)</option>
+                        </select>
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-[10px] uppercase font-bold text-indigo-700 block mb-1">Total Sesiones</label>
+                        <select
+                          value={recurrenceCount}
+                          onChange={e => setRecurrenceCount(Number(e.target.value))}
+                          className="w-full text-xs p-1.5 rounded-lg border border-indigo-200 bg-white text-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                          <option value={2}>2 sesiones</option>
+                          <option value={4}>4 sesiones (1 mes)</option>
+                          <option value={8}>8 sesiones (2 meses)</option>
+                          <option value={12}>12 sesiones (3 meses)</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
             </div>
             <div className="flex flex-col w-1/3">
               <label className="label-pro">Estado Asistencia</label>
@@ -202,7 +292,6 @@ export const SessionModal: React.FC<SessionModalProps> = ({
                   <button
                     type="button"
                     onClick={() => {
-                      // Logic: Toggle price between 0 and standard
                       const willCharge = price === 0;
                       setPrice(willCharge ? (initialData?.price || 50) : 0);
                     }}

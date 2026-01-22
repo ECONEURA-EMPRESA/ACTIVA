@@ -5,7 +5,7 @@ import { FileText, Download, Search, Filter, Calendar, AlertTriangle, Loader2 } 
 import { useAuth } from '../../context/AuthContext';
 // Titanium Upgrade: New Controller
 import { useReportController } from '../../hooks/controllers/useReportController';
-// import { ClinicalReport } from '../../lib/types';
+
 
 export const ReportsView: React.FC = () => {
     useAuth();
@@ -55,13 +55,14 @@ export const ReportsView: React.FC = () => {
                         Repositorio central de documentación (Titanium View)
                     </p>
                 </div>
-                {/* 
-                <div className="flex gap-4">
-                    <Button icon={Plus} onClick={handleCreateReport}>
-                        Nuevo Informe
-                    </Button>
-                </div> 
-                */}
+                <div className="hidden md:block text-right">
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">
+                        Para crear un nuevo informe
+                    </p>
+                    <p className="text-sm text-slate-600">
+                        Ve a la ficha del paciente &rarr; Informe
+                    </p>
+                </div>
             </header>
 
             {/* Filters & Search */}

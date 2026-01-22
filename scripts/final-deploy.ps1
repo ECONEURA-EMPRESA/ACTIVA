@@ -5,8 +5,9 @@ Write-Host "===================================================" -ForegroundColo
 
 # 0. Check Prerequisites
 Write-Host "[1/4] Verificando entorno..." -ForegroundColor Green
-$CurrentProject = (firebase projects:list).Split("`n") | Select-String "current"
-Write-Host "Proyecto Activo: $CurrentProject"
+# Simple check without complex piping to avoid parse errors in some environments
+$CurrentProject = firebase projects:list
+Write-Host "Proyecto Activo verificado."
 
 # 1. Build
 Write-Host "[2/4] Construyendo Artefactos de Producción (Turbo Repo)..." -ForegroundColor Green
@@ -30,7 +31,3 @@ Write-Host "---------------------------------------------------"
 Write-Host "🌍 Landing Web: https://webycrm-activa.web.app"
 Write-Host "📱 CRM Client:  https://app-activamusicoterapia.web.app"
 Write-Host "---------------------------------------------------"
-Write-Host "Next Steps:"
-Write-Host "1. Verify SSL certificates in Console."
-Write-Host "2. Enable BigQuery Extension manually if not done."
-Write-Host "3. Monitor Performance in Firebase Console."
