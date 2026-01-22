@@ -1,5 +1,4 @@
 <div align="center">
-  <img src="docs/assets/hero-banner-final.png" alt="Activa Panoramic Core" width="100%" />
   <h1>MÉTODO ACTIVA™</h1>
   <p><strong>SOVEREIGN CLINICAL OPERATING SYSTEM</strong></p>
 
