@@ -21,7 +21,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'prompt', // TITANIUM: User controls updates (Safe Mode)
-      manifestFilename: 'manifest-nuclear.webmanifest',
+      manifestFilename: 'manifest.webmanifest',
       includeAssets: ['favicon.png', 'mobile-assets/icon.png', 'pwa-v11-192.png', 'pwa-v11-512.png', 'apple-icon-v11.png'],
       manifest: {
         name: 'ACTIVA MUSICOTERAPIA',
